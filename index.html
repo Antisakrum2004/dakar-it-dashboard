@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ИТ Поддержка — Дакар</title>
+    <!-- XLSX export with styles -->
+    <script src="https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js"></script>
+    <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            min-height: 100vh;
+            transition: filter 0.3s ease;
+        }
+
+        body.blurred > *:not(.preview-overlay):not(.preview-panel):not(.loading-bar) {
+            filter: blur(2px);
+            pointer-events: none;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .api-counter {
+            font-size: 11px;
+            color: #3b82f6;
+            background: #eff6ff;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .data-source-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        .data-source-badge.live {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .data-source-badge.mock {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .btn {
+            padding: 6px 14px;
+            border: 1px solid #d0d5dd;
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: #344054;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.15s;
+        }
+
+        .btn:hover { background: #f9fafb; border-color: #98a2b3; }
+
+        .btn-primary {
+            background: #1a1a2e;
+            color: #fff;
+            border-color: #1a1a2e;
+        }
+
+        .btn-primary:hover { background: #2d2d4a; }
+
+        .btn-evich {
+            background: #059669;
+            color: #fff;
+            border-color: #059669;
+        }
+
+        .btn-evich:hover { background: #047857; }
+
+        .btn .spinner {
+            width: 12px; height: 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        .btn:not(.btn-primary):not(.btn-evich) .spinner {
+            border-color: rgba(0,0,0,0.1);
+            border-top-color: #666;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .timestamp { font-size: 11px; color: #98a2b3; }
+
+        /* ===== SUMMARY BAR ===== */
+        .summary {
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .summary-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #667085;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #475469;
+        }
+
+        .summary-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .summary-count {
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .summary-hours {
+            margin-left: auto;
+            font-size: 11px;
+            color: #475469;
+        }
+
+        .summary-hours strong {
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        /* ===== TOOLBAR (filters + search + summary) ===== */
+        .toolbar {
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 8px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #667085;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .filter-chip {
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.15s;
+            user-select: none;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .filter-chip.active { color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+        .filter-chip:not(.active) { background: #f2f4f7; color: #667085; }
+        .filter-chip:not(.active):hover { background: #eaecf0; }
+
+        .fc-backlog.active { background: #3b82f6; }
+        .fc-inwork.active { background: #22c55e; }
+        .fc-testing.active { background: #ef4444; }
+        .fc-release.active { background: #f97316; }
+        .fc-payment.active { background: #059669; }
+
+        /* ===== SEARCH ===== */
+        .search-input {
+            width: 180px;
+            padding: 5px 10px 5px 28px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #1a1a2e;
+            background: #f9fafb url("data:image/svg+xml,%3Csvg width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%2398a2b3' stroke-width='2' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") 8px center no-repeat;
+            outline: none;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+
+        .search-input::placeholder { color: #b0b8c4; }
+        .search-input:focus { border-color: #3b82f6; background-color: #fff; width: 240px; }
+
+        .task-count {
+            font-size: 11px;
+            color: #667085;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* ===== TASK LIST ===== */
+        .container {
+            padding: 12px 16px;
+            max-width: 820px;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.12s;
+            gap: 12px;
+            min-height: 36px;
+            border-left: 3px solid transparent;
+        }
+
+        .task-item:hover {
+            background: #f8fafc;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+        }
+
+        .task-item:active {
+            background: #f0f4ff;
+        }
+
+        .task-item.deadline-overdue:hover {
+            background: #fef2f2;
+            box-shadow: -3px 0 8px rgba(239,68,68,0.25), 0 1px 6px rgba(0,0,0,0.06);
+            border-left-color: #ef4444;
+        }
+
+        .task-left {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .task-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: #1a1a2e;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+        }
+
+        .task-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 11px;
+            color: #98a2b3;
+            line-height: 1.2;
+        }
+
+        .task-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            white-space: nowrap;
+        }
+
+        .task-meta-item svg {
+            width: 11px; height: 11px;
+            opacity: 0.5;
+        }
+
+        .task-meta-overdue {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .task-hours {
+            font-size: 11px;
+            color: #667085;
+            white-space: nowrap;
+            padding: 1px 5px;
+            background: #f7f8fa;
+            border-radius: 3px;
+            line-height: 1.2;
+        }
+
+        .task-hours .hours-actual {
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .task-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .task-category {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 3px;
+            background: #f2f4f7;
+            color: #667085;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        /* ===== STAGE BADGES ===== */
+        .stage-badge {
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            min-width: 95px;
+            text-align: center;
+        }
+
+        .stage-backlog { background: #dbeafe; color: #1d4ed8; }
+        .stage-inwork { background: #dcfce7; color: #15803d; }
+        .stage-testing { background: #fee2e2; color: #dc2626; }
+        .stage-release { background: #ffedd5; color: #ea580c; }
+        .stage-payment { background: #d1fae5; color: #047857; }
+
+        /* ===== PREVIEW PANEL ===== */
+        .preview-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.15);
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s;
+            backdrop-filter: blur(0px);
+        }
+
+        .preview-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            backdrop-filter: blur(3px);
+        }
+
+        .preview-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 480px;
+            max-width: 90vw;
+            background: #fff;
+            z-index: 201;
+            transform: translateX(100%);
+            transition: transform 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.12);
+        }
+
+        .preview-panel.active { transform: translateX(0); }
+
+        .preview-header {
+            padding: 16px 20px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .preview-close {
+            width: 28px; height: 28px;
+            border: none;
+            background: #f2f4f7;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.15s;
+            font-size: 16px;
+            color: #667085;
+        }
+
+        .preview-close:hover { background: #eaecf0; }
+
+        .preview-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a2e;
+            line-height: 1.4;
+        }
+
+        .preview-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+        }
+
+        .preview-field { margin-bottom: 12px; }
+
+        .preview-field-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #98a2b3;
+            margin-bottom: 2px;
+        }
+
+        .preview-field-value {
+            font-size: 13px;
+            color: #344054;
+            line-height: 1.5;
+        }
+
+        .preview-hours-block {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .preview-hours-card {
+            flex: 1;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 8px 10px;
+            text-align: center;
+        }
+
+        .preview-hours-card .label {
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #98a2b3;
+            margin-bottom: 2px;
+        }
+
+        .preview-hours-card .value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+            line-height: 1.2;
+        }
+
+        .preview-hours-card .unit {
+            font-size: 10px;
+            font-weight: 400;
+            color: #98a2b3;
+        }
+
+        .preview-hours-card.over-budget {
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+
+        .preview-hours-card.over-budget .value { color: #dc2626; }
+
+        .preview-description {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 12px;
+            color: #475467;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .preview-footer {
+            padding: 12px 20px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-open-bitrix {
+            flex: 1;
+            padding: 9px 14px;
+            background: #1a1a2e;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background 0.15s;
+        }
+
+        .btn-open-bitrix:hover { background: #2d2d4a; }
+
+        /* ===== LOADING ===== */
+        .loading-bar {
+            position: fixed; top: 0; left: 0; right: 0;
+            height: 3px; background: #e5e7eb;
+            z-index: 300; overflow: hidden;
+            opacity: 0; transition: opacity 0.2s;
+        }
+
+        .loading-bar.active { opacity: 1; }
+
+        .loading-bar-fill {
+            height: 100%; background: #3b82f6;
+            width: 0%; transition: width 0.3s;
+            border-radius: 0 2px 2px 0;
+        }
+
+        /* ===== RESPONSIVE (MOBILE) ===== */
+        @media (max-width: 640px) {
+            .header { padding: 10px 14px; }
+            .header-title { font-size: 16px; }
+            .toolbar {
+                flex-wrap: wrap;
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            .filter-label { display: none; }
+            .filter-chip {
+                padding: 5px 12px;
+                font-size: 12px;
+                min-height: 32px;
+            }
+            .search-input {
+                width: 100%;
+                order: 10;
+                font-size: 14px;
+                padding: 8px 12px 8px 32px;
+                min-height: 40px;
+            }
+            .search-input:focus { width: 100%; }
+            .summary-hours {
+                margin-left: auto;
+                font-size: 11px;
+            }
+            .summary { padding: 8px 12px; gap: 10px; }
+            .filters { padding: 8px 12px; }
+            .search-bar { padding: 6px 12px; }
+            .container {
+                max-width: 100%;
+                padding: 8px 8px 32px;
+            }
+            .task-item {
+                padding: 10px 12px;
+                gap: 8px;
+                border-left-width: 4px;
+            }
+            .task-title { font-size: 14px; }
+            .task-meta { gap: 6px; font-size: 11px; flex-wrap: wrap; }
+            .stage-badge {
+                min-width: 75px;
+                font-size: 9px;
+                padding: 3px 7px;
+            }
+            .task-category { display: none; }
+            .task-hours { font-size: 10px; }
+            .preview-panel {
+                width: 100vw;
+                max-width: 100vw;
+                border-radius: 14px 14px 0 0;
+                bottom: 0;
+                top: auto;
+                max-height: 92vh;
+                transform: translateY(100%);
+                box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            }
+            .preview-panel.active { transform: translateY(0); }
+            .preview-header { padding: 12px 16px; }
+            .preview-body { padding: 12px 16px; }
+            .preview-footer { padding: 12px 16px; }
+            .preview-hours-card .value { font-size: 22px; }
+            .header-actions .btn span,
+            .header-actions .btn svg + * {}
+        }
+
+        .task-list::-webkit-scrollbar,
+        .preview-body::-webkit-scrollbar { width: 6px; }
+        .task-list::-webkit-scrollbar-thumb,
+        .preview-body::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<!-- Loading bar -->
+<div class="loading-bar" id="loadingBar">
+    <div class="loading-bar-fill" id="loadingFill"></div>
+</div>
+
+<!-- Header -->
+<div class="header">
+    <div class="header-left">
+        <div>
+            <div class="header-title">ИТ Поддержка — Дакар</div>
+            <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
+        </div>
+    </div>
+    <div class="header-actions">
+        <span class="api-counter" id="apiCounter">API: 0</span>
+        <span class="data-source-badge mock" id="dataSourceBadge">MOCK</span>
+        <button class="btn" onclick="refreshData()" id="refreshBtn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h-6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Обновить
+        </button>
+        <button class="btn btn-evich" onclick="exportExcelEvich()" id="evichBtn" title="Excel для Евича — 8 колонок с ИТОГО">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Excel Евичу
+        </button>
+        <button class="btn btn-primary" onclick="exportExcel()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Excel
+        </button>
+    </div>
+</div>
+
+<!-- Toolbar: filters + search + summary -->
+<div class="toolbar">
+    <span class="filter-label">Стадия:</span>
+    <span class="filter-chip fc-backlog active" data-stage="backlog" onclick="toggleFilter(this)">Бэклог</span>
+    <span class="filter-chip fc-inwork active" data-stage="inwork" onclick="toggleFilter(this)">В работе</span>
+    <span class="filter-chip fc-testing active" data-stage="testing" onclick="toggleFilter(this)">Тестирование</span>
+    <span class="filter-chip fc-release active" data-stage="release" onclick="toggleFilter(this)">В релиз</span>
+    <span class="filter-chip fc-payment active" data-stage="payment" onclick="toggleFilter(this)">На оплату</span>
+
+    <input class="search-input" type="text" id="searchInput" placeholder="Поиск..." oninput="renderTasks()">
+
+    <span class="summary-hours" style="white-space:nowrap;font-size:11px;color:#475469;margin-left:auto">Σ <strong id="sumHours">0</strong> ч &nbsp; <span id="filteredCount" class="task-count">0 задач</span></span>
+</div>
+
+<!-- Task List -->
+<div class="container">
+    <div class="task-list" id="taskList"></div>
+</div>
+
+<!-- Preview Overlay -->
+<div class="preview-overlay" id="previewOverlay" onclick="closePreview()"></div>
+
+<!-- Preview Panel -->
+<div class="preview-panel" id="previewPanel">
+    <div class="preview-header">
+        <div class="preview-title" id="previewTitle"></div>
+        <button class="preview-close" onclick="closePreview()">&times;</button>
+    </div>
+    <div class="preview-body" id="previewBody"></div>
+    <div class="preview-footer" id="previewFooter"></div>
+</div>
+
+<script>
+// ===== CONFIG =====
+const API_BASE = 'https://dakar.bitrix24.ru/rest/103557/7vdwpqb1buur4j0x/';
+const ENTITY_TYPE_ID = 129;
+const TASK_URL_PREFIX = 'https://dakar.bitrix24.ru/crm/type/129/details/';
+
+// Stage mapping: Bitrix24 stageId → internal stage key
+const STAGE_ID_MAP = {
+    'DT129_32:NEW':         'backlog',
+    'DT129_32:PREPARATION': 'inwork',
+    'DT129_32:UC_6UIGCQ':  'testing',
+    'DT129_32:UC_6Z1J7L':  'testing',
+    'DT129_32:UC_ZHCMJH':  'testing',
+    'DT129_32:UC_2PO1Y3':  'release',
+    'DT129_32:UC_BRZNHH':  'release',
+    'DT129_32:UC_U9J0CO':  'release',
+    'DT129_32:UC_A2NCK6':  'release',
+    'DT129_32:SUCCESS':     'payment',
+    'DT129_32:FAIL':        'backlog',
+};
+
+// ===== STAGE CONFIG =====
+const stageConfig = {
+    backlog:  { label: "Бэклог",        badgeClass: "stage-backlog",  filterClass: "fc-backlog",  color: "3b82f6" },
+    inwork:   { label: "В работе",      badgeClass: "stage-inwork",  filterClass: "fc-inwork",   color: "22c55e" },
+    testing:  { label: "Тестирование",  badgeClass: "stage-testing", filterClass: "fc-testing",  color: "ef4444" },
+    release:  { label: "В релиз",       badgeClass: "stage-release", filterClass: "fc-release",  color: "f97316" },
+    payment:  { label: "На оплату",     badgeClass: "stage-payment", filterClass: "fc-payment",  color: "059669" },
+};
+
+// ===== STATE =====
+let activeFilters = new Set(["backlog", "inwork", "testing", "release", "payment"]);
+let apiRequestCount = 0;
+let userMap = {};
+let tasks = [];
+let isLiveData = false;
+
+// ===== MOCK DATA (fallback) =====
+const mockTasks = [
+    { id: 2014, title: "Организация работы менеджеров в онлайн режиме в полях по средствам мобильного приложения", stage: "inwork", category: "Продажи", responsible: "Анатолий Евич", programmer: "Константин Приходько", deadline: "2026-01-31", created: "2025-07-29", description: "Организация работы менеджеров в онлайн режиме в полях по средствам мобильного приложения", hoursPlanned: 0, hoursActual: 0 },
+    { id: 2222, title: "Интеграция платежных табличек Т-Банк и Дакар", stage: "inwork", category: "Продажи", responsible: "Сергей Мироненко", programmer: "Александр Соколовский", deadline: "2026-04-12", created: "2025-10-01", description: "Интеграция платежных табличек Т-Банк и Дакар", hoursPlanned: 0, hoursActual: 0 },
+    { id: 2460, title: "Не работает автоматическое закрытие заказов", stage: "inwork", category: "Продажи", responsible: "Сергей Мироненко", programmer: "Андрей Предеин", deadline: "2026-04-12", created: "2025-10-24", description: "Необходимо восстановить рабочий функционал автоматического закрытия заказов", hoursPlanned: 0, hoursActual: 0 },
+    { id: 2578, title: "Уведомление о статусе выгрузки на сайт", stage: "inwork", category: "ИТ", responsible: "Владимир Макаров", programmer: "Александр Соколовский", deadline: "2026-04-05", created: "2025-12-08", description: "Настроить ежедневные уведомления на почту о статусе выгрузки сайта B2C Dakar61.ru", hoursPlanned: 0, hoursActual: 0 },
+    { id: 2649, title: "Картинки номенклатуры из внешних источников", stage: "inwork", category: "ИТ", responsible: "Анатолий Евич", programmer: "Александр Соколовский", deadline: "2026-04-05", created: "2026-03-10", description: "Картинки из внешних источников: открыть FTP на сайте, создать РС ВнешниеКартинкиНоменклатуры, доработать выгрузку на сайт", hoursPlanned: 12, hoursActual: 0 },
+    { id: 2655, title: "Некорректная выгрузка и сброс остатков", stage: "inwork", category: "Маркетинг", responsible: "Анна Третьякова", programmer: "Владимир Макаров", deadline: "2026-04-30", created: "2026-03-11", description: "Некорректная выгрузка и сброс остатков на сайте", hoursPlanned: 0, hoursActual: 0 },
+    { id: 2663, title: "Автоопределение договора платежа при загрузке клиент банка", stage: "inwork", category: "Продажи", responsible: "Сергей Мироненко", programmer: "Андрей Предеин", deadline: "2026-04-05", created: "2026-03-16", description: "Доработать загрузку платежных поручений на поступление ДС. Автоматическое распределение суммы по договорам задолженности", hoursPlanned: 10, hoursActual: 0 },
+    { id: 2665, title: "Ошибки в ценообразовании Авито", stage: "inwork", category: "Управление персоналом", responsible: "Елена Цыфарова", programmer: "Константин Приходько", deadline: "2026-04-05", created: "2026-03-16", description: "Ошибки в ценообразовании Авито", hoursPlanned: 0, hoursActual: 0 },
+    { id: 2689, title: "Создавать авансовые СЧФ в УТ", stage: "inwork", category: "ИТ", responsible: "Анатолий Евич", programmer: "Александр Соколовский", deadline: "2026-04-10", created: "2026-03-23", description: "Создавать авансовые СЧФ в УТ: рег заданием 1 раз в день, на все платежные поручения с авансами", hoursPlanned: 16, hoursActual: 11 },
+    { id: 2691, title: "Проверить обмен авансовыми СЧФ с Бухгалтерией", stage: "inwork", category: "ИТ", responsible: "Анатолий Евич", programmer: "Анатолий Евич", deadline: "2026-04-01", created: "2026-03-23", description: "Проверить обмен авансовыми СЧФ с Бухгалтерией", hoursPlanned: 2, hoursActual: 0 },
+    { id: 2713, title: "Подключение ЛК Авито Подольск Дакар к 1С", stage: "inwork", category: "Управление персоналом", responsible: "Елена Цыфарова", programmer: "Александр Соколовский", deadline: "2026-04-12", created: "2026-03-31", description: "Подключение ЛК Авито Подольск Дакар к 1С", hoursPlanned: 3, hoursActual: 0 },
+    { id: 2715, title: "ОШИБКА автоматического резервирования", stage: "inwork", category: "Продажи", responsible: "Сергей Мироненко", programmer: "Константин Приходько", deadline: "2026-04-05", created: "2026-03-31", description: "ОШИБКА автоматического резервирования", hoursPlanned: 0, hoursActual: 0 },
+    { id: 2717, title: "Автоматизация массовой выгрузки товаров на Озон через модуль 1С", stage: "inwork", category: "Управление персоналом", responsible: "Елена Цыфарова", programmer: "Александр Соколовский", deadline: "2026-04-19", created: "2026-03-31", description: "Автоматизация массовой выгрузки товаров на Озон через модуль 1С", hoursPlanned: 0, hoursActual: 0 },
+    { id: 2564, title: "Организовать возможность контрагентам в портале В2В осуществлять заказы товаров", stage: "testing", category: "Продажи", responsible: "Сергей Мироненко", programmer: "Вадим Авраменко", deadline: "2026-01-31", created: "2025-11-30", description: "Необходимо организовать возможность контрагентам в портале В2В осуществлять заказы товаров с конкретных складов и видеть остатки", hoursPlanned: 0, hoursActual: 0 },
+    { id: 2574, title: "Ошибка (Bug): Заведены два договора на разных контрагентов с одинаковым № и датой", stage: "testing", category: "Бухгалтерия", responsible: "Наталья Хоренко", programmer: "Константин Приходько", deadline: "2025-12-05", created: "2025-12-05", description: "Ошибка: Заведены два договора на разных контрагентов с одинаковым номером и датой", hoursPlanned: 0, hoursActual: 0 },
+    { id: 2580, title: "Номера в договорах поставки", stage: "testing", category: "Бухгалтерия", responsible: "Наталья Елецкая", programmer: "Павел Красноперов", deadline: "2025-12-09", created: "2025-12-09", description: "Номера в договорах поставки", hoursPlanned: 0, hoursActual: 0 },
+    { id: 2584, title: "Ошибка (Bug): Ошибка в справочнике номенклатуры при создании группы", stage: "testing", category: "Опер. отдел", responsible: "Евгения Положенцева", programmer: "Константин Приходько", deadline: "2025-12-09", created: "2025-12-09", description: "Ошибка в справочнике номенклатуры при создании группы", hoursPlanned: 0, hoursActual: 0 },
+    { id: 2610, title: "Раздельная печать расходных ордеров", stage: "testing", category: "Склад", responsible: "Евгений Кулешов", programmer: "Тимур Забиров", deadline: "2026-01-29", created: "2026-01-22", description: "Необходимо чтобы расходные ордера печатались каждый на своем листе", hoursPlanned: 1, hoursActual: 4 },
+    { id: 2620, title: "Выгрузка цен и остатков поставщика Багория", stage: "testing", category: "Продажи", responsible: "Сергей Мироненко", programmer: "Тимур Забиров", deadline: "2026-04-01", created: "2026-02-04", description: "Организовать выгрузку цен и остатков поставщика Багория с их портала В2В через API", hoursPlanned: 0, hoursActual: 29 },
+    { id: 2635, title: "Загрузка прайса поставщика Шинсервис", stage: "testing", category: "ИТ", responsible: "Анатолий Евич", programmer: "Тимур Забиров", deadline: "2026-02-26", created: "2026-02-26", description: "Доработать загрузку прайсов поставщиков, добавить загрузку прайса для поставщика Шинсервис через API", hoursPlanned: 10, hoursActual: 9.5 },
+    { id: 2639, title: "Интеграция загрузки прайса поставщика 4точки", stage: "testing", category: "ИТ", responsible: "Анатолий Евич", programmer: "Тимур Забиров", deadline: "2026-03-15", created: "2026-03-04", description: "Интеграция загрузки прайса поставщика 4точки в обработку загрузки прайсов через API", hoursPlanned: 10, hoursActual: 10.5 },
+    { id: 2657, title: "Доработки для механизма региональных заказов на сайте", stage: "testing", category: "ИТ", responsible: "Анатолий Евич", programmer: "Александр Соколовский", deadline: "2026-04-05", created: "2026-03-11", description: "Доработать загрузку заказа по полю Регион, доработать выгрузку прайсов на сайт с полем Регион", hoursPlanned: 2, hoursActual: 0 },
+    { id: 2661, title: "Контроль подписания договоров бухгалтерией", stage: "testing", category: "Продажи", responsible: "Сергей Мироненко", programmer: "Тимур Забиров", deadline: "2026-04-05", created: "2026-03-16", description: "Переделать ограничения на реквизит Класс договора, убрать функционал шаблонов наименования", hoursPlanned: 8, hoursActual: 8 },
+    { id: 2683, title: "Добавить поставщика Северавто в загрузку прайсов", stage: "testing", category: "ИТ", responsible: "Анатолий Евич", programmer: "Тимур Забиров", deadline: "2026-04-05", created: "2026-03-23", description: "Добавить поставщика Северавто в загрузку прайсов через API: https://webmim.svrauto.ru", hoursPlanned: 10, hoursActual: 12 },
+    { id: 2685, title: "Добавить поставщика Вершина в загрузку прайсов", stage: "testing", category: "ИТ", responsible: "Анатолий Евич", programmer: "Тимур Забиров", deadline: "2026-04-05", created: "2026-03-23", description: "Добавить поставщика Вершина в загрузку прайсов через XML выгрузку", hoursPlanned: 10, hoursActual: 9 },
+    { id: 2701, title: "Добавить поставщика Яршинторг в загрузку прайсов", stage: "testing", category: "ИТ", responsible: "Анатолий Евич", programmer: "Тимур Забиров", deadline: "2026-04-12", created: "2026-03-24", description: "Добавить поставщика Яршинторг в загрузку прайсов через приложение-скачивание", hoursPlanned: 10, hoursActual: 8 },
+    { id: 2721, title: "Правила определения Вида номенклатуры для шин при загрузке прайсов", stage: "testing", category: "ИТ", responsible: "Анатолий Евич", programmer: "Тимур Забиров", deadline: "2026-04-05", created: "2026-04-02", description: "Правила определения: легкогрузовая (С на конце), грузовая (дробный диаметр), легковая (не грузовая, не легкогрузовая)", hoursPlanned: 10, hoursActual: 0 },
+    { id: 2641, title: "Актуальность остатков поставщиков", stage: "release", category: "ИТ", responsible: "Анатолий Евич", programmer: "Тимур Забиров", deadline: "2026-04-05", created: "2026-03-10", description: "Регламентное задание для проверки актуальности остатков поставщиков. При просрочке — обнуление остатков и оповещение менеджера", hoursPlanned: 8, hoursActual: 11 },
+    { id: 2645, title: "Автоматическая загрузка прайсов", stage: "release", category: "ИТ", responsible: "Анатолий Евич", programmer: "Тимур Забиров", deadline: "2026-04-05", created: "2026-03-10", description: "Регламентное задание на автозагрузку прайса. Расписание задается в складе поставщика", hoursPlanned: 12, hoursActual: 14 },
+    { id: 2647, title: "Авторасчет закупочных цен", stage: "release", category: "ИТ", responsible: "Анатолий Евич", programmer: "Тимур Забиров", deadline: "2026-04-05", created: "2026-03-10", description: "При установке цены закупки поставщика, рассчитывать и устанавливать все зависимые типы цен", hoursPlanned: 8, hoursActual: 0 },
+    { id: 2651, title: "Автоматический расчет и установка типов цен", stage: "release", category: "Продажи", responsible: "Сергей Мироненко", programmer: "Константин Приходько", deadline: "2026-04-05", created: "2026-03-10", description: "Чтобы в документ установки цен попадали все цены зависимые от цены АВИТО, и автоматически рассчитывались", hoursPlanned: 4, hoursActual: 17 },
+    { id: 2669, title: "Автоматизация формирования наименований (дубликат)", stage: "release", category: "ИТ", responsible: "Анатолий Евич", programmer: "Константин Приходько", deadline: "2026-04-05", created: "2026-03-18", description: "Создать реквизит Тип шаблона, добавить автоформирование наименования по шаблону для вида номенклатуры", hoursPlanned: 4, hoursActual: 6.5 },
+    { id: 2693, title: "Автоматизация формирования наименований", stage: "release", category: "ИТ", responsible: "Анатолий Евич", programmer: "Константин Приходько", deadline: "2026-04-05", created: "2026-03-23", description: "Создать реквизит Тип шаблона (перечисление), добавить в номенклатуру функционал автоформирования наименования по шаблону", hoursPlanned: 4, hoursActual: 0 },
+    { id: 2699, title: "Добавить поставщика Мосавтошина в загрузку прайсов", stage: "release", category: "ИТ", responsible: "Анатолий Евич", programmer: "Тимур Забиров", deadline: "2026-04-05", created: "2026-03-24", description: "Добавить поставщика Мосавтошина в загрузку прайсов: https://opt.mosautoshina.ru/db/", hoursPlanned: 10, hoursActual: 11 },
+    { id: 2608, title: "Механизм автоформирования наименования для сайта", stage: "payment", category: "ИТ", responsible: "Анатолий Евич", programmer: "Александр Соколовский", deadline: "2026-01-31", created: "2026-01-20", description: "Создать справочник Шаблоны формирования наименований номенклатуры с таб частью Формула", hoursPlanned: 0, hoursActual: 33 },
+    { id: 2614, title: "Погрузочный реестр к заданию на перевозку", stage: "payment", category: "Логистика", responsible: "Наталья Стрельчик", programmer: "Константин Приходько", deadline: "2026-02-02", created: "2026-02-02", description: "Погрузочный реестр к заданию на перевозку", hoursPlanned: 0, hoursActual: 2 },
+    { id: 2633, title: "В договоре с клиентом вывести реквизит для исключения изменения регистра", stage: "payment", category: "Бухгалтерия", responsible: "Наталья Хоренко", programmer: "Константин Приходько", deadline: "2026-03-08", created: "2026-02-25", description: "Вывести реквизит (установить/снять галочку) для возможности установки исключения изменения регистра", hoursPlanned: 0, hoursActual: 3 },
+    { id: 2643, title: "Объединение заказов", stage: "payment", category: "ИТ", responsible: "Анатолий Евич", programmer: "Константин Приходько", deadline: "2026-03-27", created: "2026-03-10", description: "Пользователь выделяет несколько заказов → состав переносится в заказ с минимальной датой → остальные закрываются", hoursPlanned: 4, hoursActual: 8.5 },
+    { id: 2703, title: "Классификация договоров", stage: "payment", category: "ИТ", responsible: "Анатолий Евич", programmer: "Константин Приходько", deadline: "2026-03-29", created: "2026-03-25", description: "Добавить перечисление КлассыДоговоровПродажи с 15 значениями, добавить реквизит в справочник ДоговорыКонтрагентов", hoursPlanned: 2, hoursActual: 2 },
+    { id: 2705, title: "Проблема: Разобрать отчет по Прибыль и убытки", stage: "payment", category: "ИТ", responsible: "Владимир Макаров", programmer: "Константин Приходько", deadline: "2026-03-20", created: "2026-03-25", description: "В отчет попадает сумма которой нет в расшифровке", hoursPlanned: 5, hoursActual: 5 },
+    { id: 2188, title: "Выгрузка всех доп свойств на сайт", stage: "backlog", category: "Маркетинг", responsible: "Анна Третьякова", programmer: "Евгения Положенцева", deadline: "2026-04-05", created: "2025-09-26", description: "Дубликаты в названиях товаров. Выгрузка всех доп свойств на сайт", hoursPlanned: 10, hoursActual: 0 },
+    { id: 2414, title: "Бухгалтерия: Перепроводить документы загруженные в БухБазу", stage: "backlog", category: "Бухгалтерия", responsible: "Наталья Хоренко", programmer: "Антон Степанов", deadline: "2026-04-30", created: "2025-10-21", description: "Бухгалтерия: Перепроводить документы загруженные в БухБазу", hoursPlanned: 0, hoursActual: 0 },
+    { id: 2422, title: "Создать дату документа для бухгалтерии в документы перепродажи", stage: "backlog", category: "ИТ", responsible: "Анатолий Евич", programmer: "Анатолий Евич", deadline: "2026-04-30", created: "2025-10-21", description: "Создать дату документа для бухгалтерии в документы перепродажи. Доработать обмен с БУХ.", hoursPlanned: 0, hoursActual: 0 },
+    { id: 2588, title: "Настройка обмена с сайтом РОСАВТОШИНА", stage: "backlog", category: "ИТ", responsible: "Анатолий Евич", programmer: "Владимир Макаров", deadline: "2026-04-30", created: "2025-12-09", description: "Выгрузка без учета остатков раз в сутки, выгрузка остатков раз в час", hoursPlanned: 0, hoursActual: 0 },
+    { id: 2671, title: "Настройка регистрации Золотой рыбки: терминал эквайринга, ККТ, ОП в 1С", stage: "backlog", category: "Дакар", responsible: "Даниил Ширяев", programmer: "Даниил Ширяев", deadline: "2026-04-30", created: "2026-03-18", description: "Регистрация терминала эквайринга, перерегистрация ККТ, регистрация ОП в 1С", hoursPlanned: 0, hoursActual: 0 },
+    { id: 2673, title: "Зарегистрировать онлайн кассу на сайте dakar61.ru", stage: "backlog", category: "Дакар", responsible: "Даниил Ширяев", programmer: "Даниил Ширяев", deadline: "2026-04-30", created: "2026-03-18", description: "Зарегистрировать онлайн кассу на сайте dakar61.ru", hoursPlanned: 0, hoursActual: 0 },
+    { id: 2719, title: "Автоматизация массовой выгрузки товаров на ЯндексМаркет через модуль 1С", stage: "backlog", category: "Управление персоналом", responsible: "Елена Цыфарова", programmer: "Андрей Предеин", deadline: "2026-04-26", created: "2026-03-31", description: "Автоматизация массовой выгрузки товаров на ЯндексМаркет через модуль 1С", hoursPlanned: 0, hoursActual: 0 },
+];
+
+// ===== API FUNCTIONS =====
+function incrementApiCount() {
+    apiRequestCount++;
+    document.getElementById('apiCounter').textContent = 'API: ' + apiRequestCount;
+}
+
+function getUserName(userId) {
+    if (!userId) return '';
+    return userMap[String(userId)] || '';
+}
+
+function mapStage(stageId) {
+    return STAGE_ID_MAP[stageId] || 'backlog';
+}
+
+function mapApiItem(item) {
+    var stageId = item.stageId || '';
+    var stage = mapStage(stageId);
+    var createdTime = item.createdTime || item.begindate || '';
+    var deadline = item.ufCrm26_1715598912 || item.closedate || '';
+
+    // Parse dates
+    var created = createdTime ? createdTime.substring(0, 10) : '';
+    var deadlineStr = deadline ? deadline.substring(0, 10) : '';
+
+    // Names
+    var responsibleName = getUserName(item.createdBy);
+    var programmerName = getUserName(item.assignedById);
+
+    // If programmer is empty, try from assignedById
+    if (!programmerName) {
+        programmerName = getUserName(item.assignedById);
+    }
+
+    // Description: remove "Задача № XXX . " prefix
+    var title = item.title || '';
+    var descMatch = title.match(/^Задача №\s*\d+\s*\.\s*(.*)/);
+    var cleanTitle = descMatch ? descMatch[1] : title;
+
+    var description = item.ufCrm10_1700556647 || '';
+    // Clean description: remove "Задача № XXX . " prefix
+    if (description) {
+        var descClean = description.match(/^Задача №\s*\d+\s*\.\s*(.*)/);
+        if (descClean) description = descClean[1];
+    }
+
+    return {
+        id: parseInt(item.id) || 0,
+        title: cleanTitle || title,
+        stage: stage,
+        stageId: stageId,
+        category: item.ufCrm26_1715087907 || '',
+        responsible: responsibleName || 'Пользователь ' + item.createdBy,
+        programmer: programmerName || 'Пользователь ' + item.assignedById,
+        deadline: deadlineStr,
+        created: created,
+        description: description || cleanTitle,
+        hoursPlanned: parseFloat(item.ufCrm26_1773170029654) || 0,
+        hoursActual: parseFloat(item.ufCrm26_1761119246948) || 0
+    };
+}
+
+async function fetchUsers() {
+    incrementApiCount();
+    try {
+        var resp = await fetch(API_BASE + 'user.get');
+        var data = await resp.json();
+        var users = data.result || [];
+        users.forEach(function(u) {
+            var name = (u.LAST_NAME + ' ' + u.NAME).trim();
+            if (name) userMap[u.ID] = name;
+        });
+        console.log('Users loaded:', Object.keys(userMap).length);
+        return true;
+    } catch(e) {
+        console.error('Failed to fetch users:', e);
+        return false;
+    }
+}
+
+async function fetchAllItems() {
+    var allItems = [];
+    var start = 0;
+
+    while (true) {
+        incrementApiCount();
+        try {
+            var url = API_BASE + 'crm.item.list?entityTypeId=' + ENTITY_TYPE_ID + '&start=' + start;
+            var resp = await fetch(url);
+            var data = await resp.json();
+            var items = data.result;
+            if (Array.isArray(items)) {
+                allItems = allItems.concat(items);
+            } else if (items && items.items) {
+                allItems = allItems.concat(items.items);
+            }
+
+            if (data.next && data.next > start) {
+                start = data.next;
+                // Small delay to avoid rate limiting
+                await new Promise(function(r) { setTimeout(r, 100); });
+            } else {
+                break;
+            }
+        } catch(e) {
+            console.error('Failed to fetch items at start=' + start, e);
+            break;
+        }
+    }
+
+    console.log('Total items fetched:', allItems.length);
+    return allItems;
+}
+
+async function loadLiveData() {
+    var bar = document.getElementById('loadingBar');
+    var fill = document.getElementById('loadingFill');
+    bar.classList.add('active');
+    fill.style.width = '10%';
+
+    try {
+        // Step 1: Load users
+        fill.style.width = '20%';
+        var usersOk = await fetchUsers();
+        if (!usersOk) throw new Error('Users fetch failed');
+
+        fill.style.width = '30%';
+
+        // Step 2: Load all items
+        var rawItems = await fetchAllItems();
+        if (!rawItems || rawItems.length === 0) throw new Error('No items received');
+
+        fill.style.width = '80%';
+
+        // Step 3: Map items
+        tasks = rawItems.map(mapApiItem).filter(function(t) { return t.id > 0; });
+
+        // Sort by created date descending
+        tasks.sort(function(a, b) {
+            return new Date(b.created) - new Date(a.created);
+        });
+
+        isLiveData = true;
+
+        // Update UI
+        var badge = document.getElementById('dataSourceBadge');
+        badge.textContent = 'LIVE API';
+        badge.className = 'data-source-badge live';
+
+        fill.style.width = '100%';
+
+        console.log('Live data loaded:', tasks.length, 'tasks');
+        return true;
+    } catch(e) {
+        console.error('API load failed, using mock data:', e);
+        tasks = mockTasks.slice();
+        isLiveData = false;
+
+        var badge = document.getElementById('dataSourceBadge');
+        badge.textContent = 'MOCK';
+        badge.className = 'data-source-badge mock';
+
+        return false;
+    } finally {
+        setTimeout(function() {
+            bar.classList.remove('active');
+            fill.style.width = '0%';
+        }, 400);
+    }
+}
+
+function refreshData() {
+    var btn = document.getElementById('refreshBtn');
+    btn.innerHTML = '<span class="spinner"></span> Загрузка...';
+    btn.disabled = true;
+
+    loadLiveData().then(function(ok) {
+        updateSummary();
+        renderTasks();
+        updateTimestamp();
+        btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h-6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Обновить';
+        btn.disabled = false;
+    });
+}
+
+function updateTimestamp() {
+    var now = new Date();
+    var months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+    var source = isLiveData ? 'API (живые данные)' : 'MOCK (заглушка)';
+    document.getElementById('lastUpdate').textContent =
+        'Обновлено: ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear() +
+        ', ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') +
+        ' | ' + source;
+}
+
+// ===== SUMMARY =====
+function updateSummary() {
+    var totalHours = 0;
+    tasks.forEach(function(t) { totalHours += (t.hoursActual || 0); });
+    document.getElementById('sumHours").textContent = totalHours;
+}
+
+// ===== RENDER =====
+function renderTasks() {
+    var list = document.getElementById('taskList');
+    var query = (document.getElementById("searchInput").value || "").toLowerCase().trim();
+
+    var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
+    if (query) filtered = filtered.filter(function(t) { return t.title.toLowerCase().includes(query); });
+
+    filtered.sort(function(a, b) { return new Date(b.created) - new Date(a.created); });
+
+    document.getElementById("filteredCount").textContent = filtered.length + ' задач';
+
+    list.innerHTML = filtered.map(function(task) {
+        var stage = stageConfig[task.stage] || stageConfig.backlog;
+        var isOverdue = task.deadline && new Date(task.deadline) < new Date() && task.stage !== 'backlog';
+        var deadlineStr = task.deadline ? formatDate(task.deadline) : '';
+
+        var hoursHtml = (task.hoursActual > 0 || task.hoursPlanned > 0)
+            ? '<span class="task-meta-item"><span class="task-hours"><span class="hours-actual">' + task.hoursActual + '</span> ч</span></span>'
+            : '';
+
+        var overdueTag = isOverdue
+            ? '<span class="task-meta-item task-meta-overdue">⚠ просрочен</span>'
+            : '';
+
+        return '<div class="task-item ' + (isOverdue ? 'deadline-overdue' : '') + '" onclick="openPreview(' + task.id + ')">' +
+            '<div class="task-left">' +
+                '<div class="task-title">' + escapeHtml(task.title) + '</div>' +
+                '<div class="task-meta">' +
+                    (deadlineStr ? '<span class="task-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>' + deadlineStr + '</span>' : '') +
+                    '<span class="task-meta-item">' + escapeHtml(task.responsible) + '</span>' +
+                    (task.programmer ? '<span class="task-meta-item" style="color:#667085">→ ' + escapeHtml(task.programmer) + '</span>' : '') +
+                    hoursHtml +
+                    overdueTag +
+                '</div>' +
+            '</div>' +
+            '<div class="task-right">' +
+                '<span class="task-category">' + escapeHtml(task.category) + '</span>' +
+                '<span class="stage-badge ' + stage.badgeClass + '">' + stage.label + '</span>' +
+            '</div>' +
+        '</div>';
+    }).join("");
+}
+
+// ===== PREVIEW =====
+function openPreview(taskId) {
+    var task = tasks.find(function(t) { return t.id === taskId; });
+    if (!task) return;
+
+    var stage = stageConfig[task.stage] || stageConfig.backlog;
+    var isOverdue = task.deadline && new Date(task.deadline) < new Date() && task.stage !== 'backlog';
+    var isOverBudget = task.hoursPlanned > 0 && task.hoursActual > task.hoursPlanned;
+
+    document.getElementById("previewTitle").textContent = task.title;
+
+    var hoursBlock = (task.hoursPlanned > 0 || task.hoursActual > 0) ?
+        '<div class="preview-hours-block">' +
+            '<div class="preview-hours-card ' + (isOverBudget ? 'over-budget' : '') + '">' +
+                '<div class="label">Плановые</div>' +
+                '<div class="value">' + task.hoursPlanned + '<span class="unit"> ч</span></div>' +
+            '</div>' +
+            '<div class="preview-hours-card ' + (isOverBudget ? 'over-budget' : '') + '">' +
+                '<div class="label">Фактические</div>' +
+                '<div class="value">' + task.hoursActual + '<span class="unit"> ч</span></div>' +
+            '</div>' +
+        '</div>' : '';
+
+    var bodyHtml =
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">' +
+            '<span class="stage-badge ' + stage.badgeClass + '">' + stage.label + '</span>' +
+            '<span class="task-category" style="font-size:12px">' + escapeHtml(task.category) + '</span>' +
+        '</div>' +
+        hoursBlock +
+        '<div class="preview-field"><div class="preview-field-label">Ответственный</div><div class="preview-field-value">' + escapeHtml(task.responsible) + '</div></div>' +
+        (task.programmer ? '<div class="preview-field"><div class="preview-field-label">Программист</div><div class="preview-field-value">' + escapeHtml(task.programmer) + '</div></div>' : '') +
+        (task.deadline ? '<div class="preview-field"><div class="preview-field-label">Дедлайн</div><div class="preview-field-value" style="' + (isOverdue ? 'color:#ef4444;font-weight:600' : '') + '">' + formatDate(task.deadline) + (isOverdue ? ' (просрочен)' : '') + '</div></div>' : '') +
+        '<div class="preview-field"><div class="preview-field-label">Создана</div><div class="preview-field-value">' + (task.created ? formatDate(task.created) : '—') + '</div></div>' +
+        (task.description ? '<div class="preview-field"><div class="preview-field-label">Описание</div><div class="preview-description">' + escapeHtml(task.description) + '</div></div>' : '');
+
+    document.getElementById("previewBody").innerHTML = bodyHtml;
+
+    document.getElementById("previewFooter").innerHTML =
+        '<a class="btn-open-bitrix" href="' + TASK_URL_PREFIX + task.id + '/" target="_blank" rel="noopener">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
+            'Открыть в Битрикс24' +
+        '</a>';
+
+    document.getElementById("previewOverlay").classList.add("active");
+    document.getElementById("previewPanel").classList.add("active");
+    document.body.classList.add("blurred");
+}
+
+function closePreview() {
+    document.getElementById("previewOverlay").classList.remove("active");
+    document.getElementById("previewPanel").classList.remove("active");
+    document.body.classList.remove("blurred");
+}
+
+// ===== FILTERS =====
+function toggleFilter(chip) {
+    var stage = chip.dataset.stage;
+    if (activeFilters.has(stage)) {
+        activeFilters.delete(stage);
+        chip.classList.remove("active");
+    } else {
+        activeFilters.add(stage);
+        chip.classList.add("active");
+    }
+    renderTasks();
+}
+
+// ===== UTILITIES =====
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    var d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    var months = ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
+    return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function formatDateLong(dateStr) {
+    if (!dateStr) return '';
+    var d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    var months = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+    return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function formatDateShort(dateStr) {
+    if (!dateStr) return '';
+    var d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + d.getFullYear();
+}
+
+function formatHoursComma(val) {
+    if (!val && val !== 0) return '';
+    // Replace dot with comma for Russian format
+    return String(val).replace('.', ',');
+}
+
+function escapeHtml(text) {
+    if (!text) return "";
+    var div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ===== EXCEL EXPORT — standard =====
+function exportExcel() {
+    if (typeof ExcelJS === 'undefined') {
+        alert('Библиотека экспорта не загружена. Проверьте интернет-соединение.');
+        return;
+    }
+
+    var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
+    if (!filtered.length) {
+        alert('Нет задач для экспорта по выбранным фильтрам.');
+        return;
+    }
+
+    var stageColors = {
+        'backlog':  {bg: 'FFDBEAFE', text: 'FF1D4ED8'},
+        'inwork':   {bg: 'FFDCFCE7', text: 'FF15803D'},
+        'testing':  {bg: 'FFFEE2E2', text: 'FFDC2626'},
+        'release':  {bg: 'FFFFEDD5', text: 'FFEA580C'},
+        'payment':  {bg: 'FFD1FAE5', text: 'FF047857'}
+    };
+
+    var wb = new ExcelJS.Workbook();
+    wb.creator = 'IT Поддержка Дакар';
+    wb.created = new Date();
+
+    var ws = wb.addWorksheet('ИТ Поддержка', {
+        properties: { defaultColWidth: 12 },
+        views: [{ state: 'frozen', ySplit: 1 }]
+    });
+
+    ws.getColumn(1).width = 7;
+    ws.getColumn(2).width = 55;
+    ws.getColumn(3).width = 45;
+    ws.getColumn(4).width = 15;
+    ws.getColumn(5).width = 20;
+    ws.getColumn(6).width = 24;
+    ws.getColumn(7).width = 9;
+
+    var hdrBorder = {
+        top: {style: 'thin', color: {argb: 'FF555555'}},
+        bottom: {style: 'thin', color: {argb: 'FF555555'}},
+        left: {style: 'thin', color: {argb: 'FF555555'}},
+        right: {style: 'thin', color: {argb: 'FF555555'}}
+    };
+    var cellBorder = {
+        top: {style: 'thin', color: {argb: 'FFCCCCCC'}},
+        bottom: {style: 'thin', color: {argb: 'FFCCCCCC'}},
+        left: {style: 'thin', color: {argb: 'FFCCCCCC'}},
+        right: {style: 'thin', color: {argb: 'FFCCCCCC'}}
+    };
+
+    var headerRow = ws.addRow(['ID','Название','Ссылка','Стадия','Дедлайн','Программист','Факт/ч']);
+    headerRow.height = 26;
+    headerRow.eachCell(function(cell) {
+        cell.font = {bold: true, color: {argb: 'FFFFFFFF'}, size: 11, name: 'Arial'};
+        cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FF333333'}};
+        cell.alignment = {horizontal: 'center', vertical: 'middle'};
+        cell.border = hdrBorder;
+    });
+
+    filtered.forEach(function(t) {
+        var sc = stageColors[t.stage] || {bg: 'FFFFFFFF', text: 'FF000000'};
+        var stageLabel = (stageConfig[t.stage] || {}).label || '';
+        var bitrixUrl = TASK_URL_PREFIX + t.id + '/';
+
+        var row = ws.addRow([t.id, t.title || '', bitrixUrl, stageLabel, t.deadline ? formatDate(t.deadline) : '', t.programmer || '', t.hoursActual || 0]);
+        row.height = 20;
+
+        row.eachCell(function(cell, colNumber) {
+            cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: sc.bg}};
+            cell.border = cellBorder;
+            cell.alignment = {vertical: 'middle', wrapText: (colNumber === 2)};
+            cell.font = {size: 10, name: 'Arial'};
+
+            if (colNumber === 4) {
+                cell.font = {bold: true, color: {argb: sc.text}, size: 10, name: 'Arial'};
+                cell.alignment = {horizontal: 'center', vertical: 'middle'};
+            }
+            if (colNumber === 3) {
+                cell.font = {size: 9, name: 'Arial', color: {argb: 'FF666666'}};
+                cell.alignment = {vertical: 'middle'};
+            }
+        });
+
+        row.getCell(7).numFmt = '0.0';
+    });
+
+    var today = new Date().toISOString().slice(0,10);
+    wb.xlsx.writeBuffer().then(function(buffer) {
+        var blob = new Blob([buffer], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+        saveAs(blob, 'IT_Podderzhka_Dakar_' + today + '.xlsx');
+    });
+}
+
+// ===== EXCEL EXPORT — Евичу (8 колонок + ИТОГО) =====
+function exportExcelEvich() {
+    if (typeof ExcelJS === 'undefined') {
+        alert('Библиотека экспорта не загружена. Проверьте интернет-соединение.');
+        return;
+    }
+
+    var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
+    if (!filtered.length) {
+        alert('Нет задач для экспорта по выбранным фильтрам.');
+        return;
+    }
+
+    // Stage colors for Excel (ARGB)
+    var stageColors = {
+        'backlog':  {bg: 'FFDBEAFE', text: 'FF1D4ED8'},
+        'inwork':   {bg: 'FFDCFCE7', text: 'FF15803D'},
+        'testing':  {bg: 'FFFEE2E2', text: 'FFDC2626'},
+        'release':  {bg: 'FFFFEDD5', text: 'FFEA580C'},
+        'payment':  {bg: 'FFD1FAE5', text: 'FF047857'}
+    };
+
+    var today = new Date();
+
+    var wb = new ExcelJS.Workbook();
+    wb.creator = 'IT Поддержка Дакар';
+    wb.created = new Date();
+
+    var ws = wb.addWorksheet('Для Евича', {
+        properties: { defaultColWidth: 14 },
+        views: [{ state: 'frozen', ySplit: 1 }]
+    });
+
+    // Column widths
+    ws.getColumn(1).width = 7;    // № п/п
+    ws.getColumn(2).width = 10;   // № (ID)
+    ws.getColumn(3).width = 65;   // Задача (title + URL)
+    ws.getColumn(4).width = 32;   // Период выполнения
+    ws.getColumn(5).width = 12;   // Время, ч
+    ws.getColumn(6).width = 22;   // Постановщик
+    ws.getColumn(7).width = 28;   // Исполнитель
+    ws.getColumn(8).width = 65;   // Ссылка на задачу (title + . + desc)
+
+    // Borders
+    var hdrBorder = {
+        top: {style: 'thin', color: {argb: 'FF555555'}},
+        bottom: {style: 'thin', color: {argb: 'FF555555'}},
+        left: {style: 'thin', color: {argb: 'FF555555'}},
+        right: {style: 'thin', color: {argb: 'FF555555'}}
+    };
+    var cellBorder = {
+        top: {style: 'thin', color: {argb: 'FFCCCCCC'}},
+        bottom: {style: 'thin', color: {argb: 'FFCCCCCC'}},
+        left: {style: 'thin', color: {argb: 'FFCCCCCC'}},
+        right: {style: 'thin', color: {argb: 'FFCCCCCC'}}
+    };
+
+    // Header row: 8 columns
+    var headerRow = ws.addRow([
+        '№ п/п', '№ (ID)', 'Задача', 'Период выполнения',
+        'Время, ч', 'Постановщик', 'Исполнитель/Программист', 'Ссылка на задачу в битрикс'
+    ]);
+    headerRow.height = 30;
+    headerRow.eachCell(function(cell) {
+        cell.font = {bold: true, color: {argb: 'FFFFFFFF'}, size: 11, name: 'Arial'};
+        cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FF333333'}};
+        cell.alignment = {horizontal: 'center', vertical: 'middle', wrapText: true};
+        cell.border = hdrBorder;
+    });
+
+    // Enable autofilter
+    ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: filtered.length + 1, column: 8 } };
+
+    // Data rows
+    var totalHours = 0;
+    filtered.forEach(function(t, idx) {
+        var sc = stageColors[t.stage] || {bg: 'FFFFFFFF', text: 'FF000000'};
+        var bitrixUrl = TASK_URL_PREFIX + t.id + '/';
+
+        // Col 3: Задача = title + space + URL (plain text!)
+        var col3 = t.title + ' ' + bitrixUrl;
+
+        // Col 4: Период = "10 марта 2026 - 08.04.2026"
+        var periodStr = '';
+        if (t.created) {
+            periodStr = formatDateLong(t.created);
+        }
+        periodStr += ' - ' + formatDateShort(today.toISOString());
+
+        // Col 5: Время, ч — with comma
+        var hoursVal = t.hoursActual || 0;
+        totalHours += hoursVal;
+        var hoursStr = hoursVal > 0 ? formatHoursComma(hoursVal) : '';
+
+        // Col 6: Постановщик
+        var col6 = t.responsible || '';
+
+        // Col 7: Исполнитель
+        var col7 = t.programmer || '';
+
+        // Col 8: Ссылка = title + ". " + description
+        var col8 = t.title;
+        if (t.description && t.description !== t.title) {
+            col8 = t.title + '. ' + t.description;
+        }
+
+        var row = ws.addRow([idx + 1, t.id, col3, periodStr, hoursStr, col6, col7, col8]);
+        row.height = 22;
+
+        row.eachCell(function(cell, colNumber) {
+            cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: sc.bg}};
+            cell.border = cellBorder;
+            cell.font = {size: 10, name: 'Arial', color: {argb: sc.text}};
+            cell.alignment = {vertical: 'middle', wrapText: true};
+        });
+
+        // Special formatting per column
+        // Col 1 (№ п/п) — center
+        row.getCell(1).alignment = {horizontal: 'center', vertical: 'middle'};
+
+        // Col 2 (ID) — center
+        row.getCell(2).alignment = {horizontal: 'center', vertical: 'middle'};
+
+        // Col 5 (Время) — center, default font color (dark)
+        row.getCell(5).alignment = {horizontal: 'center', vertical: 'middle'};
+        row.getCell(5).font = {size: 10, name: 'Arial', color: {argb: sc.text}};
+    });
+
+    // ИТОГО row
+    var totalRow = ws.addRow(['', '', '', 'ИТОГО', formatHoursComma(totalHours), '', '', '']);
+    totalRow.height = 26;
+    totalRow.eachCell(function(cell, colNumber) {
+        cell.border = cellBorder;
+        cell.font = {bold: true, size: 11, name: 'Arial'};
+        cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FFFFFFFF'}};
+        cell.alignment = {vertical: 'middle'};
+    });
+    totalRow.getCell(4).alignment = {horizontal: 'right', vertical: 'middle'};
+    totalRow.getCell(5).alignment = {horizontal: 'center', vertical: 'middle'};
+    totalRow.getCell(5).font = {bold: true, size: 12, name: 'Arial', color: {argb: 'FF1a1a2e'}};
+
+    // Generate & download
+    var todayStr = today.toISOString().slice(0,10);
+    wb.xlsx.writeBuffer().then(function(buffer) {
+        var blob = new Blob([buffer], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+        saveAs(blob, 'IT_Evich_' + todayStr + '.xlsx');
+    });
+}
+
+// ===== INIT =====
+document.addEventListener("DOMContentLoaded", function() {
+    // Load live data on startup
+    refreshData();
+});
+
+document.addEventListener("keydown", function(e) { if (e.key === "Escape") closePreview(); });
+</script>
+</body>
+</html>
