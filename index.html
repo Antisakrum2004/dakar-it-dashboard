@@ -775,6 +775,39 @@ const stageConfig = {
     payment:  { label: "На оплату",     badgeClass: "stage-payment", filterClass: "fc-payment",  color: "059669" },
 };
 
+// ===== PROGRAMMER WHITELIST =====
+const PROGRAMMER_WHITELIST = [
+    'Приходько Константин',
+    'Попов Александр',
+    'Макаров Владимир',
+    'Соколовский Александр',
+    'Забиров Тимур'
+];
+
+function isWhitelisted(task) {
+    // Check main programmer field (from assignedById)
+    if (task.programmer) {
+        for (var i = 0; i < PROGRAMMER_WHITELIST.length; i++) {
+            if (task.programmer.indexOf(PROGRAMMER_WHITELIST[i]) !== -1 || PROGRAMMER_WHITELIST[i].indexOf(task.programmer) !== -1) {
+                return true;
+            }
+        }
+    }
+    // Check programmers array (from ufCrm26_1760336545)
+    if (task.programmers && Array.isArray(task.programmers) && task.programmers.length > 0) {
+        for (var j = 0; j < task.programmers.length; j++) {
+            var pName = getUserName(task.programmers[j]);
+            if (!pName) continue;
+            for (var k = 0; k < PROGRAMMER_WHITELIST.length; k++) {
+                if (pName.indexOf(PROGRAMMER_WHITELIST[k]) !== -1 || PROGRAMMER_WHITELIST[k].indexOf(pName) !== -1) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 // ===== STATE =====
 let activeFilters = new Set(["backlog", "inwork", "testing", "release", "payment"]);
 let apiRequestCount = 0;
@@ -1072,6 +1105,8 @@ function renderTasks() {
     var query = (document.getElementById("searchInput").value || "").toLowerCase().trim();
 
     var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
+    // Programmer whitelist filter
+    filtered = filtered.filter(function(t) { return isWhitelisted(t); });
     // Date range filter
     if (dateFrom) filtered = filtered.filter(function(t) { return t.created >= toISODate(dateFrom); });
     if (dateTo) filtered = filtered.filter(function(t) { return t.created <= toISODate(dateTo); });
@@ -1224,8 +1259,9 @@ function exportExcel() {
         return;
     }
 
-    // Apply ALL active filters (stage + date range) — same as renderTasks
+    // Apply ALL active filters (stage + programmer whitelist + date range) — same as renderTasks
     var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
+    filtered = filtered.filter(function(t) { return isWhitelisted(t); });
     if (dateFrom) filtered = filtered.filter(function(t) { return t.created >= toISODate(dateFrom); });
     if (dateTo) filtered = filtered.filter(function(t) { return t.created <= toISODate(dateTo); });
     if (!filtered.length) {
@@ -1321,8 +1357,9 @@ function exportExcelEvich() {
         return;
     }
 
-    // Apply ALL active filters (stage + date range) — same as renderTasks
+    // Apply ALL active filters (stage + programmer whitelist + date range) — same as renderTasks
     var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
+    filtered = filtered.filter(function(t) { return isWhitelisted(t); });
     if (dateFrom) filtered = filtered.filter(function(t) { return t.created >= toISODate(dateFrom); });
     if (dateTo) filtered = filtered.filter(function(t) { return t.created <= toISODate(dateTo); });
     if (!filtered.length) {
