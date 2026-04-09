@@ -918,9 +918,14 @@ function mapApiItem(item) {
 
     // Names
     var responsibleName = getUserName(item.createdBy);
-    var programmerName = getUserName(item.assignedById);
 
-    // If programmer is empty, try from assignedById
+    // Programmer: PRIMARY from process field ufCrm26_1760336545 (array of user IDs)
+    // FALLBACK to assignedById only if process field is empty
+    var programmerName = '';
+    var programmersArr = item.ufCrm26_1760336545 || [];
+    if (Array.isArray(programmersArr) && programmersArr.length > 0) {
+        programmerName = programmersArr.map(function(uid) { return getUserName(uid); }).filter(function(n) { return n; }).join(', ');
+    }
     if (!programmerName) {
         programmerName = getUserName(item.assignedById);
     }
@@ -955,16 +960,28 @@ function mapApiItem(item) {
 }
 
 async function fetchUsers() {
-    incrementApiCount();
     try {
-        var resp = await fetch(API_BASE + 'user.get');
-        var data = await resp.json();
-        var users = data.result || [];
-        users.forEach(function(u) {
-            var name = (u.LAST_NAME + ' ' + u.NAME).trim();
-            if (name) userMap[u.ID] = name;
-        });
-        console.log('Users loaded:', Object.keys(userMap).length);
+        var start = 0;
+        var totalLoaded = 0;
+        while (true) {
+            incrementApiCount();
+            var resp = await fetch(API_BASE + 'user.get?start=' + start);
+            var data = await resp.json();
+            var users = data.result || [];
+            if (users.length === 0) break;
+            users.forEach(function(u) {
+                var name = (u.LAST_NAME + ' ' + u.NAME).trim();
+                if (name) userMap[u.ID] = name;
+            });
+            totalLoaded += users.length;
+            if (data.next && data.next > start) {
+                start = data.next;
+                await new Promise(function(r) { setTimeout(r, 50); });
+            } else {
+                break;
+            }
+        }
+        console.log('Users loaded:', totalLoaded, '(unique:', Object.keys(userMap).length + ')');
         return true;
     } catch(e) {
         console.error('Failed to fetch users:', e);
