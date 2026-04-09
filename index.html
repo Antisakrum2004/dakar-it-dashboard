@@ -1224,9 +1224,12 @@ function exportExcel() {
         return;
     }
 
+    // Apply ALL active filters (stage + date range) — same as renderTasks
     var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
+    if (dateFrom) filtered = filtered.filter(function(t) { return t.created >= toISODate(dateFrom); });
+    if (dateTo) filtered = filtered.filter(function(t) { return t.created <= toISODate(dateTo); });
     if (!filtered.length) {
-        alert('Нет задач для экспорта по выбранным фильтрам.');
+        alert('Нет задач для экспорта по выбранным фильтрам и дате.');
         return;
     }
 
@@ -1318,9 +1321,12 @@ function exportExcelEvich() {
         return;
     }
 
+    // Apply ALL active filters (stage + date range) — same as renderTasks
     var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
+    if (dateFrom) filtered = filtered.filter(function(t) { return t.created >= toISODate(dateFrom); });
+    if (dateTo) filtered = filtered.filter(function(t) { return t.created <= toISODate(dateTo); });
     if (!filtered.length) {
-        alert('Нет задач для экспорта по выбранным фильтрам.');
+        alert('Нет задач для экспорта по выбранным фильтрам и дате.');
         return;
     }
 
@@ -1415,8 +1421,8 @@ function exportExcelEvich() {
         }
         if (!col7) col7 = t.programmer || '';
 
-        // Col 8: Ссылка на задачу = title + space + URL (plain text)
-        var col8 = t.title + ' ' + bitrixUrl;
+        // Col 8: Ссылка на задачу = task name as text + hyperlink to Bitrix24
+        var col8 = t.title;
 
         var row = ws.addRow([idx + 1, t.id, col3, periodStr, hoursStr, col6, col7, col8]);
         row.height = 22;
@@ -1438,6 +1444,12 @@ function exportExcelEvich() {
         // Col 5 (Время) — center, default font color (dark)
         row.getCell(5).alignment = {horizontal: 'center', vertical: 'middle'};
         row.getCell(5).font = {size: 10, name: 'Arial', color: {argb: sc.text}};
+
+        // Col 8 (Ссылка) — make it a hyperlink
+        var linkCell = row.getCell(8);
+        linkCell.value = { text: t.title, hyperlink: bitrixUrl, tooltip: bitrixUrl };
+        linkCell.font = {size: 10, name: 'Arial', color: {argb: 'FF0563C1'}, underline: true};
+        linkCell.alignment = {vertical: 'middle', wrapText: true};
     });
 
     // ИТОГО row
