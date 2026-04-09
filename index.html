@@ -1005,7 +1005,7 @@ function updateTimestamp() {
 function updateSummary() {
     var totalHours = 0;
     tasks.forEach(function(t) { totalHours += (t.hoursActual || 0); });
-    document.getElementById('sumHours").textContent = totalHours;
+    document.getElementById('sumHours').textContent = totalHours;
 }
 
 // ===== RENDER =====
