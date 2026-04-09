@@ -137,6 +137,28 @@
 
         .timestamp { font-size: 11px; color: #98a2b3; }
 
+        /* ===== DATE RANGE PICKER ===== */
+        .date-range {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: #667085;
+        }
+        .date-range input[type="date"] {
+            padding: 4px 6px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 11px;
+            color: #344054;
+            background: #fff;
+            cursor: pointer;
+            outline: none;
+            font-family: inherit;
+        }
+        .date-range input[type="date"]:focus { border-color: #3b82f6; }
+        .date-range-sep { color: #98a2b3; font-size: 11px; }
+
         /* ===== SUMMARY BAR ===== */
         .summary {
             background: #fff;
@@ -669,6 +691,11 @@
         </div>
     </div>
     <div class="header-actions">
+        <div class="date-range">
+            <input type="date" id="dateFrom" onchange="onDateChange()">
+            <span class="date-range-sep">—</span>
+            <input type="date" id="dateTo" onchange="onDateChange()">
+        </div>
         <span class="api-counter" id="apiCounter">API: 0</span>
         <span class="data-source-badge mock" id="dataSourceBadge">MOCK</span>
         <button class="btn" onclick="refreshData()" id="refreshBtn">
@@ -754,6 +781,31 @@ let apiRequestCount = 0;
 let userMap = {};
 let tasks = [];
 let isLiveData = false;
+let dateFrom = null;
+let dateTo = null;
+
+// ===== DATE RANGE =====
+function initDateRange() {
+    var today = new Date();
+    var from = new Date(today);
+    from.setDate(from.getDate() - 30);
+    dateTo = today;
+    dateFrom = from;
+    document.getElementById('dateFrom').value = toISODate(from);
+    document.getElementById('dateTo').value = toISODate(today);
+}
+
+function toISODate(d) {
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function onDateChange() {
+    var fromVal = document.getElementById('dateFrom').value;
+    var toVal = document.getElementById('dateTo').value;
+    dateFrom = fromVal ? new Date(fromVal + 'T00:00:00') : null;
+    dateTo = toVal ? new Date(toVal + 'T23:59:59') : null;
+    renderTasks();
+}
 
 // ===== MOCK DATA (fallback) =====
 const mockTasks = [
@@ -864,7 +916,8 @@ function mapApiItem(item) {
         created: created,
         description: description || cleanTitle,
         hoursPlanned: parseFloat(item.ufCrm26_1773170029654) || 0,
-        hoursActual: parseFloat(item.ufCrm26_1761119246948) || 0
+        hoursActual: parseFloat(item.ufCrm26_1761119246948) || 0,
+        programmers: item.ufCrm26_1760336545 || []
     };
 }
 
@@ -940,8 +993,13 @@ async function loadLiveData() {
 
         fill.style.width = '80%';
 
-        // Step 3: Map items
-        tasks = rawItems.map(mapApiItem).filter(function(t) { return t.id > 0; });
+        // Step 3: Map items and filter by 2-month limit
+        var twoMonthsAgo = new Date();
+        twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+        var twoMonthsAgoISO = toISODate(twoMonthsAgo);
+
+        tasks = rawItems.map(mapApiItem)
+            .filter(function(t) { return t.id > 0 && t.created >= twoMonthsAgoISO; });
 
         // Sort by created date descending
         tasks.sort(function(a, b) {
@@ -1014,6 +1072,9 @@ function renderTasks() {
     var query = (document.getElementById("searchInput").value || "").toLowerCase().trim();
 
     var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
+    // Date range filter
+    if (dateFrom) filtered = filtered.filter(function(t) { return t.created >= toISODate(dateFrom); });
+    if (dateTo) filtered = filtered.filter(function(t) { return t.created <= toISODate(dateTo); });
     if (query) filtered = filtered.filter(function(t) { return t.title.toLowerCase().includes(query); });
 
     filtered.sort(function(a, b) { return new Date(b.created) - new Date(a.created); });
@@ -1329,8 +1390,8 @@ function exportExcelEvich() {
         var sc = stageColors[t.stage] || {bg: 'FFFFFFFF', text: 'FF000000'};
         var bitrixUrl = TASK_URL_PREFIX + t.id + '/';
 
-        // Col 3: Задача = title + space + URL (plain text!)
-        var col3 = t.title + ' ' + bitrixUrl;
+        // Col 3: Задача = only title (NO URL)
+        var col3 = t.title;
 
         // Col 4: Период = "10 марта 2026 - 08.04.2026"
         var periodStr = '';
@@ -1347,14 +1408,15 @@ function exportExcelEvich() {
         // Col 6: Постановщик
         var col6 = t.responsible || '';
 
-        // Col 7: Исполнитель
-        var col7 = t.programmer || '';
-
-        // Col 8: Ссылка = title + ". " + description
-        var col8 = t.title;
-        if (t.description && t.description !== t.title) {
-            col8 = t.title + '. ' + t.description;
+        // Col 7: Исполнитель/Программист — from API field ufCrm26_1760336545
+        var col7 = '';
+        if (t.programmers && Array.isArray(t.programmers) && t.programmers.length > 0) {
+            col7 = t.programmers.map(function(uid) { return getUserName(uid); }).filter(function(n) { return n; }).join(', ');
         }
+        if (!col7) col7 = t.programmer || '';
+
+        // Col 8: Ссылка на задачу = title + space + URL (plain text)
+        var col8 = t.title + ' ' + bitrixUrl;
 
         var row = ws.addRow([idx + 1, t.id, col3, periodStr, hoursStr, col6, col7, col8]);
         row.height = 22;
@@ -1401,6 +1463,7 @@ function exportExcelEvich() {
 
 // ===== INIT =====
 document.addEventListener("DOMContentLoaded", function() {
+    initDateRange();
     // Load live data on startup
     refreshData();
 });
