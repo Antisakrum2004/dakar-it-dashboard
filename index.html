@@ -270,6 +270,30 @@
         .search-input::placeholder { color: #b0b8c4; }
         .search-input:focus { border-color: #3b82f6; background-color: #fff; width: 240px; }
 
+        .chip-count {
+            font-size: 10px;
+            font-weight: 700;
+            background: rgba(0,0,0,0.15);
+            padding: 1px 5px;
+            border-radius: 8px;
+            margin-left: 3px;
+        }
+        .filter-chip:not(.active) .chip-count {
+            background: #d0d5dd;
+            color: #667085;
+        }
+
+        .stat-item {
+            font-size: 11px;
+            color: #475469;
+            white-space: nowrap;
+        }
+        .stat-item strong { color: #1a1a2e; }
+        .stat-overdue strong { color: #dc2626; }
+        .stat-overbudget strong { color: #ea580c; }
+        .stat-deadline strong { color: #1a1a2e; }
+        .stat-avgstage strong { color: #1a1a2e; }
+
         .task-count {
             font-size: 11px;
             color: #667085;
@@ -693,7 +717,7 @@
 <div class="header">
     <div class="header-left">
         <div>
-            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.1</span></div>
+            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.2</span></div>
             <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
     </div>
@@ -721,20 +745,23 @@
 </div>
 
 <!-- Toolbar: filters + search + summary -->
-<div class="toolbar">
+<div class="toolbar" style="flex-wrap:wrap;gap:6px 8px">
     <span class="filter-label">Стадия:</span>
-    <span class="filter-chip fc-inwork active" data-stage="inwork" onclick="toggleFilter(this)">В работе</span>
-    <span class="filter-chip fc-testing active" data-stage="testing" onclick="toggleFilter(this)">Тестирование</span>
-    <span class="filter-chip fc-release active" data-stage="release" onclick="toggleFilter(this)">В релиз</span>
-    <span class="filter-chip fc-payment active" data-stage="payment" onclick="toggleFilter(this)">На оплату</span>
-    <span class="filter-chip fc-postponed" data-stage="postponed" onclick="toggleFilter(this)">Отложены</span>
-    <span class="filter-chip fc-new" data-stage="new" onclick="toggleFilter(this)">Новые</span>
-    <span class="filter-chip fc-backlog" data-stage="backlog" onclick="toggleFilter(this)">Бэклог</span>
-    <span class="filter-chip fc-done" data-stage="done" onclick="toggleFilter(this)">Завершено</span>
+    <span class="filter-chip fc-inwork active" data-stage="inwork" onclick="toggleFilter(this)">В работе <span class="chip-count" id="countInwork">0</span></span>
+    <span class="filter-chip fc-testing active" data-stage="testing" onclick="toggleFilter(this)">Тестирование <span class="chip-count" id="countTesting">0</span></span>
+    <span class="filter-chip fc-release active" data-stage="release" onclick="toggleFilter(this)">В релиз <span class="chip-count" id="countRelease">0</span></span>
+    <span class="filter-chip fc-payment active" data-stage="payment" onclick="toggleFilter(this)">На оплату <span class="chip-count" id="countPayment">0</span></span>
 
     <input class="search-input" type="text" id="searchInput" placeholder="Поиск..." oninput="renderTasks()">
 
-    <span class="summary-hours" style="white-space:nowrap;font-size:11px;color:#475469;margin-left:auto">Σ <strong id="sumHours">0</strong> ч &nbsp; <span id="filteredCount" class="task-count">0 задач</span></span>
+    <span class="summary-hours" id="summaryBar" style="white-space:nowrap;font-size:11px;color:#475469;margin-left:auto">Σ <strong id="sumHours">0</strong> ч &nbsp; <span id="filteredCount" class="task-count">0 задач</span></span>
+</div>
+<!-- Stats bar -->
+<div class="toolbar" style="padding:5px 20px;gap:12px;border-bottom:1px solid #e0e0e0" id="statsBar">
+    <span class="stat-item stat-overdue" id="statOverdue" style="display:none">Просрочено: <strong>0</strong></span>
+    <span class="stat-item stat-overbudget" id="statOverbudget" style="display:none">Перерасход: <strong>0</strong></span>
+    <span class="stat-item stat-deadline" id="statDeadline" style="display:none">Ближайший дедлайн: <strong>—</strong></span>
+    <span class="stat-item stat-avgstage" id="statAvgStage" style="display:none">Ср. в работе: <strong>—</strong></span>
 </div>
 
 <!-- Task List -->
@@ -1190,28 +1217,49 @@ function updateTimestamp() {
 
 // ===== SUMMARY =====
 function updateSummary() {
-    var totalHours = 0;
-    tasks.forEach(function(t) { totalHours += (t.hoursActual || 0); });
-    document.getElementById('sumHours').textContent = totalHours;
+    // Σ часов считается в renderTasks по отфильтрованным задачам
 }
 
 // ===== RENDER =====
 // Активные стадии — для них НЕ применяется фильтр по дате (они показываются ВСЕГДА)
 var ACTIVE_STAGES = new Set(['inwork', 'testing', 'release', 'payment']);
 
+// Стадии, где просрочка имеет смысл
+var OVERDUE_RELEVANT = new Set(['inwork', 'testing', 'release', 'payment']);
+
+function isOverdueTask(t) {
+    return t.deadline && new Date(t.deadline + 'T23:59:59') < new Date() && OVERDUE_RELEVANT.has(t.stage);
+}
+
 function renderTasks() {
     var list = document.getElementById('taskList');
     var query = (document.getElementById("searchInput").value || "").toLowerCase().trim();
 
-    var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
-    // Programmer whitelist filter
-    filtered = filtered.filter(function(t) { return isWhitelisted(t); });
-    // Date range filter — только для НЕактивных стадий (активные показываем всегда)
+    // === Stage counts (без поискового фильтра, по whitelist + дата) ===
+    var allForCounts = tasks.filter(function(t) { return isWhitelisted(t); });
     var dateFromISO = dateFrom ? toISODate(dateFrom) : '';
     var dateToISO = dateTo ? toISODate(dateTo) : '';
     if (dateFromISO || dateToISO) {
+        allForCounts = allForCounts.filter(function(t) {
+            if (ACTIVE_STAGES.has(t.stage)) return true;
+            if (dateFromISO && t.created < dateFromISO) return false;
+            if (dateToISO && t.created > dateToISO) return false;
+            return true;
+        });
+    }
+    var stageCounts = { inwork: 0, testing: 0, release: 0, payment: 0 };
+    allForCounts.forEach(function(t) { if (stageCounts.hasOwnProperty(t.stage)) stageCounts[t.stage]++; });
+    var cEl = document.getElementById('countInwork'); if (cEl) cEl.textContent = stageCounts.inwork;
+    cEl = document.getElementById('countTesting'); if (cEl) cEl.textContent = stageCounts.testing;
+    cEl = document.getElementById('countRelease'); if (cEl) cEl.textContent = stageCounts.release;
+    cEl = document.getElementById('countPayment'); if (cEl) cEl.textContent = stageCounts.payment;
+
+    // === Основная фильтрация ===
+    var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
+    filtered = filtered.filter(function(t) { return isWhitelisted(t); });
+    if (dateFromISO || dateToISO) {
         filtered = filtered.filter(function(t) {
-            if (ACTIVE_STAGES.has(t.stage)) return true; // активные — всегда
+            if (ACTIVE_STAGES.has(t.stage)) return true;
             if (dateFromISO && t.created < dateFromISO) return false;
             if (dateToISO && t.created > dateToISO) return false;
             return true;
@@ -1219,13 +1267,63 @@ function renderTasks() {
     }
     if (query) filtered = filtered.filter(function(t) { return t.title.toLowerCase().includes(query); });
 
-    filtered.sort(function(a, b) { return new Date(b.created) - new Date(a.created); });
+    // === Сортировка: просроченные сверху, потом по дедлайну ===
+    var now = new Date();
+    filtered.sort(function(a, b) {
+        var aOverdue = isOverdueTask(a) ? 0 : 1;
+        var bOverdue = isOverdueTask(b) ? 0 : 1;
+        if (aOverdue !== bOverdue) return aOverdue - bOverdue; // просроченные выше
+        // Нет дедлайна — в конец
+        var aDl = a.deadline ? new Date(a.deadline).getTime() : Infinity;
+        var bDl = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+        return aDl - bDl; // ближайший дедлайн выше
+    });
 
+    // === Статистика по видимым задачам ===
+    var totalHours = 0;
+    var overdueCount = 0;
+    var overbudgetCount = 0;
+    var nearestDeadline = null;
+    filtered.forEach(function(t) {
+        totalHours += (t.hoursActual || 0);
+        if (isOverdueTask(t)) overdueCount++;
+        if (t.hoursPlanned > 0 && t.hoursActual > t.hoursPlanned) overbudgetCount++;
+        if (t.deadline && !isOverdueTask(t)) {
+            var dl = new Date(t.deadline);
+            if (!nearestDeadline || dl < nearestDeadline) nearestDeadline = dl;
+        }
+    });
+
+    document.getElementById('sumHours').textContent = totalHours % 1 === 0 ? totalHours : totalHours.toFixed(1);
     document.getElementById("filteredCount").textContent = filtered.length + ' задач';
+
+    // Stats bar
+    var statOverdue = document.getElementById('statOverdue');
+    if (overdueCount > 0) { statOverdue.style.display = ''; statOverdue.innerHTML = 'Просрочено: <strong>' + overdueCount + '</strong>'; }
+    else { statOverdue.style.display = 'none'; }
+
+    var statOverbudget = document.getElementById('statOverbudget');
+    if (overbudgetCount > 0) { statOverbudget.style.display = ''; statOverbudget.innerHTML = 'Перерасход: <strong>' + overbudgetCount + '</strong>'; }
+    else { statOverbudget.style.display = 'none'; }
+
+    var statDeadline = document.getElementById('statDeadline');
+    if (nearestDeadline) { statDeadline.style.display = ''; statDeadline.innerHTML = 'Ближайший дедлайн: <strong>' + formatDate(nearestDeadline.toISOString().substring(0,10)) + '</strong>'; }
+    else { statDeadline.style.display = 'none'; }
+
+    // Ср. время в работе (для задач со стадией inwork — дней от created до сегодня)
+    var statAvgStage = document.getElementById('statAvgStage');
+    var inworkTasks = filtered.filter(function(t) { return t.stage === 'inwork' && t.created; });
+    if (inworkTasks.length > 0) {
+        var totalDays = 0;
+        inworkTasks.forEach(function(t) { totalDays += Math.ceil((now - new Date(t.created)) / 86400000); });
+        var avgDays = Math.round(totalDays / inworkTasks.length);
+        statAvgStage.style.display = '';
+        statAvgStage.innerHTML = 'Ср. в работе: <strong>' + avgDays + ' дн.</strong>';
+    } else { statAvgStage.style.display = 'none'; }
 
     list.innerHTML = filtered.map(function(task) {
         var stage = stageConfig[task.stage] || stageConfig.backlog;
-        var isOverdue = task.deadline && new Date(task.deadline) < new Date() && task.stage !== 'backlog' && task.stage !== 'new' && task.stage !== 'done' && task.stage !== 'trash' && task.stage !== 'postponed';
+        var isOverdue = isOverdueTask(task);
         var deadlineStr = task.deadline ? formatDate(task.deadline) : '';
 
         var hoursHtml = (task.hoursActual > 0 || task.hoursPlanned > 0)
@@ -1261,7 +1359,7 @@ function openPreview(taskId) {
     if (!task) return;
 
     var stage = stageConfig[task.stage] || stageConfig.backlog;
-    var isOverdue = task.deadline && new Date(task.deadline) < new Date() && task.stage !== 'backlog' && task.stage !== 'new' && task.stage !== 'done' && task.stage !== 'trash' && task.stage !== 'postponed';
+    var isOverdue = isOverdueTask(task);
     var isOverBudget = task.hoursPlanned > 0 && task.hoursActual > task.hoursPlanned;
 
     document.getElementById("previewTitle").textContent = task.title;
