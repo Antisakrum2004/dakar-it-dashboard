@@ -617,6 +617,109 @@
 
         .btn-open-bitrix:hover { background: #2d2d4a; }
 
+        /* ===== EDITABLE FIELDS IN PREVIEW ===== */
+        .preview-hours-edit {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: center;
+        }
+        .preview-hours-input {
+            width: 56px;
+            padding: 4px 6px;
+            border: 1px solid #d0d5dd;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+            text-align: center;
+            outline: none;
+            font-family: inherit;
+            background: #fff;
+            transition: border-color 0.15s;
+        }
+        .preview-hours-input:focus { border-color: #3b82f6; }
+        .preview-hours-input.saving { border-color: #f59e0b; background: #fffbeb; }
+        .preview-hours-input.saved { border-color: #22c55e; background: #f0fdf4; }
+        .preview-hours-input.error { border-color: #ef4444; background: #fef2f2; }
+
+        .btn-save-hours {
+            padding: 4px 10px;
+            border: 1px solid #d0d5dd;
+            border-radius: 5px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 600;
+            color: #344054;
+            transition: all 0.15s;
+        }
+        .btn-save-hours:hover { background: #f0f4ff; border-color: #3b82f6; color: #1d4ed8; }
+        .btn-save-hours.saving { opacity: 0.5; pointer-events: none; }
+
+        .preview-toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-top: 1px solid #e5e7eb;
+            margin-top: 8px;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 22px;
+            flex-shrink: 0;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: #d0d5dd;
+            border-radius: 22px;
+            transition: all 0.25s;
+        }
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.25s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+        .toggle-switch input:checked + .toggle-slider {
+            background: #22c55e;
+        }
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(18px);
+        }
+        .toggle-switch.saving .toggle-slider {
+            opacity: 0.5;
+        }
+        .toggle-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #475469;
+            cursor: pointer;
+            user-select: none;
+        }
+        .toggle-label.active {
+            color: #15803d;
+            font-weight: 600;
+        }
+        .toggle-label.saving {
+            color: #f59e0b;
+        }
+
         /* ===== LOADING ===== */
         .loading-bar {
             position: fixed; top: 0; left: 0; right: 0;
@@ -717,7 +820,7 @@
 <div class="header">
     <div class="header-left">
         <div>
-            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.3.1</span></div>
+            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.4</span></div>
             <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
     </div>
@@ -1010,6 +1113,7 @@ function mapApiItem(item) {
         description: description || cleanTitle,
         hoursPlanned: parseFloat(item.ufCrm26_1773170029654) || 0,
         hoursActual: parseFloat(item.ufCrm26_1761119246948) || 0,
+        movedToWorking: item.ufCrm26_1773211834011 === 'Y',
         programmers: item.ufCrm26_1760336545 || []
     };
 }
@@ -1368,17 +1472,34 @@ function openPreview(taskId) {
 
     document.getElementById("previewTitle").textContent = task.title;
 
-    var hoursBlock = (task.hoursPlanned > 0 || task.hoursActual > 0) ?
+    // Часы: ВСЕГДА показываем с возможностью редактирования фактических
+    var hoursBlock =
         '<div class="preview-hours-block">' +
-            '<div class="preview-hours-card ' + (isOverBudget ? 'over-budget' : '') + '">' +
+            '<div class="preview-hours-card">' +
                 '<div class="label">Плановые</div>' +
                 '<div class="value">' + task.hoursPlanned + '<span class="unit"> ч</span></div>' +
             '</div>' +
             '<div class="preview-hours-card ' + (isOverBudget ? 'over-budget' : '') + '">' +
                 '<div class="label">Фактические</div>' +
-                '<div class="value">' + task.hoursActual + '<span class="unit"> ч</span></div>' +
+                '<div class="preview-hours-edit">' +
+                    '<input type="number" class="preview-hours-input" id="editHoursActual" value="' + task.hoursActual + '" min="0" step="0.5" onkeydown="if(event.key===\'Enter\')saveHours(' + task.id + ')">' +
+                    '<span class="unit" style="font-size:12px">ч</span>' +
+                    '<button class="btn-save-hours" id="btnSaveHours" onclick="saveHours(' + task.id + ')" title="Сохранить часы">&#10003;</button>' +
+                '</div>' +
             '</div>' +
-        '</div>' : '';
+        '</div>';
+
+    // Галочка «Перенесено в рабочую»
+    var movedBlock =
+        '<div class="preview-toggle-row">' +
+            '<label class="toggle-switch" id="toggleMovedSwitch">' +
+                '<input type="checkbox" id="toggleMoved" ' + (task.movedToWorking ? 'checked' : '') + ' onchange="toggleMovedToWorking(' + task.id + ',this)">' +
+                '<span class="toggle-slider"></span>' +
+            '</label>' +
+            '<label class="toggle-label ' + (task.movedToWorking ? 'active' : '') + '" id="toggleMovedLabel" onclick="document.getElementById(\'toggleMoved\').click()">' +
+                'Перенесено в рабочую: ' + (task.movedToWorking ? 'Да' : 'Нет') +
+            '</label>' +
+        '</div>';
 
     var bodyHtml =
         '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">' +
@@ -1386,6 +1507,7 @@ function openPreview(taskId) {
             '<span class="task-category" style="font-size:12px">' + escapeHtml(task.category) + '</span>' +
         '</div>' +
         hoursBlock +
+        movedBlock +
         '<div class="preview-field"><div class="preview-field-label">Ответственный</div><div class="preview-field-value">' + escapeHtml(task.responsible) + '</div></div>' +
         (task.programmer ? '<div class="preview-field"><div class="preview-field-label">Программист</div><div class="preview-field-value">' + escapeHtml(task.programmer) + '</div></div>' : '') +
         (task.deadline ? '<div class="preview-field"><div class="preview-field-label">Дедлайн</div><div class="preview-field-value" style="' + (isOverdue ? 'color:#ef4444;font-weight:600' : '') + '">' + formatDate(task.deadline) + (isOverdue ? ' (просрочен)' : '') + '</div></div>' : '') +
@@ -1409,6 +1531,103 @@ function closePreview() {
     document.getElementById("previewOverlay").classList.remove("active");
     document.getElementById("previewPanel").classList.remove("active");
     document.body.classList.remove("blurred");
+}
+
+// ===== API UPDATE FUNCTIONS =====
+async function saveHours(taskId) {
+    var input = document.getElementById('editHoursActual');
+    var btn = document.getElementById('btnSaveHours');
+    if (!input || !btn) return;
+
+    var newVal = parseFloat(input.value);
+    if (isNaN(newVal) || newVal < 0) {
+        input.className = 'preview-hours-input error';
+        return;
+    }
+
+    // UI: saving state
+    input.className = 'preview-hours-input saving';
+    btn.className = 'btn-save-hours saving';
+    btn.innerHTML = '...';
+
+    try {
+        incrementApiCount();
+        var resp = await fetch(API_BASE + 'crm.item.update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                entityTypeId: ENTITY_TYPE_ID,
+                id: taskId,
+                fields: {
+                    'ufCrm26_1761119246948': newVal
+                }
+            })
+        });
+        var data = await resp.json();
+        if (data.result) {
+            // Успех — обновляем локальные данные
+            var task = tasks.find(function(t) { return t.id === taskId; });
+            if (task) task.hoursActual = newVal;
+            input.className = 'preview-hours-input saved';
+            btn.innerHTML = '&#10003;';
+            setTimeout(function() { input.className = 'preview-hours-input'; }, 1500);
+            renderTasks(); // обновляем список
+        } else {
+            throw new Error(data.error_description || 'API error');
+        }
+    } catch(e) {
+        console.error('saveHours error:', e);
+        input.className = 'preview-hours-input error';
+        btn.innerHTML = '!';
+        alert('Ошибка сохранения часов: ' + e.message);
+    } finally {
+        btn.className = 'btn-save-hours';
+    }
+}
+
+async function toggleMovedToWorking(taskId, checkbox) {
+    var newVal = checkbox.checked;
+    var switchEl = document.getElementById('toggleMovedSwitch');
+    var labelEl = document.getElementById('toggleMovedLabel');
+
+    // UI: saving state
+    if (switchEl) switchEl.classList.add('saving');
+    if (labelEl) { labelEl.classList.add('saving'); labelEl.classList.remove('active'); labelEl.textContent = 'Сохранение...'; }
+
+    try {
+        incrementApiCount();
+        var resp = await fetch(API_BASE + 'crm.item.update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                entityTypeId: ENTITY_TYPE_ID,
+                id: taskId,
+                fields: {
+                    'ufCrm26_1773211834011': newVal ? 'Y' : 'N'
+                }
+            })
+        });
+        var data = await resp.json();
+        if (data.result) {
+            // Успех — обновляем локальные данные
+            var task = tasks.find(function(t) { return t.id === taskId; });
+            if (task) task.movedToWorking = newVal;
+            if (labelEl) {
+                labelEl.classList.remove('saving');
+                labelEl.textContent = 'Перенесено в рабочую: ' + (newVal ? 'Да' : 'Нет');
+                if (newVal) labelEl.classList.add('active'); else labelEl.classList.remove('active');
+            }
+            if (switchEl) switchEl.classList.remove('saving');
+        } else {
+            throw new Error(data.error_description || 'API error');
+        }
+    } catch(e) {
+        console.error('toggleMovedToWorking error:', e);
+        checkbox.checked = !newVal; // откат
+        if (labelEl) { labelEl.classList.remove('saving'); labelEl.textContent = 'Перенесено в рабочую: ' + (!newVal ? 'Да' : 'Нет'); }
+        if (switchEl) switchEl.classList.remove('saving');
+        alert('Ошибка: ' + e.message);
+    }
 }
 
 // ===== FILTERS =====
