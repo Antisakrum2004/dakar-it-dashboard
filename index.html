@@ -717,7 +717,7 @@
 <div class="header">
     <div class="header-left">
         <div>
-            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.3</span></div>
+            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.3.1</span></div>
             <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
     </div>
@@ -1238,7 +1238,8 @@ function renderTasks() {
     var query = (document.getElementById("searchInput").value || "").toLowerCase().trim();
 
     // === Stage counts (без поискового фильтра, по whitelist + дата) ===
-    var allForCounts = tasks.filter(function(t) { return isWhitelisted(t); });
+    // Бэклог-задачи показываем без фильтра вайтлиста (они могут быть ещё не распределены)
+    var allForCounts = tasks.filter(function(t) { return t.stage === 'backlog' || isWhitelisted(t); });
     var dateFromISO = dateFrom ? toISODate(dateFrom) : '';
     var dateToISO = dateTo ? toISODate(dateTo) : '';
     if (dateFromISO || dateToISO) {
@@ -1259,7 +1260,7 @@ function renderTasks() {
 
     // === Основная фильтрация ===
     var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
-    filtered = filtered.filter(function(t) { return isWhitelisted(t); });
+    filtered = filtered.filter(function(t) { return t.stage === 'backlog' || isWhitelisted(t); });
     if (dateFromISO || dateToISO) {
         filtered = filtered.filter(function(t) {
             if (ACTIVE_STAGES.has(t.stage)) return true;
@@ -1469,7 +1470,7 @@ function exportExcel() {
 
     // Apply ALL active filters (stage + programmer whitelist + date range) — same as renderTasks
     var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
-    filtered = filtered.filter(function(t) { return isWhitelisted(t); });
+    filtered = filtered.filter(function(t) { return t.stage === 'backlog' || isWhitelisted(t); });
     // Date range — активные стадии всегда проходят
     var dfISO = dateFrom ? toISODate(dateFrom) : '';
     var dtISO = dateTo ? toISODate(dateTo) : '';
@@ -1580,7 +1581,7 @@ function exportExcelEvich() {
 
     // Apply ALL active filters (stage + programmer whitelist + date range) — same as renderTasks
     var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
-    filtered = filtered.filter(function(t) { return isWhitelisted(t); });
+    filtered = filtered.filter(function(t) { return t.stage === 'backlog' || isWhitelisted(t); });
     // Date range — активные стадии всегда проходят
     var dfISO = dateFrom ? toISODate(dateFrom) : '';
     var dtISO = dateTo ? toISODate(dateTo) : '';
