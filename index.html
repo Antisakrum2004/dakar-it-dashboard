@@ -717,7 +717,7 @@
 <div class="header">
     <div class="header-left">
         <div>
-            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.2</span></div>
+            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.3</span></div>
             <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
     </div>
@@ -747,6 +747,7 @@
 <!-- Toolbar: filters + search + summary -->
 <div class="toolbar" style="flex-wrap:wrap;gap:6px 8px">
     <span class="filter-label">Стадия:</span>
+    <span class="filter-chip fc-backlog active" data-stage="backlog" onclick="toggleFilter(this)">Бэклог <span class="chip-count" id="countBacklog">0</span></span>
     <span class="filter-chip fc-inwork active" data-stage="inwork" onclick="toggleFilter(this)">В работе <span class="chip-count" id="countInwork">0</span></span>
     <span class="filter-chip fc-testing active" data-stage="testing" onclick="toggleFilter(this)">Тестирование <span class="chip-count" id="countTesting">0</span></span>
     <span class="filter-chip fc-release active" data-stage="release" onclick="toggleFilter(this)">В релиз <span class="chip-count" id="countRelease">0</span></span>
@@ -861,8 +862,8 @@ function isWhitelisted(task) {
 }
 
 // ===== STATE =====
-// По умолчанию показываем только АКТИВНЫЕ задачи (без Бэклог, Новые, Отложены, Завершено, Корзина)
-let activeFilters = new Set(["inwork", "testing", "release", "payment"]);
+// По умолчанию показываем активные задачи + бэклог (без Новые, Отложены, Завершено, Корзина)
+let activeFilters = new Set(["backlog", "inwork", "testing", "release", "payment"]);
 let apiRequestCount = 0;
 let userMap = {};
 let tasks = [];
@@ -895,6 +896,7 @@ function onDateChange() {
 
 // ===== MOCK DATA (fallback) =====
 const mockTasks = [
+    { id: 2800, title: "Доработка отчёта по дебиторской задолженности", stage: "backlog", category: "Бухгалтерия", responsible: "Наталья Хоренко", programmer: "Тимур Забиров", deadline: "2026-06-01", created: "2026-04-20", description: "Доработка отчёта по дебиторской задолженности с разбивкой по договорам", hoursPlanned: 8, hoursActual: 0 },
     { id: 2014, title: "Организация работы менеджеров в онлайн режиме в полях по средствам мобильного приложения", stage: "inwork", category: "Продажи", responsible: "Анатолий Евич", programmer: "Константин Приходько", deadline: "2026-01-31", created: "2025-07-29", description: "Организация работы менеджеров в онлайн режиме в полях по средствам мобильного приложения", hoursPlanned: 0, hoursActual: 0 },
     { id: 2222, title: "Интеграция платежных табличек Т-Банк и Дакар", stage: "inwork", category: "Продажи", responsible: "Сергей Мироненко", programmer: "Александр Соколовский", deadline: "2026-04-12", created: "2025-10-01", description: "Интеграция платежных табличек Т-Банк и Дакар", hoursPlanned: 0, hoursActual: 0 },
     { id: 2460, title: "Не работает автоматическое закрытие заказов", stage: "inwork", category: "Продажи", responsible: "Сергей Мироненко", programmer: "Андрей Предеин", deadline: "2026-04-12", created: "2025-10-24", description: "Необходимо восстановить рабочий функционал автоматического закрытия заказов", hoursPlanned: 0, hoursActual: 0 },
@@ -1222,7 +1224,7 @@ function updateSummary() {
 
 // ===== RENDER =====
 // Активные стадии — для них НЕ применяется фильтр по дате (они показываются ВСЕГДА)
-var ACTIVE_STAGES = new Set(['inwork', 'testing', 'release', 'payment']);
+var ACTIVE_STAGES = new Set(['backlog', 'inwork', 'testing', 'release', 'payment']);
 
 // Стадии, где просрочка имеет смысл
 var OVERDUE_RELEVANT = new Set(['inwork', 'testing', 'release', 'payment']);
@@ -1247,9 +1249,10 @@ function renderTasks() {
             return true;
         });
     }
-    var stageCounts = { inwork: 0, testing: 0, release: 0, payment: 0 };
+    var stageCounts = { backlog: 0, inwork: 0, testing: 0, release: 0, payment: 0 };
     allForCounts.forEach(function(t) { if (stageCounts.hasOwnProperty(t.stage)) stageCounts[t.stage]++; });
-    var cEl = document.getElementById('countInwork'); if (cEl) cEl.textContent = stageCounts.inwork;
+    var cEl = document.getElementById('countBacklog'); if (cEl) cEl.textContent = stageCounts.backlog;
+    cEl = document.getElementById('countInwork'); if (cEl) cEl.textContent = stageCounts.inwork;
     cEl = document.getElementById('countTesting'); if (cEl) cEl.textContent = stageCounts.testing;
     cEl = document.getElementById('countRelease'); if (cEl) cEl.textContent = stageCounts.release;
     cEl = document.getElementById('countPayment'); if (cEl) cEl.textContent = stageCounts.payment;
