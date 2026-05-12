@@ -251,6 +251,7 @@
         .fc-postponed.active { background: #eab308; }
         .fc-new.active { background: #1a1a2e; }
         .fc-backlog.active { background: #3b82f6; }
+        .fc-preparation.active { background: #8b5cf6; }
         .fc-done.active { background: #6b7280; }
 
         /* ===== SEARCH ===== */
@@ -437,6 +438,7 @@
         .stage-postponed { background: #fef9c3; color: #a16207; }
         .stage-new { background: #e0e7ff; color: #1a1a2e; }
         .stage-backlog { background: #dbeafe; color: #1d4ed8; }
+        .stage-preparation { background: #ede9fe; color: #6d28d9; }
         .stage-done { background: #f3f4f6; color: #4b5563; }
         .stage-trash { background: #f3f4f6; color: #9ca3af; }
 
@@ -820,7 +822,7 @@
 <div class="header">
     <div class="header-left">
         <div>
-            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.4</span></div>
+            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.5</span></div>
             <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
     </div>
@@ -850,6 +852,7 @@
 <!-- Toolbar: filters + search + summary -->
 <div class="toolbar" style="flex-wrap:wrap;gap:6px 8px">
     <span class="filter-label">Стадия:</span>
+    <span class="filter-chip fc-preparation active" data-stage="preparation" onclick="toggleFilter(this)">Обследование <span class="chip-count" id="countPreparation">0</span></span>
     <span class="filter-chip fc-backlog active" data-stage="backlog" onclick="toggleFilter(this)">Бэклог <span class="chip-count" id="countBacklog">0</span></span>
     <span class="filter-chip fc-inwork active" data-stage="inwork" onclick="toggleFilter(this)">В работе <span class="chip-count" id="countInwork">0</span></span>
     <span class="filter-chip fc-testing active" data-stage="testing" onclick="toggleFilter(this)">Тестирование <span class="chip-count" id="countTesting">0</span></span>
@@ -906,7 +909,7 @@ const TASK_URL_PREFIX = 'https://dakar.bitrix24.ru/crm/type/129/details/';
 //   DT129_32:FAIL         = Корзина
 const STAGE_ID_MAP = {
     'DT129_32:NEW':         'new',
-    'DT129_32:PREPARATION': 'inwork',
+    'DT129_32:PREPARATION': 'preparation',
     'DT129_32:UC_6Z1J7L':  'backlog',
     'DT129_32:UC_6UIGCQ':  'inwork',
     'DT129_32:UC_ZHCMJH':  'testing',
@@ -919,15 +922,16 @@ const STAGE_ID_MAP = {
 
 // ===== STAGE CONFIG =====
 const stageConfig = {
-    new:       { label: "Новые",            badgeClass: "stage-new",       filterClass: "fc-new",       color: "1a1a2e" },
-    inwork:    { label: "В работе",         badgeClass: "stage-inwork",    filterClass: "fc-inwork",    color: "22c55e" },
-    testing:   { label: "Тестирование",     badgeClass: "stage-testing",   filterClass: "fc-testing",   color: "ef4444" },
-    release:   { label: "В релиз",          badgeClass: "stage-release",   filterClass: "fc-release",   color: "f97316" },
-    payment:   { label: "На оплату",        badgeClass: "stage-payment",   filterClass: "fc-payment",   color: "059669" },
-    postponed: { label: "Отложены",         badgeClass: "stage-postponed", filterClass: "fc-postponed", color: "eab308" },
-    backlog:   { label: "Бэклог",           badgeClass: "stage-backlog",   filterClass: "fc-backlog",   color: "3b82f6" },
-    done:      { label: "Завершено",        badgeClass: "stage-done",      filterClass: "fc-done",      color: "6b7280" },
-    trash:     { label: "Корзина",          badgeClass: "stage-trash",     filterClass: "fc-trash",     color: "9ca3af" },
+    new:         { label: "Новые",                             badgeClass: "stage-new",         filterClass: "fc-new",         color: "1a1a2e" },
+    preparation: { label: "Обследование",                   badgeClass: "stage-preparation", filterClass: "fc-preparation", color: "8b5cf6" },
+    backlog:     { label: "Бэклог",                         badgeClass: "stage-backlog",     filterClass: "fc-backlog",     color: "3b82f6" },
+    inwork:      { label: "В работе",                       badgeClass: "stage-inwork",      filterClass: "fc-inwork",      color: "22c55e" },
+    testing:     { label: "Тестирование",                   badgeClass: "stage-testing",     filterClass: "fc-testing",     color: "ef4444" },
+    release:     { label: "В релиз",                        badgeClass: "stage-release",     filterClass: "fc-release",     color: "f97316" },
+    payment:     { label: "На оплату",                      badgeClass: "stage-payment",     filterClass: "fc-payment",     color: "059669" },
+    postponed:   { label: "Отложены",                       badgeClass: "stage-postponed",   filterClass: "fc-postponed",   color: "eab308" },
+    done:        { label: "Завершено",                      badgeClass: "stage-done",        filterClass: "fc-done",        color: "6b7280" },
+    trash:       { label: "Корзина",                        badgeClass: "stage-trash",       filterClass: "fc-trash",       color: "9ca3af" },
 };
 
 // ===== PROGRAMMER WHITELIST =====
@@ -966,7 +970,7 @@ function isWhitelisted(task) {
 
 // ===== STATE =====
 // По умолчанию показываем активные задачи + бэклог (без Новые, Отложены, Завершено, Корзина)
-let activeFilters = new Set(["backlog", "inwork", "testing", "release", "payment"]);
+let activeFilters = new Set(["preparation", "backlog", "inwork", "testing", "release", "payment"]);
 let apiRequestCount = 0;
 let userMap = {};
 let tasks = [];
@@ -1328,7 +1332,7 @@ function updateSummary() {
 
 // ===== RENDER =====
 // Активные стадии — для них НЕ применяется фильтр по дате (они показываются ВСЕГДА)
-var ACTIVE_STAGES = new Set(['backlog', 'inwork', 'testing', 'release', 'payment']);
+var ACTIVE_STAGES = new Set(['preparation', 'backlog', 'inwork', 'testing', 'release', 'payment']);
 
 // Стадии, где просрочка имеет смысл
 var OVERDUE_RELEVANT = new Set(['inwork', 'testing', 'release', 'payment']);
@@ -1343,7 +1347,7 @@ function renderTasks() {
 
     // === Stage counts (без поискового фильтра, по whitelist + дата) ===
     // Бэклог-задачи показываем без фильтра вайтлиста (они могут быть ещё не распределены)
-    var allForCounts = tasks.filter(function(t) { return t.stage === 'backlog' || isWhitelisted(t); });
+    var allForCounts = tasks.filter(function(t) { return (t.stage === 'backlog' || t.stage === 'preparation') || isWhitelisted(t); });
     var dateFromISO = dateFrom ? toISODate(dateFrom) : '';
     var dateToISO = dateTo ? toISODate(dateTo) : '';
     if (dateFromISO || dateToISO) {
@@ -1354,9 +1358,10 @@ function renderTasks() {
             return true;
         });
     }
-    var stageCounts = { backlog: 0, inwork: 0, testing: 0, release: 0, payment: 0 };
+    var stageCounts = { preparation: 0, backlog: 0, inwork: 0, testing: 0, release: 0, payment: 0 };
     allForCounts.forEach(function(t) { if (stageCounts.hasOwnProperty(t.stage)) stageCounts[t.stage]++; });
-    var cEl = document.getElementById('countBacklog'); if (cEl) cEl.textContent = stageCounts.backlog;
+    var cEl = document.getElementById('countPreparation'); if (cEl) cEl.textContent = stageCounts.preparation;
+    cEl = document.getElementById('countBacklog'); if (cEl) cEl.textContent = stageCounts.backlog;
     cEl = document.getElementById('countInwork'); if (cEl) cEl.textContent = stageCounts.inwork;
     cEl = document.getElementById('countTesting'); if (cEl) cEl.textContent = stageCounts.testing;
     cEl = document.getElementById('countRelease'); if (cEl) cEl.textContent = stageCounts.release;
@@ -1364,7 +1369,7 @@ function renderTasks() {
 
     // === Основная фильтрация ===
     var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
-    filtered = filtered.filter(function(t) { return t.stage === 'backlog' || isWhitelisted(t); });
+    filtered = filtered.filter(function(t) { return (t.stage === 'backlog' || t.stage === 'preparation') || isWhitelisted(t); });
     if (dateFromISO || dateToISO) {
         filtered = filtered.filter(function(t) {
             if (ACTIVE_STAGES.has(t.stage)) return true;
@@ -1689,7 +1694,7 @@ function exportExcel() {
 
     // Apply ALL active filters (stage + programmer whitelist + date range) — same as renderTasks
     var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
-    filtered = filtered.filter(function(t) { return t.stage === 'backlog' || isWhitelisted(t); });
+    filtered = filtered.filter(function(t) { return (t.stage === 'backlog' || t.stage === 'preparation') || isWhitelisted(t); });
     // Date range — активные стадии всегда проходят
     var dfISO = dateFrom ? toISODate(dateFrom) : '';
     var dtISO = dateTo ? toISODate(dateTo) : '';
@@ -1714,6 +1719,7 @@ function exportExcel() {
         'postponed': {bg: 'FFFEF9C3', text: 'FFA16207'},
         'new':       {bg: 'FFE0E7FF', text: 'FF1A1A2E'},
         'backlog':   {bg: 'FFDBEAFE', text: 'FF1D4ED8'},
+        'preparation': {bg: 'FFEDE9FE', text: 'FF6D28D9'},
         'done':      {bg: 'FFF3F4F6', text: 'FF4B5563'},
         'trash':     {bg: 'FFF3F4F6', text: 'FF9CA3AF'}
     };
@@ -1800,7 +1806,7 @@ function exportExcelEvich() {
 
     // Apply ALL active filters (stage + programmer whitelist + date range) — same as renderTasks
     var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
-    filtered = filtered.filter(function(t) { return t.stage === 'backlog' || isWhitelisted(t); });
+    filtered = filtered.filter(function(t) { return (t.stage === 'backlog' || t.stage === 'preparation') || isWhitelisted(t); });
     // Date range — активные стадии всегда проходят
     var dfISO = dateFrom ? toISODate(dateFrom) : '';
     var dtISO = dateTo ? toISODate(dateTo) : '';
@@ -1826,6 +1832,7 @@ function exportExcelEvich() {
         'postponed': {bg: 'FFFEF9C3', text: 'FFA16207'},
         'new':       {bg: 'FFE0E7FF', text: 'FF1A1A2E'},
         'backlog':   {bg: 'FFDBEAFE', text: 'FF1D4ED8'},
+        'preparation': {bg: 'FFEDE9FE', text: 'FF6D28D9'},
         'done':      {bg: 'FFF3F4F6', text: 'FF4B5563'},
         'trash':     {bg: 'FFF3F4F6', text: 'FF9CA3AF'}
     };
