@@ -822,7 +822,7 @@
 <div class="header">
     <div class="header-left">
         <div>
-            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.5</span></div>
+            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.7</span></div>
             <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
     </div>
@@ -852,7 +852,6 @@
 <!-- Toolbar: filters + search + summary -->
 <div class="toolbar" style="flex-wrap:wrap;gap:6px 8px">
     <span class="filter-label">Стадия:</span>
-    <span class="filter-chip fc-preparation active" data-stage="preparation" onclick="toggleFilter(this)">Обследование <span class="chip-count" id="countPreparation">0</span></span>
     <span class="filter-chip fc-backlog active" data-stage="backlog" onclick="toggleFilter(this)">Бэклог <span class="chip-count" id="countBacklog">0</span></span>
     <span class="filter-chip fc-inwork active" data-stage="inwork" onclick="toggleFilter(this)">В работе <span class="chip-count" id="countInwork">0</span></span>
     <span class="filter-chip fc-testing active" data-stage="testing" onclick="toggleFilter(this)">Тестирование <span class="chip-count" id="countTesting">0</span></span>
@@ -970,7 +969,7 @@ function isWhitelisted(task) {
 
 // ===== STATE =====
 // По умолчанию показываем активные задачи + бэклог (без Новые, Отложены, Завершено, Корзина)
-let activeFilters = new Set(["preparation", "backlog", "inwork", "testing", "release", "payment"]);
+let activeFilters = new Set(["backlog", "inwork", "testing", "release", "payment"]);
 let apiRequestCount = 0;
 let userMap = {};
 let tasks = [];
@@ -1167,7 +1166,7 @@ async function fetchStagesFromAPI() {
         // Автоматический маппинг: название стадии → внутренний ключ
         var nameToKey = {
             'Новые': 'new',
-            'Обследование/моделирование/проектирование': 'inwork',
+            'Обследование/моделирование/проектирование': 'preparation',
             'Бэклог': 'backlog',
             'В работе': 'inwork',
             'Тестирование и оценка': 'testing',
@@ -1332,7 +1331,7 @@ function updateSummary() {
 
 // ===== RENDER =====
 // Активные стадии — для них НЕ применяется фильтр по дате (они показываются ВСЕГДА)
-var ACTIVE_STAGES = new Set(['preparation', 'backlog', 'inwork', 'testing', 'release', 'payment']);
+var ACTIVE_STAGES = new Set(['backlog', 'inwork', 'testing', 'release', 'payment']);
 
 // Стадии, где просрочка имеет смысл
 var OVERDUE_RELEVANT = new Set(['inwork', 'testing', 'release', 'payment']);
@@ -1347,7 +1346,7 @@ function renderTasks() {
 
     // === Stage counts (без поискового фильтра, по whitelist + дата) ===
     // Бэклог-задачи показываем без фильтра вайтлиста (они могут быть ещё не распределены)
-    var allForCounts = tasks.filter(function(t) { return (t.stage === 'backlog' || t.stage === 'preparation') || isWhitelisted(t); });
+    var allForCounts = tasks.filter(function(t) { return t.stage === 'backlog' || isWhitelisted(t); });
     var dateFromISO = dateFrom ? toISODate(dateFrom) : '';
     var dateToISO = dateTo ? toISODate(dateTo) : '';
     if (dateFromISO || dateToISO) {
@@ -1358,10 +1357,9 @@ function renderTasks() {
             return true;
         });
     }
-    var stageCounts = { preparation: 0, backlog: 0, inwork: 0, testing: 0, release: 0, payment: 0 };
+    var stageCounts = { backlog: 0, inwork: 0, testing: 0, release: 0, payment: 0 };
     allForCounts.forEach(function(t) { if (stageCounts.hasOwnProperty(t.stage)) stageCounts[t.stage]++; });
-    var cEl = document.getElementById('countPreparation'); if (cEl) cEl.textContent = stageCounts.preparation;
-    cEl = document.getElementById('countBacklog'); if (cEl) cEl.textContent = stageCounts.backlog;
+    var cEl = document.getElementById('countBacklog'); if (cEl) cEl.textContent = stageCounts.backlog;
     cEl = document.getElementById('countInwork'); if (cEl) cEl.textContent = stageCounts.inwork;
     cEl = document.getElementById('countTesting'); if (cEl) cEl.textContent = stageCounts.testing;
     cEl = document.getElementById('countRelease'); if (cEl) cEl.textContent = stageCounts.release;
@@ -1369,7 +1367,7 @@ function renderTasks() {
 
     // === Основная фильтрация ===
     var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
-    filtered = filtered.filter(function(t) { return (t.stage === 'backlog' || t.stage === 'preparation') || isWhitelisted(t); });
+    filtered = filtered.filter(function(t) { return t.stage === 'backlog' || isWhitelisted(t); });
     if (dateFromISO || dateToISO) {
         filtered = filtered.filter(function(t) {
             if (ACTIVE_STAGES.has(t.stage)) return true;
@@ -1694,7 +1692,7 @@ function exportExcel() {
 
     // Apply ALL active filters (stage + programmer whitelist + date range) — same as renderTasks
     var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
-    filtered = filtered.filter(function(t) { return (t.stage === 'backlog' || t.stage === 'preparation') || isWhitelisted(t); });
+    filtered = filtered.filter(function(t) { return t.stage === 'backlog' || isWhitelisted(t); });
     // Date range — активные стадии всегда проходят
     var dfISO = dateFrom ? toISODate(dateFrom) : '';
     var dtISO = dateTo ? toISODate(dateTo) : '';
@@ -1806,7 +1804,7 @@ function exportExcelEvich() {
 
     // Apply ALL active filters (stage + programmer whitelist + date range) — same as renderTasks
     var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
-    filtered = filtered.filter(function(t) { return (t.stage === 'backlog' || t.stage === 'preparation') || isWhitelisted(t); });
+    filtered = filtered.filter(function(t) { return t.stage === 'backlog' || isWhitelisted(t); });
     // Date range — активные стадии всегда проходят
     var dfISO = dateFrom ? toISODate(dateFrom) : '';
     var dtISO = dateTo ? toISODate(dateTo) : '';
