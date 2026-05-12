@@ -822,7 +822,7 @@
 <div class="header">
     <div class="header-left">
         <div>
-            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.7</span></div>
+            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.8</span></div>
             <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
     </div>
@@ -933,34 +933,17 @@ const stageConfig = {
     trash:       { label: "Корзина",                        badgeClass: "stage-trash",       filterClass: "fc-trash",       color: "9ca3af" },
 };
 
-// ===== PROGRAMMER WHITELIST =====
-const PROGRAMMER_WHITELIST = [
-    'Приходько Константин',
-    'Попов Александр',
-    'Макаров Владимир',
-    'Соколовский Александр',
-    'Забиров Тимур',
-    'Замшина Ольга'
-];
+// ===== EXECUTOR BLACKLIST (Исполнитель) =====
+// Фильтрация по полю «Исполнитель» (ufCrm26_1716288509)
+// Исключаем Ширяева — его задачи нам не интересны
+const EXECUTOR_BLACKLIST = ['Ширяев'];
 
-function isWhitelisted(task) {
-    // Check main programmer field (from assignedById)
-    if (task.programmer) {
-        for (var i = 0; i < PROGRAMMER_WHITELIST.length; i++) {
-            if (task.programmer.indexOf(PROGRAMMER_WHITELIST[i]) !== -1 || PROGRAMMER_WHITELIST[i].indexOf(task.programmer) !== -1) {
+function isExcludedExecutor(task) {
+    // Check executor name
+    if (task.executor) {
+        for (var i = 0; i < EXECUTOR_BLACKLIST.length; i++) {
+            if (task.executor.indexOf(EXECUTOR_BLACKLIST[i]) !== -1) {
                 return true;
-            }
-        }
-    }
-    // Check programmers array (from ufCrm26_1760336545)
-    if (task.programmers && Array.isArray(task.programmers) && task.programmers.length > 0) {
-        for (var j = 0; j < task.programmers.length; j++) {
-            var pName = getUserName(task.programmers[j]);
-            if (!pName) continue;
-            for (var k = 0; k < PROGRAMMER_WHITELIST.length; k++) {
-                if (pName.indexOf(PROGRAMMER_WHITELIST[k]) !== -1 || PROGRAMMER_WHITELIST[k].indexOf(pName) !== -1) {
-                    return true;
-                }
             }
         }
     }
@@ -1080,15 +1063,14 @@ function mapApiItem(item) {
     // Names
     var responsibleName = getUserName(item.createdBy);
 
-    // Programmer: PRIMARY from process field ufCrm26_1760336545 (array of user IDs)
-    // FALLBACK to assignedById only if process field is empty
+    // Исполнитель: поле ufCrm26_1716288509 (всегда одно, используется для фильтрации)
+    var executorName = getUserName(item.ufCrm26_1716288509);
+
+    // Программист: поле ufCrm26_1760336545 (для отображения, может быть пустым)
     var programmerName = '';
     var programmersArr = item.ufCrm26_1760336545 || [];
     if (Array.isArray(programmersArr) && programmersArr.length > 0) {
         programmerName = programmersArr.map(function(uid) { return getUserName(uid); }).filter(function(n) { return n; }).join(', ');
-    }
-    if (!programmerName) {
-        programmerName = getUserName(item.assignedById);
     }
 
     // Description: remove "Задача № XXX . " prefix
@@ -1110,7 +1092,8 @@ function mapApiItem(item) {
         stageId: stageId,
         category: item.ufCrm26_1715087907 || '',
         responsible: responsibleName || 'Пользователь ' + item.createdBy,
-        programmer: programmerName || 'Пользователь ' + item.assignedById,
+        executor: executorName || '',
+        programmer: programmerName || '',
         deadline: deadlineStr,
         created: created,
         description: description || cleanTitle,
@@ -1344,9 +1327,9 @@ function renderTasks() {
     var list = document.getElementById('taskList');
     var query = (document.getElementById("searchInput").value || "").toLowerCase().trim();
 
-    // === Stage counts (без поискового фильтра, по whitelist + дата) ===
-    // Бэклог-задачи показываем без фильтра вайтлиста (они могут быть ещё не распределены)
-    var allForCounts = tasks.filter(function(t) { return t.stage === 'backlog' || isWhitelisted(t); });
+    // === Stage counts (без поискового фильтра, по исполнителю + дата) ===
+    // Исключаем только Ширяева (чёрный список исполнителей)
+    var allForCounts = tasks.filter(function(t) { return !isExcludedExecutor(t); });
     var dateFromISO = dateFrom ? toISODate(dateFrom) : '';
     var dateToISO = dateTo ? toISODate(dateTo) : '';
     if (dateFromISO || dateToISO) {
@@ -1367,7 +1350,7 @@ function renderTasks() {
 
     // === Основная фильтрация ===
     var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
-    filtered = filtered.filter(function(t) { return t.stage === 'backlog' || isWhitelisted(t); });
+    filtered = filtered.filter(function(t) { return !isExcludedExecutor(t); });
     if (dateFromISO || dateToISO) {
         filtered = filtered.filter(function(t) {
             if (ACTIVE_STAGES.has(t.stage)) return true;
@@ -1451,7 +1434,7 @@ function renderTasks() {
                 '<div class="task-meta">' +
                     (deadlineStr ? '<span class="task-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>' + deadlineStr + '</span>' : '') +
                     '<span class="task-meta-item">' + escapeHtml(task.responsible) + '</span>' +
-                    (task.programmer ? '<span class="task-meta-item" style="color:#667085">→ ' + escapeHtml(task.programmer) + '</span>' : '') +
+                    (task.executor ? '<span class="task-meta-item" style="color:#667085">→ ' + escapeHtml(task.executor) + '</span>' : '') +
                     hoursHtml +
                     overdueTag +
                 '</div>' +
@@ -1511,7 +1494,8 @@ function openPreview(taskId) {
         '</div>' +
         hoursBlock +
         movedBlock +
-        '<div class="preview-field"><div class="preview-field-label">Ответственный</div><div class="preview-field-value">' + escapeHtml(task.responsible) + '</div></div>' +
+        '<div class="preview-field"><div class="preview-field-label">Постановщик</div><div class="preview-field-value">' + escapeHtml(task.responsible) + '</div></div>' +
+        (task.executor ? '<div class="preview-field"><div class="preview-field-label">Исполнитель</div><div class="preview-field-value">' + escapeHtml(task.executor) + '</div></div>' : '') +
         (task.programmer ? '<div class="preview-field"><div class="preview-field-label">Программист</div><div class="preview-field-value">' + escapeHtml(task.programmer) + '</div></div>' : '') +
         (task.deadline ? '<div class="preview-field"><div class="preview-field-label">Дедлайн</div><div class="preview-field-value" style="' + (isOverdue ? 'color:#ef4444;font-weight:600' : '') + '">' + formatDate(task.deadline) + (isOverdue ? ' (просрочен)' : '') + '</div></div>' : '') +
         '<div class="preview-field"><div class="preview-field-label">Создана</div><div class="preview-field-value">' + (task.created ? formatDate(task.created) : '—') + '</div></div>' +
@@ -1690,9 +1674,9 @@ function exportExcel() {
         return;
     }
 
-    // Apply ALL active filters (stage + programmer whitelist + date range) — same as renderTasks
+    // Apply ALL active filters (stage + executor blacklist + date range) — same as renderTasks
     var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
-    filtered = filtered.filter(function(t) { return t.stage === 'backlog' || isWhitelisted(t); });
+    filtered = filtered.filter(function(t) { return !isExcludedExecutor(t); });
     // Date range — активные стадии всегда проходят
     var dfISO = dateFrom ? toISODate(dateFrom) : '';
     var dtISO = dateTo ? toISODate(dateTo) : '';
@@ -1752,7 +1736,7 @@ function exportExcel() {
         right: {style: 'thin', color: {argb: 'FFCCCCCC'}}
     };
 
-    var headerRow = ws.addRow(['ID','Название','Ссылка','Стадия','Дедлайн','Программист','Факт/ч']);
+    var headerRow = ws.addRow(['ID','Название','Ссылка','Стадия','Дедлайн','Исполнитель','Факт/ч']);
     headerRow.height = 26;
     headerRow.eachCell(function(cell) {
         cell.font = {bold: true, color: {argb: 'FFFFFFFF'}, size: 11, name: 'Arial'};
@@ -1766,7 +1750,7 @@ function exportExcel() {
         var stageLabel = (stageConfig[t.stage] || {}).label || '';
         var bitrixUrl = TASK_URL_PREFIX + t.id + '/';
 
-        var row = ws.addRow([t.id, t.title || '', bitrixUrl, stageLabel, t.deadline ? formatDate(t.deadline) : '', t.programmer || '', t.hoursActual || 0]);
+        var row = ws.addRow([t.id, t.title || '', bitrixUrl, stageLabel, t.deadline ? formatDate(t.deadline) : '', t.executor || t.programmer || '', t.hoursActual || 0]);
         row.height = 20;
 
         row.eachCell(function(cell, colNumber) {
@@ -1802,9 +1786,9 @@ function exportExcelEvich() {
         return;
     }
 
-    // Apply ALL active filters (stage + programmer whitelist + date range) — same as renderTasks
+    // Apply ALL active filters (stage + executor blacklist + date range) — same as renderTasks
     var filtered = tasks.filter(function(t) { return activeFilters.has(t.stage); });
-    filtered = filtered.filter(function(t) { return t.stage === 'backlog' || isWhitelisted(t); });
+    filtered = filtered.filter(function(t) { return !isExcludedExecutor(t); });
     // Date range — активные стадии всегда проходят
     var dfISO = dateFrom ? toISODate(dateFrom) : '';
     var dtISO = dateTo ? toISODate(dateTo) : '';
@@ -1910,12 +1894,8 @@ function exportExcelEvich() {
         // Col 6: Постановщик
         var col6 = t.responsible || '';
 
-        // Col 7: Исполнитель/Программист — from API field ufCrm26_1760336545
-        var col7 = '';
-        if (t.programmers && Array.isArray(t.programmers) && t.programmers.length > 0) {
-            col7 = t.programmers.map(function(uid) { return getUserName(uid); }).filter(function(n) { return n; }).join(', ');
-        }
-        if (!col7) col7 = t.programmer || '';
+        // Col 7: Исполнитель — from API field ufCrm26_1716288509
+        var col7 = t.executor || t.programmer || '';
 
         // Col 8: Ссылка на задачу = task name as text + hyperlink to Bitrix24
         var col8 = t.title;
