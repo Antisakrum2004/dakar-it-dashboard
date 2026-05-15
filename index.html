@@ -822,7 +822,7 @@
 <div class="header">
     <div class="header-left">
         <div>
-            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.8</span></div>
+            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.9</span></div>
             <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
     </div>
@@ -893,6 +893,10 @@
 const API_BASE = 'https://dakar.bitrix24.ru/rest/103557/7vdwpqb1buur4j0x/';
 const ENTITY_TYPE_ID = 129;
 const TASK_URL_PREFIX = 'https://dakar.bitrix24.ru/crm/type/129/details/';
+
+// АтиЛаб: вебхук и шаблон ссылки на задачу
+const ATILAB_API = 'https://1c-cms.bitrix24.ru/rest/116/48yuunr8ss2u18qm/';
+const ATILAB_TASK_URL = 'https://1c-cms.bitrix24.ru/company/personal/user/116/tasks/task/view/';
 
 // Stage mapping: Bitrix24 stageId → internal stage key
 // Актуальные названия стадий в Bitrix24 (проверено через crm.status.list):
@@ -1507,7 +1511,11 @@ function openPreview(taskId) {
         '<a class="btn-open-bitrix" href="' + TASK_URL_PREFIX + task.id + '/" target="_blank" rel="noopener">' +
             '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
             'Открыть в Битрикс24' +
-        '</a>';
+        '</a>' +
+        '<button class="btn-open-bitrix" style="background:#059669;border-color:#059669" id="btnAtilab" onclick="searchAtilab(\'' + escapeHtml(task.title).replace(/'/g, "\\'") + '\')">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+            'Открыть в АтиЛаб' +
+        '</button>';
 
     document.getElementById("previewOverlay").classList.add("active");
     document.getElementById("previewPanel").classList.add("active");
@@ -1518,6 +1526,61 @@ function closePreview() {
     document.getElementById("previewOverlay").classList.remove("active");
     document.getElementById("previewPanel").classList.remove("active");
     document.body.classList.remove("blurred");
+}
+
+// ===== АТИЛАБ: ленивый поиск задачи по названию =====
+async function searchAtilab(taskTitle) {
+    var btn = document.getElementById('btnAtilab');
+    if (!btn) return;
+
+    // UI: searching state
+    btn.innerHTML = '<span class="spinner"></span> Поиск...';
+    btn.style.opacity = '0.7';
+    btn.style.pointerEvents = 'none';
+
+    try {
+        incrementApiCount();
+        var encoded = encodeURIComponent(taskTitle);
+        var resp = await fetch(ATILAB_API + 'tasks.task.list?filter%5BTITLE%5D=' + encoded);
+        var data = await resp.json();
+        var tasks = (data.result || {}).tasks || [];
+
+        if (tasks.length > 0) {
+            // Найдена — открываем первую (точное совпадение)
+            var atilabId = tasks[0].id;
+            window.open(ATILAB_TASK_URL + atilabId + '/', '_blank');
+            btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Найдено!';
+            btn.style.background = '#15803d';
+            setTimeout(function() {
+                btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Открыть в АтиЛаб';
+                btn.style.background = '#059669';
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+            }, 2000);
+        } else {
+            // Не найдена
+            btn.innerHTML = 'Не найдена в АтиЛаб';
+            btn.style.background = '#dc2626';
+            btn.style.borderColor = '#dc2626';
+            setTimeout(function() {
+                btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Открыть в АтиЛаб';
+                btn.style.background = '#059669';
+                btn.style.borderColor = '#059669';
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+            }, 2500);
+        }
+    } catch(e) {
+        console.error('Atilab search error:', e);
+        btn.innerHTML = 'Ошибка поиска';
+        btn.style.background = '#dc2626';
+        setTimeout(function() {
+            btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Открыть в АтиЛаб';
+            btn.style.background = '#059669';
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = 'auto';
+        }, 2500);
+    }
 }
 
 // ===== API UPDATE FUNCTIONS =====
