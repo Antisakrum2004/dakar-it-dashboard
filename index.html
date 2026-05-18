@@ -822,7 +822,7 @@
 <div class="header">
     <div class="header-left">
         <div>
-            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.9</span></div>
+            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.10</span></div>
             <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
     </div>
@@ -1045,6 +1045,23 @@ function incrementApiCount() {
     document.getElementById('apiCounter').textContent = 'API: ' + apiRequestCount;
 }
 
+// Валидация API-ответов
+function isValidApiResponse(data) {
+    if (!data || typeof data !== 'object') return false;
+    if (data.error) return false;
+    return true;
+}
+
+// Уведомление об ошибке для пользователя
+function showErrorNotification(msg) {
+    var el = document.getElementById('lastUpdate');
+    if (el) {
+        el.textContent = msg;
+        el.style.color = '#dc2626';
+        setTimeout(function() { el.style.color = ''; }, 5000);
+    }
+}
+
 function getUserName(userId) {
     if (!userId) return '';
     return userMap[String(userId)] || '';
@@ -1201,6 +1218,10 @@ async function fetchAllItems() {
             var url = API_BASE + 'crm.item.list?entityTypeId=' + ENTITY_TYPE_ID + '&start=' + start;
             var resp = await fetch(url);
             var data = await resp.json();
+            if (!isValidApiResponse(data)) {
+                console.error('Invalid API response at start=' + start, data.error || 'unknown');
+                break;
+            }
             var items = data.result;
             if (Array.isArray(items)) {
                 allItems = allItems.concat(items);
@@ -1271,6 +1292,7 @@ async function loadLiveData() {
         return true;
     } catch(e) {
         console.error('API load failed, using mock data:', e);
+        showErrorNotification('Ошибка загрузки данных! Используются кешированные данные.');
         tasks = mockTasks.slice();
         isLiveData = false;
 
@@ -1512,10 +1534,20 @@ function openPreview(taskId) {
             '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
             'Открыть в Битрикс24' +
         '</a>' +
-        '<button class="btn-open-bitrix" style="background:#059669;border-color:#059669" id="btnAtilab" onclick="searchAtilab(\'' + escapeHtml(task.title).replace(/'/g, "\\'") + '\')">' +
+        '<button class="btn-open-bitrix" style="background:#059669;border-color:#059669" id="btnAtilab" data-task-id="' + task.id + '">' +
             '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
             'Открыть в АтиЛаб' +
         '</button>';
+
+    // Привязка обработчика через addEventListener (безопасно, без XSS через onclick)
+    var atilabBtn = document.getElementById('btnAtilab');
+    if (atilabBtn) {
+        atilabBtn.addEventListener('click', function() {
+            var tid = this.getAttribute('data-task-id');
+            var t = tasks.find(function(x) { return String(x.id) === tid; });
+            if (t) searchAtilab(t.title);
+        });
+    }
 
     document.getElementById("previewOverlay").classList.add("active");
     document.getElementById("previewPanel").classList.add("active");
