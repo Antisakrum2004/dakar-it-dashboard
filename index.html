@@ -809,6 +809,46 @@
         .preview-body::-webkit-scrollbar { width: 6px; }
         .task-list::-webkit-scrollbar-thumb,
         .preview-body::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+
+        /* ===== COPY TASKS BUTTON ===== */
+        .copy-tasks-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 0 4px;
+            gap: 8px;
+        }
+        .btn-copy-tasks {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            border: 1px solid #d0d5dd;
+            border-radius: 8px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: #475469;
+            transition: all 0.15s;
+        }
+        .btn-copy-tasks:hover {
+            background: #f0f4ff;
+            border-color: #3b82f6;
+            color: #1d4ed8;
+        }
+        .btn-copy-tasks:active {
+            background: #e0e7ff;
+        }
+        .btn-copy-tasks.copied {
+            background: #f0fdf4;
+            border-color: #22c55e;
+            color: #15803d;
+        }
+        .btn-copy-tasks svg {
+            width: 15px;
+            height: 15px;
+        }
     </style>
 </head>
 <body>
@@ -822,7 +862,7 @@
 <div class="header">
     <div class="header-left">
         <div>
-            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.10</span></div>
+            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.11</span></div>
             <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
     </div>
@@ -873,6 +913,12 @@
 <!-- Task List -->
 <div class="container">
     <div class="task-list" id="taskList"></div>
+    <div class="copy-tasks-bar" id="copyTasksBar" style="display:none">
+        <button class="btn-copy-tasks" id="btnCopyTasks" onclick="copyTasksToClipboard()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Копировать список
+        </button>
+    </div>
 </div>
 
 <!-- Preview Overlay -->
@@ -963,6 +1009,7 @@ let tasks = [];
 let isLiveData = false;
 let dateFrom = null;
 let dateTo = null;
+let lastFilteredTasks = []; // Для копирования списка задач
 
 // ===== DATE RANGE =====
 function initDateRange() {
@@ -1441,6 +1488,13 @@ function renderTasks() {
         statAvgStage.innerHTML = 'Ср. в работе: <strong>' + avgDays + ' дн.</strong>';
     } else { statAvgStage.style.display = 'none'; }
 
+    // Сохраняем отфильтрованные задачи для копирования
+    lastFilteredTasks = filtered;
+
+    // Показываем/прячем кнопку копирования
+    var copyBar = document.getElementById('copyTasksBar');
+    if (copyBar) copyBar.style.display = filtered.length > 0 ? '' : 'none';
+
     list.innerHTML = filtered.map(function(task) {
         var stage = stageConfig[task.stage] || stageConfig.backlog;
         var isOverdue = isOverdueTask(task);
@@ -1760,6 +1814,54 @@ function escapeHtml(text) {
     var div = document.createElement("div");
     div.textContent = text;
     return div.innerHTML;
+}
+
+// ===== COPY TASKS TO CLIPBOARD =====
+function copyTasksToClipboard() {
+    if (!lastFilteredTasks.length) return;
+
+    var lines = lastFilteredTasks.map(function(t, i) {
+        return (i + 1) + '. ' + TASK_URL_PREFIX + t.id + '/ ' + t.title;
+    });
+    var text = lines.join('\n');
+
+    var btn = document.getElementById('btnCopyTasks');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+            showCopySuccess(btn);
+        }).catch(function() {
+            fallbackCopy(text, btn);
+        });
+    } else {
+        fallbackCopy(text, btn);
+    }
+}
+
+function fallbackCopy(text, btn) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+        document.execCommand('copy');
+        showCopySuccess(btn);
+    } catch(e) {
+        alert('Не удалось скопировать');
+    }
+    document.body.removeChild(ta);
+}
+
+function showCopySuccess(btn) {
+    if (!btn) return;
+    btn.classList.add('copied');
+    var origHtml = btn.innerHTML;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><polyline points="20 6 9 17 4 12"/></svg> Скопировано!';
+    setTimeout(function() {
+        btn.classList.remove('copied');
+        btn.innerHTML = origHtml;
+    }, 2000);
 }
 
 // ===== EXCEL EXPORT — standard =====
