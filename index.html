@@ -849,6 +849,127 @@
             width: 15px;
             height: 15px;
         }
+
+        /* ===== COMMENTS BLOCK IN PREVIEW ===== */
+        .preview-comments-section {
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px solid #e5e7eb;
+        }
+        .preview-comments-title {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #98a2b3;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .preview-comments-title svg {
+            width: 13px;
+            height: 13px;
+            opacity: 0.5;
+        }
+        .preview-comment-input-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .preview-comment-input {
+            flex: 1;
+            padding: 7px 10px;
+            border: 1px solid #d0d5dd;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #1a1a2e;
+            outline: none;
+            font-family: inherit;
+            resize: none;
+            min-height: 36px;
+            max-height: 120px;
+            transition: border-color 0.15s;
+            background: #fff;
+        }
+        .preview-comment-input:focus { border-color: #3b82f6; }
+        .preview-comment-input::placeholder { color: #b0b8c4; }
+        .btn-add-comment {
+            padding: 7px 12px;
+            border: 1px solid #3b82f6;
+            border-radius: 6px;
+            background: #3b82f6;
+            color: #fff;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.15s;
+            flex-shrink: 0;
+            align-self: flex-end;
+        }
+        .btn-add-comment:hover { background: #2563eb; border-color: #2563eb; }
+        .btn-add-comment:disabled { opacity: 0.4; cursor: default; }
+        .preview-comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .preview-comment-item {
+            display: flex;
+            gap: 8px;
+            padding: 8px 10px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            position: relative;
+        }
+        .preview-comment-item:hover {
+            background: #f0f4ff;
+        }
+        .comment-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .comment-text {
+            font-size: 12px;
+            color: #344054;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .comment-time {
+            font-size: 10px;
+            color: #98a2b3;
+            margin-top: 3px;
+        }
+        .comment-delete {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            border: none;
+            background: transparent;
+            color: #98a2b3;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.15s;
+        }
+        .preview-comment-item:hover .comment-delete { opacity: 1; }
+        .comment-delete:hover { background: #fee2e2; color: #dc2626; }
+        .comments-empty {
+            font-size: 11px;
+            color: #b0b8c4;
+            text-align: center;
+            padding: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -862,7 +983,7 @@
 <div class="header">
     <div class="header-left">
         <div>
-            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.11</span></div>
+            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.12</span></div>
             <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
     </div>
@@ -1495,10 +1616,14 @@ function renderTasks() {
     var copyBar = document.getElementById('copyTasksBar');
     if (copyBar) copyBar.style.display = filtered.length > 0 ? '' : 'none';
 
+    // Предзагружаем комментарии для индикаторов
+    var _commentsMap = getCommentsStorage();
+
     list.innerHTML = filtered.map(function(task) {
         var stage = stageConfig[task.stage] || stageConfig.backlog;
         var isOverdue = isOverdueTask(task);
         var deadlineStr = task.deadline ? formatDate(task.deadline) : '';
+        var hasComments = _commentsMap[task.id] && _commentsMap[task.id].length > 0;
 
         var hoursHtml = (task.hoursActual > 0 || task.hoursPlanned > 0)
             ? '<span class="task-meta-item"><span class="task-hours"><span class="hours-actual">' + task.hoursActual + '</span> ч</span></span>'
@@ -1506,6 +1631,10 @@ function renderTasks() {
 
         var overdueTag = isOverdue
             ? '<span class="task-meta-item task-meta-overdue">⚠ просрочен</span>'
+            : '';
+
+        var commentTag = hasComments
+            ? '<span class="task-meta-item" style="color:#3b82f6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' + _commentsMap[task.id].length + '</span>'
             : '';
 
         return '<div class="task-item ' + (isOverdue ? 'deadline-overdue' : '') + '" onclick="openPreview(' + task.id + ')">' +
@@ -1517,6 +1646,7 @@ function renderTasks() {
                     (task.executor ? '<span class="task-meta-item" style="color:#667085">→ ' + escapeHtml(task.executor) + '</span>' : '') +
                     hoursHtml +
                     overdueTag +
+                    commentTag +
                 '</div>' +
             '</div>' +
             '<div class="task-right">' +
@@ -1579,9 +1709,18 @@ function openPreview(taskId) {
         (task.programmer ? '<div class="preview-field"><div class="preview-field-label">Программист</div><div class="preview-field-value">' + escapeHtml(task.programmer) + '</div></div>' : '') +
         (task.deadline ? '<div class="preview-field"><div class="preview-field-label">Дедлайн</div><div class="preview-field-value" style="' + (isOverdue ? 'color:#ef4444;font-weight:600' : '') + '">' + formatDate(task.deadline) + (isOverdue ? ' (просрочен)' : '') + '</div></div>' : '') +
         '<div class="preview-field"><div class="preview-field-label">Создана</div><div class="preview-field-value">' + (task.created ? formatDate(task.created) : '—') + '</div></div>' +
-        (task.description ? '<div class="preview-field"><div class="preview-field-label">Описание</div><div class="preview-description">' + escapeHtml(task.description) + '</div></div>' : '');
+        (task.description ? '<div class="preview-field"><div class="preview-field-label">Описание</div><div class="preview-description">' + escapeHtml(task.description) + '</div></div>' : '') +
+        '<div class="preview-comments-section">' +
+            '<div class="preview-comments-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Мои комментарии</div>' +
+            '<div class="preview-comment-input-row">' +
+                '<textarea class="preview-comment-input" id="commentInput" placeholder="Добавить комментарий..." rows="1" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();addComment(' + task.id + ')}"></textarea>' +
+                '<button class="btn-add-comment" id="btnAddComment" onclick="addComment(' + task.id + ')">+</button>' +
+            '</div>' +
+            '<div class="preview-comments-list" id="commentsList"></div>' +
+        '</div>';
 
     document.getElementById("previewBody").innerHTML = bodyHtml;
+    renderComments(task.id);
 
     document.getElementById("previewFooter").innerHTML =
         '<a class="btn-open-bitrix" href="' + TASK_URL_PREFIX + task.id + '/" target="_blank" rel="noopener">' +
@@ -1862,6 +2001,99 @@ function showCopySuccess(btn) {
         btn.classList.remove('copied');
         btn.innerHTML = origHtml;
     }, 2000);
+}
+
+// ===== COMMENTS (localStorage) =====
+var COMMENTS_KEY = 'dakar_task_comments';
+
+function getCommentsStorage() {
+    try {
+        var raw = localStorage.getItem(COMMENTS_KEY);
+        return raw ? JSON.parse(raw) : {};
+    } catch(e) {
+        return {};
+    }
+}
+
+function saveCommentsStorage(data) {
+    try {
+        localStorage.setItem(COMMENTS_KEY, JSON.stringify(data));
+    } catch(e) {
+        console.error('Failed to save comments:', e);
+    }
+}
+
+function getTaskComments(taskId) {
+    var storage = getCommentsStorage();
+    return storage[taskId] || [];
+}
+
+function addComment(taskId) {
+    var input = document.getElementById('commentInput');
+    if (!input) return;
+    var text = input.value.trim();
+    if (!text) return;
+
+    var storage = getCommentsStorage();
+    if (!storage[taskId]) storage[taskId] = [];
+
+    storage[taskId].push({
+        id: Date.now(),
+        text: text,
+        time: new Date().toISOString()
+    });
+
+    saveCommentsStorage(storage);
+    input.value = '';
+    renderComments(taskId);
+}
+
+function deleteComment(taskId, commentId) {
+    var storage = getCommentsStorage();
+    if (!storage[taskId]) return;
+    storage[taskId] = storage[taskId].filter(function(c) { return c.id !== commentId; });
+    if (storage[taskId].length === 0) delete storage[taskId];
+    saveCommentsStorage(storage);
+    renderComments(taskId);
+}
+
+function renderComments(taskId) {
+    var container = document.getElementById('commentsList');
+    if (!container) return;
+
+    var comments = getTaskComments(taskId);
+    if (!comments.length) {
+        container.innerHTML = '<div class="comments-empty">Нет комментариев</div>';
+        return;
+    }
+
+    container.innerHTML = comments.map(function(c) {
+        return '<div class="preview-comment-item">' +
+            '<div class="comment-content">' +
+                '<div class="comment-text">' + escapeHtml(c.text) + '</div>' +
+                '<div class="comment-time">' + formatCommentTime(c.time) + '</div>' +
+            '</div>' +
+            '<button class="comment-delete" title="Удалить" onclick="deleteComment(' + taskId + ',' + c.id + ')">&times;</button>' +
+        '</div>';
+    }).join('');
+
+    // Прокрутка к последнему комментарию
+    container.scrollTop = container.scrollHeight;
+}
+
+function formatCommentTime(isoStr) {
+    if (!isoStr) return '';
+    var d = new Date(isoStr);
+    if (isNaN(d.getTime())) return '';
+    var now = new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var commentDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    var diff = today - commentDay;
+    var timeStr = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+
+    if (diff === 0) return 'Сегодня ' + timeStr;
+    if (diff <= 86400000) return 'Вчера ' + timeStr;
+    return formatDate(d.toISOString().substring(0, 10)) + ' ' + timeStr;
 }
 
 // ===== EXCEL EXPORT — standard =====
