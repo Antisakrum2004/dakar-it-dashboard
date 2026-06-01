@@ -970,6 +970,102 @@
             text-align: center;
             padding: 10px 0;
         }
+
+        /* ===== HEADER TABS ===== */
+        .header-tabs {
+            display: flex;
+            gap: 2px;
+            background: #f2f4f7;
+            border-radius: 8px;
+            padding: 3px;
+            margin-top: 4px;
+        }
+        .tab-btn {
+            padding: 5px 16px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #667085;
+            transition: all 0.15s;
+        }
+        .tab-btn.active {
+            background: #fff;
+            color: #1a1a2e;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .tab-btn:hover:not(.active) {
+            color: #344054;
+        }
+
+        /* ===== АТИЛАБ: PROJECT CHIPS ===== */
+        .project-chips-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 6px 20px;
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .project-chip {
+            padding: 3px 9px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.15s;
+            user-select: none;
+            white-space: nowrap;
+            background: #f2f4f7;
+            color: #667085;
+        }
+        .project-chip:hover {
+            background: #eaecf0;
+        }
+        .project-chip.active {
+            background: #1a1a2e;
+            color: #fff;
+            border-color: #1a1a2e;
+        }
+
+        /* ===== АТИЛАБ: KANBAN STAGE TAG ===== */
+        .kanban-stage-tag {
+            font-size: 9px;
+            padding: 1px 6px;
+            border-radius: 8px;
+            background: #e0e7ff;
+            color: #3730a3;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* ===== АТИЛАБ: PROJECT BADGE IN TASK LIST ===== */
+        .project-badge {
+            font-size: 9px;
+            padding: 1px 6px;
+            border-radius: 8px;
+            background: #f0fdf4;
+            color: #15803d;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* ===== TAB VISIBILITY ===== */
+        .dakar-only { }
+        .atilab-only { display: none !important; }
+        body.tab-atilab .dakar-only { display: none !important; }
+        body.tab-atilab .atilab-only { display: flex !important; }
+        /* For project-chips-row which is a block */
+        body.tab-atilab .atilab-only.atilab-block { display: block !important; }
+
+        @media (max-width: 640px) {
+            .header-tabs { margin-top: 2px; }
+            .tab-btn { padding: 4px 12px; font-size: 12px; }
+            .project-chips-row { padding: 6px 12px; }
+        }
     </style>
 </head>
 <body>
@@ -983,12 +1079,19 @@
 <div class="header">
     <div class="header-left">
         <div>
-            <div class="header-title">ИТ Поддержка — Дакар <span style="font-size:11px;font-weight:400;color:#888;margin-left:8px">v2.12</span></div>
+            <div style="display:flex;align-items:center;gap:12px">
+                <div class="header-title" id="headerTitle">ИТ Поддержка — Дакар</div>
+                <div class="header-tabs">
+                    <button class="tab-btn active" data-tab="dakar" onclick="switchTab('dakar')">Дакар</button>
+                    <button class="tab-btn" data-tab="atilab" onclick="switchTab('atilab')">АтиЛаб</button>
+                </div>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.13</span>
+            </div>
             <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
     </div>
     <div class="header-actions">
-        <div class="date-range">
+        <div class="date-range dakar-only" style="display:flex">
             <input type="date" id="dateFrom" onchange="onDateChange()">
             <span class="date-range-sep">—</span>
             <input type="date" id="dateTo" onchange="onDateChange()">
@@ -999,19 +1102,19 @@
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h-6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
             Обновить
         </button>
-        <button class="btn btn-evich" onclick="exportExcelEvich()" id="evichBtn" title="Excel для Евича — 8 колонок с ИТОГО">
+        <button class="btn btn-evich dakar-only" style="display:flex" onclick="exportExcelEvich()" id="evichBtn" title="Excel для Евича — 8 колонок с ИТОГО">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
             Excel Евичу
         </button>
-        <button class="btn btn-primary" onclick="exportExcel()">
+        <button class="btn btn-primary dakar-only" style="display:flex" onclick="exportExcel()">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Excel
         </button>
     </div>
 </div>
 
-<!-- Toolbar: filters + search + summary -->
-<div class="toolbar" style="flex-wrap:wrap;gap:6px 8px">
+<!-- Toolbar: filters + search + summary — ДАКАР -->
+<div class="toolbar dakar-only" style="flex-wrap:wrap;gap:6px 8px" id="dakarToolbar">
     <span class="filter-label">Стадия:</span>
     <span class="filter-chip fc-backlog active" data-stage="backlog" onclick="toggleFilter(this)">Бэклог <span class="chip-count" id="countBacklog">0</span></span>
     <span class="filter-chip fc-inwork active" data-stage="inwork" onclick="toggleFilter(this)">В работе <span class="chip-count" id="countInwork">0</span></span>
@@ -1023,19 +1126,38 @@
 
     <span class="summary-hours" id="summaryBar" style="white-space:nowrap;font-size:11px;color:#475469;margin-left:auto">Σ <strong id="sumHours">0</strong> ч &nbsp; <span id="filteredCount" class="task-count">0 задач</span></span>
 </div>
-<!-- Stats bar -->
-<div class="toolbar" style="padding:5px 20px;gap:12px;border-bottom:1px solid #e0e0e0" id="statsBar">
+<!-- Stats bar — ДАКАР -->
+<div class="toolbar dakar-only" style="padding:5px 20px;gap:12px;border-bottom:1px solid #e0e0e0" id="statsBar">
     <span class="stat-item stat-overdue" id="statOverdue" style="display:none">Просрочено: <strong>0</strong></span>
     <span class="stat-item stat-overbudget" id="statOverbudget" style="display:none">Перерасход: <strong>0</strong></span>
     <span class="stat-item stat-deadline" id="statDeadline" style="display:none">Ближайший дедлайн: <strong>—</strong></span>
     <span class="stat-item stat-avgstage" id="statAvgStage" style="display:none">Ср. в работе: <strong>—</strong></span>
 </div>
 
+<!-- Toolbar: filters + search — АТИЛАБ -->
+<div class="toolbar atilab-only" style="flex-wrap:wrap;gap:6px 8px" id="atilabToolbar">
+    <span class="filter-label">Статус:</span>
+    <span class="filter-chip fc-new active" data-stage="new" onclick="toggleAtilabFilter(this)">Новые <span class="chip-count" id="atilabCountNew">0</span></span>
+    <span class="filter-chip fc-inwork active" data-stage="inwork" onclick="toggleAtilabFilter(this)">В работе <span class="chip-count" id="atilabCountInwork">0</span></span>
+    <span class="filter-chip fc-testing" data-stage="review" onclick="toggleAtilabFilter(this)">На проверке <span class="chip-count" id="atilabCountReview">0</span></span>
+    <span class="filter-chip fc-postponed" data-stage="deferred" onclick="toggleAtilabFilter(this)">Отложено <span class="chip-count" id="atilabCountDeferred">0</span></span>
+    <span class="filter-chip fc-done" data-stage="done" onclick="toggleAtilabFilter(this)">Завершено <span class="chip-count" id="atilabCountDone">0</span></span>
+
+    <input class="search-input" type="text" id="atilabSearchInput" placeholder="Поиск..." oninput="renderAtilabTasks()">
+
+    <span class="summary-hours" id="atilabSummaryBar" style="white-space:nowrap;font-size:11px;color:#475469;margin-left:auto"><span id="atilabFilteredCount" class="task-count">0 задач</span></span>
+</div>
+<!-- Project chips — АТИЛАБ -->
+<div class="project-chips-row atilab-only atilab-block" id="atilabProjectChips">
+    <span class="filter-label" style="font-size:10px;margin-right:2px">Проект:</span>
+    <span class="project-chip active" data-project="" onclick="toggleAtilabProjectFilter(this)">Все</span>
+</div>
+
 <!-- Task List -->
 <div class="container">
     <div class="task-list" id="taskList"></div>
     <div class="copy-tasks-bar" id="copyTasksBar" style="display:none">
-        <button class="btn-copy-tasks" id="btnCopyTasks" onclick="copyTasksToClipboard()">
+        <button class="btn-copy-tasks" id="btnCopyTasks" onclick="copyTasksForCurrentTab()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             Копировать список
         </button>
@@ -1064,6 +1186,49 @@ const TASK_URL_PREFIX = 'https://dakar.bitrix24.ru/crm/type/129/details/';
 // АтиЛаб: вебхук и шаблон ссылки на задачу
 const ATILAB_API = 'https://1c-cms.bitrix24.ru/rest/116/48yuunr8ss2u18qm/';
 const ATILAB_TASK_URL = 'https://1c-cms.bitrix24.ru/company/personal/user/116/tasks/task/view/';
+
+// АтиЛаб: маппинг stageId → название канбан-колонки (по groupId)
+const ATILAB_STAGE_MAP = {
+  '4': { '80': 'Новые', '82': 'Оценка', '84': 'Работа', '406': 'Правки', '410': 'Тест' },
+  '6': { '136': 'Новые', '138': 'Оценка', '140': 'Работа', '188': 'Правки', '190': 'Тест', '192': 'Релиз', '194': 'Готово', '196': 'Пауза', '258': 'Счет' },
+  '20': { '152': 'Новые', '154': 'Оценка', '724': 'Работа', '726': 'Правки', '730': 'Тест' },
+  '32': { '86': 'Новые', '90': 'Оценка', '198': 'Работа', '202': 'Правки', '204': 'Тест', '508': 'Релиз', '528': 'Готово', '746': 'Пауза' },
+  '36': { '294': 'Новые', '296': 'Оценка', '300': 'Работа', '306': 'Правки', '308': 'Тест', '362': 'Релиз' },
+  '50': { '424': 'Новые', '538': 'Оценка' },
+  '52': { '438': 'Новые', '440': 'Оценка', '442': 'Работа', '444': 'Правки' },
+  '62': { '588': 'Новые', '590': 'Оценка', '592': 'Работа', '594': 'Правки' },
+  '66': { '606': 'Новые', '636': 'Оценка' },
+  '70': { '620': 'Новые', '770': 'Оценка' },
+  '72': { '626': 'Новые', '778': 'Оценка', '784': 'Работа' },
+  '78': { '702': 'Новые', '704': 'Работа', '706': 'Пауза' },
+  '82': { '836': 'Новые', '844': 'Оценка', '850': 'Работа' },
+};
+
+// АтиЛаб: конфиг статусов (для фильтров и бейджей)
+const atilabStageConfig = {
+  new:      { label: "Новые",       badgeClass: "stage-new",       filterClass: "fc-new",       color: "1a1a2e" },
+  inwork:   { label: "В работе",    badgeClass: "stage-inwork",   filterClass: "fc-inwork",    color: "22c55e" },
+  review:   { label: "На проверке", badgeClass: "stage-testing",  filterClass: "fc-testing",   color: "9b51e0" },
+  deferred: { label: "Отложено",    badgeClass: "stage-postponed",filterClass: "fc-postponed", color: "eab308" },
+  done:     { label: "Завершено",   badgeClass: "stage-done",     filterClass: "fc-done",      color: "6b7280" },
+};
+
+// АтиЛаб: названия проектов
+const ATILAB_PROJECT_NAMES = {
+  '4': 'Живое пиво',
+  '6': 'Бигап',
+  '20': 'ВДЛ',
+  '32': 'Дакар',
+  '36': 'Медицина КЗ',
+  '50': 'ИП Белолапотко',
+  '52': 'ООО ОПТИМАПЛАСТ',
+  '62': 'Нейс-Юг',
+  '66': 'ИП Иванов',
+  '70': 'МАРКДЖЕТ',
+  '72': 'Керамика Фабрика',
+  '78': 'Backlog',
+  '82': 'ЮРИСТЫ БИГАП',
+};
 
 // Stage mapping: Bitrix24 stageId → internal stage key
 // Актуальные названия стадий в Bitrix24 (проверено через crm.status.list):
@@ -1131,6 +1296,15 @@ let isLiveData = false;
 let dateFrom = null;
 let dateTo = null;
 let lastFilteredTasks = []; // Для копирования списка задач
+
+// ===== АТИЛАБ STATE =====
+let currentTab = 'dakar'; // 'dakar' or 'atilab'
+let atilabTasks = [];
+let atilabActiveFilters = new Set(['new', 'inwork']); // Default: show Новые + В работе
+let atilabProjectFilter = null; // null = all projects
+let atilabLastFiltered = [];
+let atilabIsLoaded = false;
+let atilabUserMap = {};
 
 // ===== DATE RANGE =====
 function initDateRange() {
@@ -1482,13 +1656,25 @@ function refreshData() {
     btn.innerHTML = '<span class="spinner"></span> Загрузка...';
     btn.disabled = true;
 
-    loadLiveData().then(function(ok) {
-        updateSummary();
-        renderTasks();
-        updateTimestamp();
-        btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h-6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Обновить';
-        btn.disabled = false;
-    });
+    if (currentTab === 'atilab') {
+        atilabIsLoaded = false;
+        atilabTasks = [];
+        loadAtilabData().then(function() {
+            renderAtilabTasks();
+            updateAtilabProjectChips();
+            updateTimestamp();
+            btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h-6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Обновить';
+            btn.disabled = false;
+        });
+    } else {
+        loadLiveData().then(function(ok) {
+            updateSummary();
+            renderTasks();
+            updateTimestamp();
+            btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h-6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Обновить';
+            btn.disabled = false;
+        });
+    }
 }
 
 function updateTimestamp() {
@@ -1518,6 +1704,7 @@ function isOverdueTask(t) {
 }
 
 function renderTasks() {
+    if (currentTab !== 'dakar') return;
     var list = document.getElementById('taskList');
     var query = (document.getElementById("searchInput").value || "").toLowerCase().trim();
 
@@ -1768,11 +1955,11 @@ async function searchAtilab(taskTitle) {
         var encoded = encodeURIComponent(taskTitle);
         var resp = await fetch(ATILAB_API + 'tasks.task.list?filter%5BTITLE%5D=' + encoded);
         var data = await resp.json();
-        var tasks = (data.result || {}).tasks || [];
+        var foundTasks = (data.result || {}).tasks || [];
 
-        if (tasks.length > 0) {
+        if (foundTasks.length > 0) {
             // Найдена — открываем первую (точное совпадение)
-            var atilabId = tasks[0].id;
+            var atilabId = foundTasks[0].id;
             window.open(ATILAB_TASK_URL + atilabId + '/', '_blank');
             btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Найдено!';
             btn.style.background = '#15803d';
@@ -1805,6 +1992,508 @@ async function searchAtilab(taskTitle) {
             btn.style.opacity = '1';
             btn.style.pointerEvents = 'auto';
         }, 2500);
+    }
+}
+
+// ===== АТИЛАБ: STATUS MAPPING =====
+function mapAtilabStatus(status) {
+    if (status === '1' || status === '2') return 'new';
+    if (status === '3') return 'inwork';
+    if (status === '4') return 'review';
+    if (status === '6') return 'deferred';
+    if (status === '5') return 'done';
+    return 'new';
+}
+
+// ===== АТИЛАБ: GET KANBAN STAGE NAME =====
+function getAtilabKanbanStageName(groupId, stageId) {
+    var gMap = ATILAB_STAGE_MAP[String(groupId)];
+    if (gMap && gMap[String(stageId)]) return gMap[String(stageId)];
+    return '';
+}
+
+// ===== АТИЛАБ: LOAD DATA =====
+async function loadAtilabData() {
+    var bar = document.getElementById('loadingBar');
+    var fill = document.getElementById('loadingFill');
+    bar.classList.add('active');
+    fill.style.width = '10%';
+
+    try {
+        // Step 1: Load users
+        fill.style.width = '20%';
+        var usersOk = await fetchAtilabUsers();
+
+        fill.style.width = '30%';
+
+        // Step 2: Load active tasks (status < 5 = not completed)
+        var allTasks = [];
+        var start = 0;
+        while (true) {
+            incrementApiCount();
+            try {
+                var url = ATILAB_API + 'tasks.task.list?filter%5B%3CSTATUS%5D=5&start=' + start +
+                    '&select%5B%5D=ID&select%5B%5D=TITLE&select%5B%5D=STAGE_ID&select%5B%5D=GROUP_ID' +
+                    '&select%5B%5D=STATUS&select%5B%5D=RESPONSIBLE_ID&select%5B%5D=DEADLINE' +
+                    '&select%5B%5D=CREATED_DATE&select%5B%5D=DESCRIPTION&select%5B%5D=CREATED_BY';
+                var resp = await fetch(url);
+                var data = await resp.json();
+                if (!isValidApiResponse(data)) {
+                    console.error('Invalid Atilab API response at start=' + start, data.error || 'unknown');
+                    break;
+                }
+                var taskItems = (data.result || {}).tasks || [];
+                allTasks = allTasks.concat(taskItems);
+
+                if (data.next && data.next > start) {
+                    start = data.next;
+                    fill.style.width = (30 + Math.min(60, (start / 350) * 60)) + '%';
+                    await new Promise(function(r) { setTimeout(r, 100); });
+                } else {
+                    break;
+                }
+            } catch(e) {
+                console.error('Failed to fetch Atilab tasks at start=' + start, e);
+                break;
+            }
+        }
+
+        fill.style.width = '90%';
+
+        // Step 3: Map tasks
+        atilabTasks = allTasks.map(function(t) {
+            var status = mapAtilabStatus(t.status);
+            var groupName = (t.group && t.group.name) ? t.group.name : (ATILAB_PROJECT_NAMES[String(t.groupId)] || 'Проект ' + t.groupId);
+            var responsibleName = (t.responsible && t.responsible.name) ? t.responsible.name : (atilabUserMap[String(t.responsibleId)] || 'Пользователь ' + t.responsibleId);
+            var creatorName = (t.creator && t.creator.name) ? t.creator.name : (atilabUserMap[String(t.createdBy)] || '');
+            var kanbanStage = getAtilabKanbanStageName(t.groupId, t.stageId);
+            var deadlineStr = t.deadline ? t.deadline.substring(0, 10) : '';
+            var createdStr = t.createdDate ? t.createdDate.substring(0, 10) : '';
+
+            // Clean description from HTML tags
+            var desc = t.description || '';
+            desc = desc.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+
+            return {
+                id: parseInt(t.id) || 0,
+                title: t.title || '',
+                stageId: t.stageId || '',
+                status: status,
+                groupId: String(t.groupId || ''),
+                groupName: groupName,
+                kanbanStage: kanbanStage,
+                responsibleId: String(t.responsibleId || ''),
+                responsibleName: responsibleName,
+                createdBy: String(t.createdBy || ''),
+                creatorName: creatorName,
+                deadline: deadlineStr,
+                created: createdStr,
+                description: desc
+            };
+        }).filter(function(t) { return t.id > 0; });
+
+        // Sort: overdue first, then by deadline
+        atilabTasks.sort(function(a, b) {
+            var aOverdue = a.deadline && new Date(a.deadline + 'T23:59:59') < new Date() ? 0 : 1;
+            var bOverdue = b.deadline && new Date(b.deadline + 'T23:59:59') < new Date() ? 0 : 1;
+            if (aOverdue !== bOverdue) return aOverdue - bOverdue;
+            var aDl = a.deadline ? new Date(a.deadline).getTime() : Infinity;
+            var bDl = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+            return aDl - bDl;
+        });
+
+        atilabIsLoaded = true;
+
+        fill.style.width = '100%';
+
+        console.log('Atilab data loaded:', atilabTasks.length, 'tasks');
+        return true;
+    } catch(e) {
+        console.error('Atilab data load failed:', e);
+        showErrorNotification('Ошибка загрузки данных АтиЛаб!');
+        return false;
+    } finally {
+        setTimeout(function() {
+            bar.classList.remove('active');
+            fill.style.width = '0%';
+        }, 400);
+    }
+}
+
+async function fetchAtilabUsers() {
+    try {
+        var start = 0;
+        while (true) {
+            incrementApiCount();
+            var resp = await fetch(ATILAB_API + 'user.get?start=' + start);
+            var data = await resp.json();
+            var users = data.result || [];
+            if (users.length === 0) break;
+            users.forEach(function(u) {
+                var name = (u.LAST_NAME + ' ' + u.NAME).trim();
+                if (name) atilabUserMap[u.ID] = name;
+            });
+            if (data.next && data.next > start) {
+                start = data.next;
+                await new Promise(function(r) { setTimeout(r, 50); });
+            } else {
+                break;
+            }
+        }
+        console.log('Atilab users loaded:', Object.keys(atilabUserMap).length);
+        return true;
+    } catch(e) {
+        console.error('Failed to fetch Atilab users:', e);
+        return false;
+    }
+}
+
+// ===== TAB SWITCHING =====
+function switchTab(tab) {
+    if (currentTab === tab) return;
+    currentTab = tab;
+
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+
+    // Toggle body class for CSS visibility
+    if (tab === 'atilab') {
+        document.body.classList.add('tab-atilab');
+    } else {
+        document.body.classList.remove('tab-atilab');
+    }
+
+    // Update header title
+    var titleEl = document.getElementById('headerTitle');
+    if (titleEl) {
+        titleEl.textContent = tab === 'atilab' ? 'ИТ Поддержка — АтиЛаб' : 'ИТ Поддержка — Дакар';
+    }
+
+    // Update data source badge
+    var badge = document.getElementById('dataSourceBadge');
+    if (badge) {
+        if (tab === 'atilab') {
+            badge.textContent = atilabIsLoaded ? 'LIVE API' : 'МОК';
+            badge.className = atilabIsLoaded ? 'data-source-badge live' : 'data-source-badge mock';
+        }
+        // Dakar badge is managed by loadLiveData
+    }
+
+    // Load data & render
+    if (tab === 'atilab') {
+        if (!atilabIsLoaded) {
+            var btn = document.getElementById('refreshBtn');
+            btn.innerHTML = '<span class="spinner"></span> Загрузка...';
+            btn.disabled = true;
+            loadAtilabData().then(function() {
+                renderAtilabTasks();
+                updateAtilabProjectChips();
+                updateTimestamp();
+                btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h-6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Обновить';
+                btn.disabled = false;
+                var badge2 = document.getElementById('dataSourceBadge');
+                badge2.textContent = 'LIVE API';
+                badge2.className = 'data-source-badge live';
+            });
+        } else {
+            renderAtilabTasks();
+        }
+    } else {
+        renderTasks();
+    }
+}
+
+// ===== АТИЛАБ: RENDER TASKS =====
+function renderAtilabTasks() {
+    if (currentTab !== 'atilab') return;
+    var list = document.getElementById('taskList');
+    var query = (document.getElementById("atilabSearchInput") ? document.getElementById("atilabSearchInput").value : "").toLowerCase().trim();
+
+    // === Status counts ===
+    var statusCounts = { new: 0, inwork: 0, review: 0, deferred: 0, done: 0 };
+    atilabTasks.forEach(function(t) { if (statusCounts.hasOwnProperty(t.status)) statusCounts[t.status]++; });
+    var el;
+    el = document.getElementById('atilabCountNew'); if (el) el.textContent = statusCounts.new;
+    el = document.getElementById('atilabCountInwork'); if (el) el.textContent = statusCounts.inwork;
+    el = document.getElementById('atilabCountReview'); if (el) el.textContent = statusCounts.review;
+    el = document.getElementById('atilabCountDeferred'); if (el) el.textContent = statusCounts.deferred;
+    el = document.getElementById('atilabCountDone'); if (el) el.textContent = statusCounts.done;
+
+    // === Filter ===
+    var filtered = atilabTasks.filter(function(t) { return atilabActiveFilters.has(t.status); });
+    if (atilabProjectFilter) {
+        filtered = filtered.filter(function(t) { return t.groupId === atilabProjectFilter; });
+    }
+    if (query) {
+        filtered = filtered.filter(function(t) {
+            return t.title.toLowerCase().includes(query) ||
+                   t.groupName.toLowerCase().includes(query) ||
+                   t.responsibleName.toLowerCase().includes(query);
+        });
+    }
+
+    // Sort: overdue first, then by deadline
+    var now = new Date();
+    filtered.sort(function(a, b) {
+        var aOverdue = a.deadline && new Date(a.deadline + 'T23:59:59') < now ? 0 : 1;
+        var bOverdue = b.deadline && new Date(b.deadline + 'T23:59:59') < now ? 0 : 1;
+        if (aOverdue !== bOverdue) return aOverdue - bOverdue;
+        var aDl = a.deadline ? new Date(a.deadline).getTime() : Infinity;
+        var bDl = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+        return aDl - bDl;
+    });
+
+    // Stats
+    var overdueCount = 0;
+    filtered.forEach(function(t) {
+        if (t.deadline && new Date(t.deadline + 'T23:59:59') < now && (t.status === 'new' || t.status === 'inwork' || t.status === 'review')) overdueCount++;
+    });
+
+    var filteredCountEl = document.getElementById('atilabFilteredCount');
+    if (filteredCountEl) filteredCountEl.textContent = filtered.length + ' задач' + (overdueCount > 0 ? ' | ⚠ ' + overdueCount + ' просрочено' : '');
+
+    atilabLastFiltered = filtered;
+
+    // Copy button
+    var copyBar = document.getElementById('copyTasksBar');
+    if (copyBar) copyBar.style.display = filtered.length > 0 ? '' : 'none';
+
+    // Comments for indicators
+    var _commentsMap = getAtilabCommentsStorage();
+
+    list.innerHTML = filtered.map(function(task) {
+        var stage = atilabStageConfig[task.status] || atilabStageConfig.new;
+        var isOverdue = task.deadline && new Date(task.deadline + 'T23:59:59') < now && (task.status === 'new' || task.status === 'inwork' || task.status === 'review');
+        var deadlineStr = task.deadline ? formatDate(task.deadline) : '';
+        var hasComments = _commentsMap[task.id] && _commentsMap[task.id].length > 0;
+
+        var overdueTag = isOverdue
+            ? '<span class="task-meta-item task-meta-overdue">⚠ просрочен</span>'
+            : '';
+
+        var commentTag = hasComments
+            ? '<span class="task-meta-item" style="color:#3b82f6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' + _commentsMap[task.id].length + '</span>'
+            : '';
+
+        var kanbanTag = task.kanbanStage
+            ? '<span class="kanban-stage-tag">' + escapeHtml(task.kanbanStage) + '</span>'
+            : '';
+
+        return '<div class="task-item ' + (isOverdue ? 'deadline-overdue' : '') + '" onclick="openAtilabPreview(' + task.id + ')">' +
+            '<div class="task-left">' +
+                '<div class="task-title">' + escapeHtml(task.title) + '</div>' +
+                '<div class="task-meta">' +
+                    '<span class="project-badge">' + escapeHtml(task.groupName) + '</span>' +
+                    kanbanTag +
+                    (deadlineStr ? '<span class="task-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>' + deadlineStr + '</span>' : '') +
+                    '<span class="task-meta-item">' + escapeHtml(task.responsibleName) + '</span>' +
+                    overdueTag +
+                    commentTag +
+                '</div>' +
+            '</div>' +
+            '<div class="task-right">' +
+                '<span class="stage-badge ' + stage.badgeClass + '">' + stage.label + '</span>' +
+            '</div>' +
+        '</div>';
+    }).join("");
+}
+
+// ===== АТИЛАБ: UPDATE PROJECT CHIPS =====
+function updateAtilabProjectChips() {
+    var container = document.getElementById('atilabProjectChips');
+    if (!container) return;
+
+    // Count tasks per project
+    var projectCounts = {};
+    atilabTasks.forEach(function(t) {
+        if (!projectCounts[t.groupId]) projectCounts[t.groupId] = 0;
+        projectCounts[t.groupId]++;
+    });
+
+    // Sort by count descending
+    var sorted = Object.keys(projectCounts).sort(function(a, b) { return projectCounts[b] - projectCounts[a]; });
+
+    var html = '<span class="filter-label" style="font-size:10px;margin-right:2px">Проект:</span>';
+    html += '<span class="project-chip ' + (!atilabProjectFilter ? 'active' : '') + '" data-project="" onclick="toggleAtilabProjectFilter(this)">Все</span>';
+
+    sorted.forEach(function(gid) {
+        var name = ATILAB_PROJECT_NAMES[gid] || 'Проект ' + gid;
+        var isActive = atilabProjectFilter === gid;
+        html += '<span class="project-chip ' + (isActive ? 'active' : '') + '" data-project="' + gid + '" onclick="toggleAtilabProjectFilter(this)">' + escapeHtml(name) + ' <span style="opacity:0.6">(' + projectCounts[gid] + ')</span></span>';
+    });
+
+    container.innerHTML = html;
+}
+
+// ===== АТИЛАБ: FILTER TOGGLES =====
+function toggleAtilabFilter(chip) {
+    var stage = chip.dataset.stage;
+    if (atilabActiveFilters.has(stage)) {
+        atilabActiveFilters.delete(stage);
+        chip.classList.remove("active");
+    } else {
+        atilabActiveFilters.add(stage);
+        chip.classList.add("active");
+    }
+    renderAtilabTasks();
+}
+
+function toggleAtilabProjectFilter(chip) {
+    var project = chip.dataset.project;
+    if (project === '') {
+        atilabProjectFilter = null;
+    } else {
+        atilabProjectFilter = atilabProjectFilter === project ? null : project;
+    }
+    // Update chip active states
+    document.querySelectorAll('.project-chip').forEach(function(c) {
+        c.classList.toggle('active', (atilabProjectFilter === null && c.dataset.project === '') || atilabProjectFilter === c.dataset.project);
+    });
+    renderAtilabTasks();
+}
+
+// ===== АТИЛАБ: PREVIEW =====
+function openAtilabPreview(taskId) {
+    var task = atilabTasks.find(function(t) { return t.id === taskId; });
+    if (!task) return;
+
+    var stage = atilabStageConfig[task.status] || atilabStageConfig.new;
+    var now = new Date();
+    var isOverdue = task.deadline && new Date(task.deadline + 'T23:59:59') < now && (task.status === 'new' || task.status === 'inwork' || task.status === 'review');
+
+    document.getElementById("previewTitle").textContent = task.title;
+
+    var bodyHtml =
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">' +
+            '<span class="stage-badge ' + stage.badgeClass + '">' + stage.label + '</span>' +
+            '<span class="project-badge" style="font-size:11px;padding:4px 10px">' + escapeHtml(task.groupName) + '</span>' +
+            (task.kanbanStage ? '<span class="kanban-stage-tag" style="font-size:10px;padding:4px 10px">' + escapeHtml(task.kanbanStage) + '</span>' : '') +
+        '</div>' +
+        '<div class="preview-field"><div class="preview-field-label">Исполнитель</div><div class="preview-field-value">' + escapeHtml(task.responsibleName) + '</div></div>' +
+        (task.creatorName ? '<div class="preview-field"><div class="preview-field-label">Постановщик</div><div class="preview-field-value">' + escapeHtml(task.creatorName) + '</div></div>' : '') +
+        (task.deadline ? '<div class="preview-field"><div class="preview-field-label">Дедлайн</div><div class="preview-field-value" style="' + (isOverdue ? 'color:#ef4444;font-weight:600' : '') + '">' + formatDate(task.deadline) + (isOverdue ? ' (просрочен)' : '') + '</div></div>' : '') +
+        '<div class="preview-field"><div class="preview-field-label">Создана</div><div class="preview-field-value">' + (task.created ? formatDate(task.created) : '—') + '</div></div>' +
+        (task.description ? '<div class="preview-field"><div class="preview-field-label">Описание</div><div class="preview-description">' + escapeHtml(task.description) + '</div></div>' : '') +
+        '<div class="preview-comments-section">' +
+            '<div class="preview-comments-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Мои комментарии</div>' +
+            '<div class="preview-comment-input-row">' +
+                '<textarea class="preview-comment-input" id="commentInput" placeholder="Добавить комментарий..." rows="1" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();addAtilabComment(' + task.id + ')}"></textarea>' +
+                '<button class="btn-add-comment" id="btnAddComment" onclick="addAtilabComment(' + task.id + ')">+</button>' +
+            '</div>' +
+            '<div class="preview-comments-list" id="commentsList"></div>' +
+        '</div>';
+
+    document.getElementById("previewBody").innerHTML = bodyHtml;
+    renderAtilabComments(task.id);
+
+    document.getElementById("previewFooter").innerHTML =
+        '<a class="btn-open-bitrix" href="' + ATILAB_TASK_URL + task.id + '/" target="_blank" rel="noopener">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
+            'Открыть в Битрикс24' +
+        '</a>';
+
+    document.getElementById("previewOverlay").classList.add("active");
+    document.getElementById("previewPanel").classList.add("active");
+    document.body.classList.add("blurred");
+}
+
+// ===== АТИЛАБ: COMMENTS (localStorage — separate key) =====
+var ATILAB_COMMENTS_KEY = 'atilab_task_comments';
+
+function getAtilabCommentsStorage() {
+    try {
+        var raw = localStorage.getItem(ATILAB_COMMENTS_KEY);
+        return raw ? JSON.parse(raw) : {};
+    } catch(e) {
+        return {};
+    }
+}
+
+function saveAtilabCommentsStorage(data) {
+    try {
+        localStorage.setItem(ATILAB_COMMENTS_KEY, JSON.stringify(data));
+    } catch(e) {
+        console.error('Failed to save Atilab comments:', e);
+    }
+}
+
+function getAtilabTaskComments(taskId) {
+    var storage = getAtilabCommentsStorage();
+    return storage[taskId] || [];
+}
+
+function addAtilabComment(taskId) {
+    var input = document.getElementById('commentInput');
+    if (!input) return;
+    var text = input.value.trim();
+    if (!text) return;
+
+    var storage = getAtilabCommentsStorage();
+    if (!storage[taskId]) storage[taskId] = [];
+
+    storage[taskId].push({
+        id: Date.now(),
+        text: text,
+        time: new Date().toISOString()
+    });
+
+    saveAtilabCommentsStorage(storage);
+    input.value = '';
+    renderAtilabComments(taskId);
+}
+
+function deleteAtilabComment(taskId, commentId) {
+    var storage = getAtilabCommentsStorage();
+    if (!storage[taskId]) return;
+    storage[taskId] = storage[taskId].filter(function(c) { return c.id !== commentId; });
+    if (storage[taskId].length === 0) delete storage[taskId];
+    saveAtilabCommentsStorage(storage);
+    renderAtilabComments(taskId);
+}
+
+function renderAtilabComments(taskId) {
+    var container = document.getElementById('commentsList');
+    if (!container) return;
+
+    var comments = getAtilabTaskComments(taskId);
+    if (!comments.length) {
+        container.innerHTML = '<div class="comments-empty">Нет комментариев</div>';
+        return;
+    }
+
+    container.innerHTML = comments.map(function(c) {
+        return '<div class="preview-comment-item">' +
+            '<div class="comment-content">' +
+                '<div class="comment-text">' + escapeHtml(c.text) + '</div>' +
+                '<div class="comment-time">' + formatCommentTime(c.time) + '</div>' +
+            '</div>' +
+            '<button class="comment-delete" title="Удалить" onclick="deleteAtilabComment(' + taskId + ',' + c.id + ')">&times;</button>' +
+        '</div>';
+    }).join('');
+
+    container.scrollTop = container.scrollHeight;
+}
+
+// ===== АТИЛАБ: COPY TASKS =====
+function copyAtilabTasksToClipboard() {
+    if (!atilabLastFiltered.length) return;
+
+    var lines = atilabLastFiltered.map(function(t, i) {
+        return (i + 1) + '. ' + ATILAB_TASK_URL + t.id + '/ ' + t.title;
+    });
+    var text = lines.join('\n');
+
+    var btn = document.getElementById('btnCopyTasks');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+            showCopySuccess(btn);
+        }).catch(function() {
+            fallbackCopy(text, btn);
+        });
+    } else {
+        fallbackCopy(text, btn);
     }
 }
 
@@ -1956,6 +2645,14 @@ function escapeHtml(text) {
 }
 
 // ===== COPY TASKS TO CLIPBOARD =====
+function copyTasksForCurrentTab() {
+    if (currentTab === 'atilab') {
+        copyAtilabTasksToClipboard();
+    } else {
+        copyTasksToClipboard();
+    }
+}
+
 function copyTasksToClipboard() {
     if (!lastFilteredTasks.length) return;
 
