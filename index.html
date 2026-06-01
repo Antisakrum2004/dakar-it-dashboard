@@ -1044,16 +1044,18 @@
         .atilab-stage-inwork { background: #dcfce7; color: #15803d; }     /* Работа — светло-зелёный */
         .atilab-stage-testing { background: #ede9fe; color: #6d28d9; }    /* Тест — фиолетовый */
         .atilab-stage-release { background: #fef9c3; color: #a16207; }    /* Релиз — жёлтый */
+        .atilab-stage-done { background: #d1fae5; color: #047857; }       /* Готово — изумрудный */
         .atilab-stage-revisions { background: #fee2e2; color: #dc2626; }  /* Правки — красный */
         .atilab-stage-pause { background: #fef3c7; color: #92400e; }      /* Пауза — коричневый */
         .atilab-stage-invoice { background: #dbeafe; color: #1d4ed8; }    /* Счёт — синий */
-        .atilab-stage-payment { background: #d1fae5; color: #047857; }    /* Оплата — зелёный */
+        .atilab-stage-payment { background: #bbf7d0; color: #166534; }    /* Оплата — зелёный */
 
         /* ===== АТИЛАБ: FILTER CHIPS (свои цвета) ===== */
         .afc-new.active { background: #6b7280; }        /* Новые — серый */
         .afc-inwork.active { background: #22c55e; }     /* Работа — светло-зелёный */
         .afc-testing.active { background: #8b5cf6; }    /* Тест — фиолетовый */
         .afc-release.active { background: #eab308; }    /* Релиз — жёлтый */
+        .afc-done.active { background: #10b981; }       /* Готово — изумрудный */
         .afc-revisions.active { background: #ef4444; }  /* Правки — красный */
         .afc-pause.active { background: #b45309; }      /* Пауза — коричневый */
         .afc-invoice.active { background: #3b82f6; }    /* Счёт — синий */
@@ -1113,7 +1115,7 @@
                     <button class="tab-btn active" data-tab="dakar" onclick="switchTab('dakar')">Дакар</button>
                     <button class="tab-btn" data-tab="atilab" onclick="switchTab('atilab')">АтиЛаб</button>
                 </div>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.17</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.18</span>
             </div>
             <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
@@ -1169,6 +1171,7 @@
     <span class="filter-chip afc-inwork active" data-stage="inwork" onclick="toggleAtilabFilter(this)">Работа <span class="chip-count" id="atilabCountInwork">0</span></span>
     <span class="filter-chip afc-testing active" data-stage="testing" onclick="toggleAtilabFilter(this)">Тест <span class="chip-count" id="atilabCountTesting">0</span></span>
     <span class="filter-chip afc-release active" data-stage="release" onclick="toggleAtilabFilter(this)">Релиз <span class="chip-count" id="atilabCountRelease">0</span></span>
+    <span class="filter-chip afc-done active" data-stage="done" onclick="toggleAtilabFilter(this)">Готово <span class="chip-count" id="atilabCountDone">0</span></span>
     <span class="filter-chip afc-revisions active" data-stage="revisions" onclick="toggleAtilabFilter(this)">Правки <span class="chip-count" id="atilabCountRevisions">0</span></span>
     <span class="filter-chip afc-pause active" data-stage="pause" onclick="toggleAtilabFilter(this)">Пауза <span class="chip-count" id="atilabCountPause">0</span></span>
     <span class="filter-chip afc-invoice active" data-stage="invoice" onclick="toggleAtilabFilter(this)">Счет <span class="chip-count" id="atilabCountInvoice">0</span></span>
@@ -1248,6 +1251,7 @@ const atilabStageConfig = {
   inwork:   { label: "Работа",   badgeClass: "atilab-stage-inwork",   filterClass: "afc-inwork",   color: "22c55e" },
   testing:  { label: "Тест",     badgeClass: "atilab-stage-testing",  filterClass: "afc-testing",  color: "8b5cf6" },
   release:  { label: "Релиз",    badgeClass: "atilab-stage-release",  filterClass: "afc-release",  color: "eab308" },
+  done:     { label: "Готово",   badgeClass: "atilab-stage-done",     filterClass: "afc-done",     color: "10b981" },
   revisions:{ label: "Правки",   badgeClass: "atilab-stage-revisions",filterClass: "afc-revisions", color: "ef4444" },
   pause:    { label: "Пауза",    badgeClass: "atilab-stage-pause",    filterClass: "afc-pause",    color: "b45309" },
   invoice:  { label: "Счет",     badgeClass: "atilab-stage-invoice",  filterClass: "afc-invoice",  color: "3b82f6" },
@@ -1348,7 +1352,7 @@ let lastFilteredTasks = []; // Для копирования списка зад
 // ===== АТИЛАБ STATE =====
 let currentTab = 'dakar'; // 'dakar' or 'atilab'
 let atilabTasks = [];
-let atilabActiveFilters = new Set(['new', 'inwork', 'testing', 'release', 'revisions', 'pause', 'invoice', 'payment']);
+let atilabActiveFilters = new Set(['new', 'inwork', 'testing', 'release', 'done', 'revisions', 'pause', 'invoice', 'payment']);
 let atilabProjectFilter = null; // null = all projects
 let atilabLastFiltered = [];
 let atilabIsLoaded = false;
@@ -2054,7 +2058,7 @@ function mapAtilabKanbanStage(groupId, stageId) {
         'Выполняются': 'inwork', // Legacy "Выполняются" → Работа
         'Тест': 'testing',
         'Релиз': 'release',
-        'Готово': 'release',     // Готово → Релиз (работа завершена, ждёт счет)
+        'Готово': 'done',        // Готово — отдельный статус
         'Правки': 'revisions',
         'Сделаны': null,         // Legacy completed — filter out!
         'Пауза': 'pause',
@@ -2280,13 +2284,14 @@ function renderAtilabTasks() {
     var query = (document.getElementById("atilabSearchInput") ? document.getElementById("atilabSearchInput").value : "").toLowerCase().trim();
 
     // === Status counts ===
-    var statusCounts = { new: 0, inwork: 0, testing: 0, release: 0, revisions: 0, pause: 0, invoice: 0, payment: 0 };
+    var statusCounts = { new: 0, inwork: 0, testing: 0, release: 0, done: 0, revisions: 0, pause: 0, invoice: 0, payment: 0 };
     atilabTasks.forEach(function(t) { if (statusCounts.hasOwnProperty(t.status)) statusCounts[t.status]++; });
     var el;
     el = document.getElementById('atilabCountNew'); if (el) el.textContent = statusCounts.new;
     el = document.getElementById('atilabCountInwork'); if (el) el.textContent = statusCounts.inwork;
     el = document.getElementById('atilabCountTesting'); if (el) el.textContent = statusCounts.testing;
     el = document.getElementById('atilabCountRelease'); if (el) el.textContent = statusCounts.release;
+    el = document.getElementById('atilabCountDone'); if (el) el.textContent = statusCounts.done;
     el = document.getElementById('atilabCountRevisions'); if (el) el.textContent = statusCounts.revisions;
     el = document.getElementById('atilabCountPause'); if (el) el.textContent = statusCounts.pause;
     el = document.getElementById('atilabCountInvoice'); if (el) el.textContent = statusCounts.invoice;
