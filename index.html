@@ -253,6 +253,10 @@
         .fc-backlog.active { background: #3b82f6; }
         .fc-preparation.active { background: #8b5cf6; }
         .fc-done.active { background: #6b7280; }
+        .fc-revisions.active { background: #eab308; }
+        .fc-pause.active { background: #9b59b6; }
+        .fc-invoice.active { background: #059669; }
+        .fc-paydone.active { background: #0ea5e9; }
 
         /* ===== SEARCH ===== */
         .search-input {
@@ -441,6 +445,10 @@
         .stage-preparation { background: #ede9fe; color: #6d28d9; }
         .stage-done { background: #f3f4f6; color: #4b5563; }
         .stage-trash { background: #f3f4f6; color: #9ca3af; }
+        .stage-pause { background: #f3e8ff; color: #7c3aed; }
+        .stage-revisions { background: #fef9c3; color: #a16207; }
+        .stage-invoice { background: #d1fae5; color: #047857; }
+        .stage-paydone { background: #e0f2fe; color: #0369a1; }
 
         /* ===== PREVIEW PANEL ===== */
         .preview-overlay {
@@ -1085,7 +1093,7 @@
                     <button class="tab-btn active" data-tab="dakar" onclick="switchTab('dakar')">Дакар</button>
                     <button class="tab-btn" data-tab="atilab" onclick="switchTab('atilab')">АтиЛаб</button>
                 </div>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.13</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.14</span>
             </div>
             <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
@@ -1138,10 +1146,13 @@
 <div class="toolbar atilab-only" style="flex-wrap:wrap;gap:6px 8px" id="atilabToolbar">
     <span class="filter-label">Статус:</span>
     <span class="filter-chip fc-new active" data-stage="new" onclick="toggleAtilabFilter(this)">Новые <span class="chip-count" id="atilabCountNew">0</span></span>
-    <span class="filter-chip fc-inwork active" data-stage="inwork" onclick="toggleAtilabFilter(this)">В работе <span class="chip-count" id="atilabCountInwork">0</span></span>
-    <span class="filter-chip fc-testing" data-stage="review" onclick="toggleAtilabFilter(this)">На проверке <span class="chip-count" id="atilabCountReview">0</span></span>
-    <span class="filter-chip fc-postponed" data-stage="deferred" onclick="toggleAtilabFilter(this)">Отложено <span class="chip-count" id="atilabCountDeferred">0</span></span>
-    <span class="filter-chip fc-done" data-stage="done" onclick="toggleAtilabFilter(this)">Завершено <span class="chip-count" id="atilabCountDone">0</span></span>
+    <span class="filter-chip fc-inwork active" data-stage="inwork" onclick="toggleAtilabFilter(this)">Работа <span class="chip-count" id="atilabCountInwork">0</span></span>
+    <span class="filter-chip fc-testing active" data-stage="testing" onclick="toggleAtilabFilter(this)">Тест <span class="chip-count" id="atilabCountTesting">0</span></span>
+    <span class="filter-chip fc-release active" data-stage="release" onclick="toggleAtilabFilter(this)">Релиз <span class="chip-count" id="atilabCountRelease">0</span></span>
+    <span class="filter-chip fc-revisions active" data-stage="revisions" onclick="toggleAtilabFilter(this)">Правки <span class="chip-count" id="atilabCountRevisions">0</span></span>
+    <span class="filter-chip fc-pause active" data-stage="pause" onclick="toggleAtilabFilter(this)">Пауза <span class="chip-count" id="atilabCountPause">0</span></span>
+    <span class="filter-chip fc-invoice active" data-stage="invoice" onclick="toggleAtilabFilter(this)">Счет <span class="chip-count" id="atilabCountInvoice">0</span></span>
+    <span class="filter-chip fc-paydone active" data-stage="payment" onclick="toggleAtilabFilter(this)">Оплата <span class="chip-count" id="atilabCountPayment">0</span></span>
 
     <input class="search-input" type="text" id="atilabSearchInput" placeholder="Поиск..." oninput="renderAtilabTasks()">
 
@@ -1189,28 +1200,36 @@ const ATILAB_TASK_URL = 'https://1c-cms.bitrix24.ru/company/personal/user/116/ta
 
 // АтиЛаб: маппинг stageId → название канбан-колонки (по groupId)
 const ATILAB_STAGE_MAP = {
-  '4': { '80': 'Новые', '82': 'Оценка', '84': 'Работа', '406': 'Правки', '410': 'Тест' },
-  '6': { '136': 'Новые', '138': 'Оценка', '140': 'Работа', '188': 'Правки', '190': 'Тест', '192': 'Релиз', '194': 'Готово', '196': 'Пауза', '258': 'Счет' },
-  '20': { '152': 'Новые', '154': 'Оценка', '724': 'Работа', '726': 'Правки', '730': 'Тест' },
-  '32': { '86': 'Новые', '90': 'Оценка', '198': 'Работа', '202': 'Правки', '204': 'Тест', '508': 'Релиз', '528': 'Готово', '746': 'Пауза' },
-  '36': { '294': 'Новые', '296': 'Оценка', '300': 'Работа', '306': 'Правки', '308': 'Тест', '362': 'Релиз' },
-  '50': { '424': 'Новые', '538': 'Оценка' },
-  '52': { '438': 'Новые', '440': 'Оценка', '442': 'Работа', '444': 'Правки' },
-  '62': { '588': 'Новые', '590': 'Оценка', '592': 'Работа', '594': 'Правки' },
-  '66': { '606': 'Новые', '636': 'Оценка' },
-  '70': { '620': 'Новые', '770': 'Оценка' },
-  '72': { '626': 'Новые', '778': 'Оценка', '784': 'Работа' },
-  '78': { '702': 'Новые', '704': 'Работа', '706': 'Пауза' },
-  '82': { '836': 'Новые', '844': 'Оценка', '850': 'Работа' },
+  '4':  { '80': 'Новые', '82': 'Оценка', '84': 'Работа', '406': 'Правки', '410': 'Тест', '412': 'Релиз', '414': 'Готово', '416': 'Пауза', '418': 'Счет', '420': 'Оплата' },
+  '6':  { '136': 'Новые', '138': 'Оценка', '140': 'Работа', '188': 'Правки', '190': 'Тест', '192': 'Релиз', '194': 'Готово', '196': 'Пауза', '258': 'Счет', '260': 'Оплата' },
+  '20': { '152': 'Новые', '154': 'Оценка', '724': 'Работа', '726': 'Правки', '730': 'Тест', '732': 'Релиз', '734': 'Готово', '736': 'Пауза', '738': 'Счет', '740': 'Оплата' },
+  '32': { '86': 'Новые', '90': 'Оценка', '198': 'Работа', '202': 'Правки', '204': 'Тест', '508': 'Релиз', '528': 'Готово', '746': 'Пауза', '748': 'Счет', '750': 'Оплата' },
+  '36': { '294': 'Новые', '296': 'Оценка', '300': 'Работа', '306': 'Правки', '308': 'Тест', '362': 'Релиз', '364': 'Готово', '366': 'Пауза', '368': 'Счет', '370': 'Оплата' },
+  '50': { '424': 'Новые', '538': 'Оценка', '540': 'Работа', '542': 'Правки', '544': 'Тест', '546': 'Релиз', '548': 'Готово', '550': 'Пауза', '552': 'Счет', '554': 'Оплата' },
+  '52': { '438': 'Новые', '440': 'Оценка', '442': 'Работа', '444': 'Правки', '446': 'Тест', '448': 'Релиз', '450': 'Готово', '452': 'Пауза', '454': 'Счет', '456': 'Оплата' },
+  '62': { '588': 'Новые', '590': 'Оценка', '592': 'Работа', '594': 'Правки', '596': 'Тест', '598': 'Релиз', '600': 'Готово', '602': 'Пауза', '604': 'Счет', '606': 'Оплата' },
+  '66': { '606': 'Новые', '636': 'Оценка', '638': 'Работа', '640': 'Правки', '642': 'Тест', '644': 'Релиз', '646': 'Готово', '648': 'Пауза', '650': 'Счет', '652': 'Оплата' },
+  '70': { '620': 'Новые', '770': 'Оценка', '772': 'Работа', '774': 'Правки', '776': 'Тест', '778': 'Релиз', '780': 'Готово', '782': 'Пауза', '784': 'Счет', '786': 'Оплата' },
+  '72': { '626': 'Новые', '778': 'Оценка', '784': 'Работа', '786': 'Правки', '788': 'Тест', '790': 'Релиз', '792': 'Готово', '794': 'Пауза', '796': 'Счет', '798': 'Оплата' },
+  '82': { '836': 'Новые', '844': 'Оценка', '850': 'Работа', '852': 'Правки', '854': 'Тест', '856': 'Релиз', '858': 'Готово', '860': 'Пауза', '862': 'Счет', '864': 'Оплата' },
+  // Legacy projects (3 stages only)
+  '18': { '312': 'Новые', '314': 'Выполняются', '316': 'Сделаны' },
+  '60': { '468': 'Новые', '470': 'Выполняются', '472': 'Сделаны' },
+  '64': { '558': 'Новые', '560': 'Выполняются', '562': 'Сделаны' },
+  '74': { '672': 'Новые', '674': 'Выполняются', '676': 'Сделаны' },
+  '76': { '680': 'Новые', '682': 'Выполняются', '686': 'Сделаны' },
 };
 
 // АтиЛаб: конфиг статусов (для фильтров и бейджей)
 const atilabStageConfig = {
-  new:      { label: "Новые",       badgeClass: "stage-new",       filterClass: "fc-new",       color: "1a1a2e" },
-  inwork:   { label: "В работе",    badgeClass: "stage-inwork",   filterClass: "fc-inwork",    color: "22c55e" },
-  review:   { label: "На проверке", badgeClass: "stage-testing",  filterClass: "fc-testing",   color: "9b51e0" },
-  deferred: { label: "Отложено",    badgeClass: "stage-postponed",filterClass: "fc-postponed", color: "eab308" },
-  done:     { label: "Завершено",   badgeClass: "stage-done",     filterClass: "fc-done",      color: "6b7280" },
+  new:      { label: "Новые",    badgeClass: "stage-new",       filterClass: "fc-new",      color: "1a1a2e" },
+  inwork:   { label: "Работа",   badgeClass: "stage-inwork",   filterClass: "fc-inwork",   color: "22c55e" },
+  testing:  { label: "Тест",     badgeClass: "stage-testing",  filterClass: "fc-testing",  color: "ef4444" },
+  release:  { label: "Релиз",    badgeClass: "stage-release",  filterClass: "fc-release",  color: "f97316" },
+  revisions:{ label: "Правки",   badgeClass: "stage-postponed",filterClass: "fc-revisions", color: "eab308" },
+  pause:    { label: "Пауза",    badgeClass: "stage-pause",    filterClass: "fc-pause",    color: "9b59b6" },
+  invoice:  { label: "Счет",     badgeClass: "stage-invoice",  filterClass: "fc-invoice",  color: "059669" },
+  payment:  { label: "Оплата",   badgeClass: "stage-paydone",  filterClass: "fc-paydone",  color: "0ea5e9" },
 };
 
 // АтиЛаб: названия проектов
@@ -1226,9 +1245,16 @@ const ATILAB_PROJECT_NAMES = {
   '66': 'ИП Иванов',
   '70': 'МАРКДЖЕТ',
   '72': 'Керамика Фабрика',
-  '78': 'Backlog',
   '82': 'ЮРИСТЫ БИГАП',
+  // Legacy (still active):
+  '18': 'Проект 18',
+  '60': 'Проект 60',
+  '64': 'Проект 64',
+  '74': 'Проект 74',
+  '76': 'Проект 76',
 };
+
+const ATILAB_EXCLUDED_GROUPS = new Set(['0', '2', '28', '30', '42', '48', '78', '80']);
 
 // Stage mapping: Bitrix24 stageId → internal stage key
 // Актуальные названия стадий в Bitrix24 (проверено через crm.status.list):
@@ -1300,7 +1326,7 @@ let lastFilteredTasks = []; // Для копирования списка зад
 // ===== АТИЛАБ STATE =====
 let currentTab = 'dakar'; // 'dakar' or 'atilab'
 let atilabTasks = [];
-let atilabActiveFilters = new Set(['new', 'inwork']); // Default: show Новые + В работе
+let atilabActiveFilters = new Set(['new', 'inwork', 'testing', 'release', 'revisions', 'pause', 'invoice', 'payment']);
 let atilabProjectFilter = null; // null = all projects
 let atilabLastFiltered = [];
 let atilabIsLoaded = false;
@@ -1995,14 +2021,27 @@ async function searchAtilab(taskTitle) {
     }
 }
 
-// ===== АТИЛАБ: STATUS MAPPING =====
-function mapAtilabStatus(status) {
-    if (status === '1' || status === '2') return 'new';
-    if (status === '3') return 'inwork';
-    if (status === '4') return 'review';
-    if (status === '6') return 'deferred';
-    if (status === '5') return 'done';
-    return 'new';
+// ===== АТИЛАБ: KANBAN STAGE MAPPING =====
+function mapAtilabKanbanStage(groupId, stageId) {
+    var stageName = getAtilabKanbanStageName(groupId, stageId);
+    // Map kanban stage name to internal key
+    var nameToKey = {
+        'Новые': 'new',
+        'Оценка': 'new',        // Оценка → Новые (same bucket)
+        'Работа': 'inwork',
+        'Выполняются': 'inwork', // Legacy "Выполняются" → Работа
+        'Тест': 'testing',
+        'Релиз': 'release',
+        'Правки': 'revisions',
+        'Готово': null,          // COMPLETED — filter out!
+        'Сделаны': null,         // Legacy completed — filter out!
+        'Пауза': 'pause',
+        'Счет': 'invoice',
+        'Оплата': 'payment',
+    };
+    var key = nameToKey[stageName];
+    if (key === null) return null;  // completed, will be filtered out
+    return key || 'new';            // unknown → default to new
 }
 
 // ===== АТИЛАБ: GET KANBAN STAGE NAME =====
@@ -2062,7 +2101,8 @@ async function loadAtilabData() {
 
         // Step 3: Map tasks
         atilabTasks = allTasks.map(function(t) {
-            var status = mapAtilabStatus(t.status);
+            var kanbanKey = mapAtilabKanbanStage(t.groupId, t.stageId);
+            if (!kanbanKey) return null;  // completed stage, skip
             var groupName = (t.group && t.group.name) ? t.group.name : (ATILAB_PROJECT_NAMES[String(t.groupId)] || 'Проект ' + t.groupId);
             var responsibleName = (t.responsible && t.responsible.name) ? t.responsible.name : (atilabUserMap[String(t.responsibleId)] || 'Пользователь ' + t.responsibleId);
             var creatorName = (t.creator && t.creator.name) ? t.creator.name : (atilabUserMap[String(t.createdBy)] || '');
@@ -2078,7 +2118,7 @@ async function loadAtilabData() {
                 id: parseInt(t.id) || 0,
                 title: t.title || '',
                 stageId: t.stageId || '',
-                status: status,
+                status: kanbanKey,      // NOW uses kanban stage key instead of numeric status
                 groupId: String(t.groupId || ''),
                 groupName: groupName,
                 kanbanStage: kanbanStage,
@@ -2090,7 +2130,9 @@ async function loadAtilabData() {
                 created: createdStr,
                 description: desc
             };
-        }).filter(function(t) { return t.id > 0; });
+        }).filter(function(t) {
+            return t !== null && t.id > 0 && !ATILAB_EXCLUDED_GROUPS.has(t.groupId);
+        });
 
         // Sort: overdue first, then by deadline
         atilabTasks.sort(function(a, b) {
@@ -2212,14 +2254,17 @@ function renderAtilabTasks() {
     var query = (document.getElementById("atilabSearchInput") ? document.getElementById("atilabSearchInput").value : "").toLowerCase().trim();
 
     // === Status counts ===
-    var statusCounts = { new: 0, inwork: 0, review: 0, deferred: 0, done: 0 };
+    var statusCounts = { new: 0, inwork: 0, testing: 0, release: 0, revisions: 0, pause: 0, invoice: 0, payment: 0 };
     atilabTasks.forEach(function(t) { if (statusCounts.hasOwnProperty(t.status)) statusCounts[t.status]++; });
     var el;
     el = document.getElementById('atilabCountNew'); if (el) el.textContent = statusCounts.new;
     el = document.getElementById('atilabCountInwork'); if (el) el.textContent = statusCounts.inwork;
-    el = document.getElementById('atilabCountReview'); if (el) el.textContent = statusCounts.review;
-    el = document.getElementById('atilabCountDeferred'); if (el) el.textContent = statusCounts.deferred;
-    el = document.getElementById('atilabCountDone'); if (el) el.textContent = statusCounts.done;
+    el = document.getElementById('atilabCountTesting'); if (el) el.textContent = statusCounts.testing;
+    el = document.getElementById('atilabCountRelease'); if (el) el.textContent = statusCounts.release;
+    el = document.getElementById('atilabCountRevisions'); if (el) el.textContent = statusCounts.revisions;
+    el = document.getElementById('atilabCountPause'); if (el) el.textContent = statusCounts.pause;
+    el = document.getElementById('atilabCountInvoice'); if (el) el.textContent = statusCounts.invoice;
+    el = document.getElementById('atilabCountPayment'); if (el) el.textContent = statusCounts.payment;
 
     // === Filter ===
     var filtered = atilabTasks.filter(function(t) { return atilabActiveFilters.has(t.status); });
@@ -2248,7 +2293,7 @@ function renderAtilabTasks() {
     // Stats
     var overdueCount = 0;
     filtered.forEach(function(t) {
-        if (t.deadline && new Date(t.deadline + 'T23:59:59') < now && (t.status === 'new' || t.status === 'inwork' || t.status === 'review')) overdueCount++;
+        if (t.deadline && new Date(t.deadline + 'T23:59:59') < now && (t.status === 'new' || t.status === 'inwork' || t.status === 'testing' || t.status === 'revisions')) overdueCount++;
     });
 
     var filteredCountEl = document.getElementById('atilabFilteredCount');
@@ -2265,7 +2310,7 @@ function renderAtilabTasks() {
 
     list.innerHTML = filtered.map(function(task) {
         var stage = atilabStageConfig[task.status] || atilabStageConfig.new;
-        var isOverdue = task.deadline && new Date(task.deadline + 'T23:59:59') < now && (task.status === 'new' || task.status === 'inwork' || task.status === 'review');
+        var isOverdue = task.deadline && new Date(task.deadline + 'T23:59:59') < now && (task.status === 'new' || task.status === 'inwork' || task.status === 'testing' || task.status === 'revisions');
         var deadlineStr = task.deadline ? formatDate(task.deadline) : '';
         var hasComments = _commentsMap[task.id] && _commentsMap[task.id].length > 0;
 
@@ -2308,6 +2353,7 @@ function updateAtilabProjectChips() {
     // Count tasks per project
     var projectCounts = {};
     atilabTasks.forEach(function(t) {
+        if (ATILAB_EXCLUDED_GROUPS.has(t.groupId)) return;
         if (!projectCounts[t.groupId]) projectCounts[t.groupId] = 0;
         projectCounts[t.groupId]++;
     });
@@ -2361,7 +2407,7 @@ function openAtilabPreview(taskId) {
 
     var stage = atilabStageConfig[task.status] || atilabStageConfig.new;
     var now = new Date();
-    var isOverdue = task.deadline && new Date(task.deadline + 'T23:59:59') < now && (task.status === 'new' || task.status === 'inwork' || task.status === 'review');
+    var isOverdue = task.deadline && new Date(task.deadline + 'T23:59:59') < now && (task.status === 'new' || task.status === 'inwork' || task.status === 'testing' || task.status === 'revisions');
 
     document.getElementById("previewTitle").textContent = task.title;
 
