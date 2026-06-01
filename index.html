@@ -1039,6 +1039,26 @@
             border-color: #1a1a2e;
         }
 
+        /* ===== АТИЛАБ: STAGE BADGES (свои цвета) ===== */
+        .atilab-stage-new { background: #f3f4f6; color: #4b5563; }         /* Новые — серый */
+        .atilab-stage-inwork { background: #dcfce7; color: #15803d; }     /* Работа — светло-зелёный */
+        .atilab-stage-testing { background: #ede9fe; color: #6d28d9; }    /* Тест — фиолетовый */
+        .atilab-stage-release { background: #fef9c3; color: #a16207; }    /* Релиз — жёлтый */
+        .atilab-stage-revisions { background: #fee2e2; color: #dc2626; }  /* Правки — красный */
+        .atilab-stage-pause { background: #fef3c7; color: #92400e; }      /* Пауза — коричневый */
+        .atilab-stage-invoice { background: #dbeafe; color: #1d4ed8; }    /* Счёт — синий */
+        .atilab-stage-payment { background: #d1fae5; color: #047857; }    /* Оплата — зелёный */
+
+        /* ===== АТИЛАБ: FILTER CHIPS (свои цвета) ===== */
+        .afc-new.active { background: #6b7280; }        /* Новые — серый */
+        .afc-inwork.active { background: #22c55e; }     /* Работа — светло-зелёный */
+        .afc-testing.active { background: #8b5cf6; }    /* Тест — фиолетовый */
+        .afc-release.active { background: #eab308; }    /* Релиз — жёлтый */
+        .afc-revisions.active { background: #ef4444; }  /* Правки — красный */
+        .afc-pause.active { background: #b45309; }      /* Пауза — коричневый */
+        .afc-invoice.active { background: #3b82f6; }    /* Счёт — синий */
+        .afc-payment.active { background: #059669; }    /* Оплата — зелёный */
+
         /* ===== АТИЛАБ: KANBAN STAGE TAG ===== */
         .kanban-stage-tag {
             font-size: 9px;
@@ -1093,7 +1113,7 @@
                     <button class="tab-btn active" data-tab="dakar" onclick="switchTab('dakar')">Дакар</button>
                     <button class="tab-btn" data-tab="atilab" onclick="switchTab('atilab')">АтиЛаб</button>
                 </div>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.15</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.16</span>
             </div>
             <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
@@ -1145,14 +1165,14 @@
 <!-- Toolbar: filters + search — АТИЛАБ -->
 <div class="toolbar atilab-only" style="flex-wrap:wrap;gap:6px 8px" id="atilabToolbar">
     <span class="filter-label">Статус:</span>
-    <span class="filter-chip fc-new active" data-stage="new" onclick="toggleAtilabFilter(this)">Новые <span class="chip-count" id="atilabCountNew">0</span></span>
-    <span class="filter-chip fc-inwork active" data-stage="inwork" onclick="toggleAtilabFilter(this)">Работа <span class="chip-count" id="atilabCountInwork">0</span></span>
-    <span class="filter-chip fc-testing active" data-stage="testing" onclick="toggleAtilabFilter(this)">Тест <span class="chip-count" id="atilabCountTesting">0</span></span>
-    <span class="filter-chip fc-release active" data-stage="release" onclick="toggleAtilabFilter(this)">Релиз <span class="chip-count" id="atilabCountRelease">0</span></span>
-    <span class="filter-chip fc-revisions active" data-stage="revisions" onclick="toggleAtilabFilter(this)">Правки <span class="chip-count" id="atilabCountRevisions">0</span></span>
-    <span class="filter-chip fc-pause active" data-stage="pause" onclick="toggleAtilabFilter(this)">Пауза <span class="chip-count" id="atilabCountPause">0</span></span>
-    <span class="filter-chip fc-invoice active" data-stage="invoice" onclick="toggleAtilabFilter(this)">Счет <span class="chip-count" id="atilabCountInvoice">0</span></span>
-    <span class="filter-chip fc-paydone active" data-stage="payment" onclick="toggleAtilabFilter(this)">Оплата <span class="chip-count" id="atilabCountPayment">0</span></span>
+    <span class="filter-chip afc-new active" data-stage="new" onclick="toggleAtilabFilter(this)">Новые <span class="chip-count" id="atilabCountNew">0</span></span>
+    <span class="filter-chip afc-inwork active" data-stage="inwork" onclick="toggleAtilabFilter(this)">Работа <span class="chip-count" id="atilabCountInwork">0</span></span>
+    <span class="filter-chip afc-testing active" data-stage="testing" onclick="toggleAtilabFilter(this)">Тест <span class="chip-count" id="atilabCountTesting">0</span></span>
+    <span class="filter-chip afc-release active" data-stage="release" onclick="toggleAtilabFilter(this)">Релиз <span class="chip-count" id="atilabCountRelease">0</span></span>
+    <span class="filter-chip afc-revisions active" data-stage="revisions" onclick="toggleAtilabFilter(this)">Правки <span class="chip-count" id="atilabCountRevisions">0</span></span>
+    <span class="filter-chip afc-pause active" data-stage="pause" onclick="toggleAtilabFilter(this)">Пауза <span class="chip-count" id="atilabCountPause">0</span></span>
+    <span class="filter-chip afc-invoice active" data-stage="invoice" onclick="toggleAtilabFilter(this)">Счет <span class="chip-count" id="atilabCountInvoice">0</span></span>
+    <span class="filter-chip afc-payment active" data-stage="payment" onclick="toggleAtilabFilter(this)">Оплата <span class="chip-count" id="atilabCountPayment">0</span></span>
 
     <input class="search-input" type="text" id="atilabSearchInput" placeholder="Поиск..." oninput="renderAtilabTasks()">
 
@@ -1222,14 +1242,14 @@ const ATILAB_STAGE_MAP = {
 
 // АтиЛаб: конфиг статусов (для фильтров и бейджей)
 const atilabStageConfig = {
-  new:      { label: "Новые",    badgeClass: "stage-new",       filterClass: "fc-new",      color: "1a1a2e" },
-  inwork:   { label: "Работа",   badgeClass: "stage-inwork",   filterClass: "fc-inwork",   color: "22c55e" },
-  testing:  { label: "Тест",     badgeClass: "stage-testing",  filterClass: "fc-testing",  color: "ef4444" },
-  release:  { label: "Релиз",    badgeClass: "stage-release",  filterClass: "fc-release",  color: "f97316" },
-  revisions:{ label: "Правки",   badgeClass: "stage-postponed",filterClass: "fc-revisions", color: "eab308" },
-  pause:    { label: "Пауза",    badgeClass: "stage-pause",    filterClass: "fc-pause",    color: "9b59b6" },
-  invoice:  { label: "Счет",     badgeClass: "stage-invoice",  filterClass: "fc-invoice",  color: "059669" },
-  payment:  { label: "Оплата",   badgeClass: "stage-paydone",  filterClass: "fc-paydone",  color: "0ea5e9" },
+  new:      { label: "Новые",    badgeClass: "atilab-stage-new",      filterClass: "afc-new",      color: "6b7280" },
+  inwork:   { label: "Работа",   badgeClass: "atilab-stage-inwork",   filterClass: "afc-inwork",   color: "22c55e" },
+  testing:  { label: "Тест",     badgeClass: "atilab-stage-testing",  filterClass: "afc-testing",  color: "8b5cf6" },
+  release:  { label: "Релиз",    badgeClass: "atilab-stage-release",  filterClass: "afc-release",  color: "eab308" },
+  revisions:{ label: "Правки",   badgeClass: "atilab-stage-revisions",filterClass: "afc-revisions", color: "ef4444" },
+  pause:    { label: "Пауза",    badgeClass: "atilab-stage-pause",    filterClass: "afc-pause",    color: "b45309" },
+  invoice:  { label: "Счет",     badgeClass: "atilab-stage-invoice",  filterClass: "afc-invoice",  color: "3b82f6" },
+  payment:  { label: "Оплата",   badgeClass: "atilab-stage-payment",  filterClass: "afc-payment",  color: "059669" },
 };
 
 // АтиЛаб: названия проектов
