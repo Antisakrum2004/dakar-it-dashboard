@@ -1093,7 +1093,7 @@
                     <button class="tab-btn active" data-tab="dakar" onclick="switchTab('dakar')">Дакар</button>
                     <button class="tab-btn" data-tab="atilab" onclick="switchTab('atilab')">АтиЛаб</button>
                 </div>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.14</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.15</span>
             </div>
             <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
@@ -2071,7 +2071,7 @@ async function loadAtilabData() {
         while (true) {
             incrementApiCount();
             try {
-                var url = ATILAB_API + 'tasks.task.list?filter%5B%3CSTATUS%5D=5&start=' + start +
+                var url = ATILAB_API + 'tasks.task.list?filter%5B%3CSTATUS%5D=5&filter%5B%3ECREATED_DATE%5D=2025-12-31&start=' + start +
                     '&select%5B%5D=ID&select%5B%5D=TITLE&select%5B%5D=STAGE_ID&select%5B%5D=GROUP_ID' +
                     '&select%5B%5D=STATUS&select%5B%5D=RESPONSIBLE_ID&select%5B%5D=DEADLINE' +
                     '&select%5B%5D=CREATED_DATE&select%5B%5D=DESCRIPTION&select%5B%5D=CREATED_BY';
@@ -2134,14 +2134,11 @@ async function loadAtilabData() {
             return t !== null && t.id > 0 && !ATILAB_EXCLUDED_GROUPS.has(t.groupId);
         });
 
-        // Sort: overdue first, then by deadline
+        // Sort: newest first (by created date descending)
         atilabTasks.sort(function(a, b) {
-            var aOverdue = a.deadline && new Date(a.deadline + 'T23:59:59') < new Date() ? 0 : 1;
-            var bOverdue = b.deadline && new Date(b.deadline + 'T23:59:59') < new Date() ? 0 : 1;
-            if (aOverdue !== bOverdue) return aOverdue - bOverdue;
-            var aDl = a.deadline ? new Date(a.deadline).getTime() : Infinity;
-            var bDl = b.deadline ? new Date(b.deadline).getTime() : Infinity;
-            return aDl - bDl;
+            var aDate = a.created ? new Date(a.created).getTime() : 0;
+            var bDate = b.created ? new Date(b.created).getTime() : 0;
+            return bDate - aDate; // newest first
         });
 
         atilabIsLoaded = true;
@@ -2279,15 +2276,12 @@ function renderAtilabTasks() {
         });
     }
 
-    // Sort: overdue first, then by deadline
+    // Sort: newest first (by created date descending)
     var now = new Date();
     filtered.sort(function(a, b) {
-        var aOverdue = a.deadline && new Date(a.deadline + 'T23:59:59') < now ? 0 : 1;
-        var bOverdue = b.deadline && new Date(b.deadline + 'T23:59:59') < now ? 0 : 1;
-        if (aOverdue !== bOverdue) return aOverdue - bOverdue;
-        var aDl = a.deadline ? new Date(a.deadline).getTime() : Infinity;
-        var bDl = b.deadline ? new Date(b.deadline).getTime() : Infinity;
-        return aDl - bDl;
+        var aDate = a.created ? new Date(a.created).getTime() : 0;
+        var bDate = b.created ? new Date(b.created).getTime() : 0;
+        return bDate - aDate; // newest first
     });
 
     // Stats
