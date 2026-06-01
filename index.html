@@ -2168,6 +2168,13 @@ async function loadAtilabData() {
         fill.style.width = '100%';
 
         console.log('Atilab data loaded:', atilabTasks.length, 'tasks');
+        // Debug: verify stage mapping for known problematic tasks
+        var debugIds = [7312, 7368, 7152, 6516];
+        atilabTasks.forEach(function(t) {
+            if (debugIds.indexOf(t.id) !== -1) {
+                console.log('  DEBUG task #' + t.id + ': stageId=' + t.stageId + ', kanbanStage=' + t.kanbanStage + ', status=' + t.status + ', group=' + t.groupName);
+            }
+        });
         return true;
     } catch(e) {
         console.error('Atilab data load failed:', e);
