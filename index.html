@@ -3536,9 +3536,10 @@ function vnRenderTaskCard(task, section) {
 // Клик по inline-тумблеру — НЕ открывает превью (stop propagation)
 function vnInlineToggleClick(event, taskId) {
     event.stopPropagation();
-    // Находим чекбокс внутри и переключаем
     var toggle = document.getElementById('vnInlineToggle_' + taskId);
     if (!toggle) return;
+    // Если тумблер уже в состоянии done или saving — не делаем ничего
+    if (toggle.classList.contains('done') || toggle.classList.contains('saving')) return;
     var checkbox = toggle.querySelector('input[type=checkbox]');
     if (checkbox) {
         checkbox.checked = true;  // только в одну сторону — включение
@@ -3551,6 +3552,12 @@ async function vnOnInlineToggleDone(taskId, checkbox) {
     var toggle = document.getElementById('vnInlineToggle_' + taskId);
     if (!toggle) return;
 
+    // Если уже сохраняется или уже выполнено — выходим (защита от двойных кликов)
+    if (toggle.classList.contains('saving') || toggle.classList.contains('done')) {
+        checkbox.checked = toggle.classList.contains('done');
+        return;
+    }
+
     if (!checkbox.checked) {
         // Сняли галку — откатываем (внедрение нельзя отменить)
         checkbox.checked = true;
@@ -3559,6 +3566,13 @@ async function vnOnInlineToggleDone(taskId, checkbox) {
 
     var task = vnedrenieTasks.find(function(t) { return t.id === taskId; });
     if (!task) return;
+
+    // Если задача уже в состоянии done — выходим
+    if (task.state === 'rab_done' || task.state === 'demo_done') {
+        checkbox.checked = true;
+        toggle.classList.add('done');
+        return;
+    }
 
     var isRab = (task.state === 'rab_new' || task.state === 'rab_queued');
     var tagVnedit = isRab ? VN_TAG.vnedritRab : VN_TAG.vnedritDemo;
@@ -3585,7 +3599,7 @@ async function vnOnInlineToggleDone(taskId, checkbox) {
         // 2. Отправляем отбивку в чат
         var now = new Date();
         var ts = vnFormatDoneTime(now.getTime());
-        var chatMsg = '✅ Задача [URL]' + VNEDRENIE_TASK_URL + taskId + '/[/URL] «' + task.title.substring(0, 80) + '» [B]внедрена в ' + targetLabel + ' базу ' + ts + '[/B]';
+        var chatMsg = '[S]✅ Задача [URL]' + VNEDRENIE_TASK_URL + taskId + '/[/URL] «' + task.title.substring(0, 80) + '» [B]внедрена в ' + targetLabel + ' базу ' + ts + '[/S][/B]';
         await vnSendChatMessage(chatMsg);
 
         // 3. Обновляем локальное состояние
@@ -3596,6 +3610,10 @@ async function vnOnInlineToggleDone(taskId, checkbox) {
         // UI: success
         toggle.classList.remove('saving');
         toggle.classList.add('done');
+        // Блокируем тумблер — повторное нажатие невозможно
+        var cb = toggle.querySelector('input[type=checkbox]');
+        if (cb) cb.disabled = true;
+        toggle.style.pointerEvents = 'none';
         if (labelEl) labelEl.textContent = '✅ ' + ts;
 
         // Через 1 сек перерисовываем список
@@ -3827,6 +3845,12 @@ async function vnOnToggleDone(taskId, checkbox) {
     var labelEl = document.getElementById('vnToggleLabel');
     var rowEl = document.getElementById('vnToggleRow');
 
+    // Защита от повторного срабатывания
+    if (checkbox.disabled) {
+        checkbox.checked = true;
+        return;
+    }
+
     if (!newVal) {
         // Если сняли галку — ничего не делаем (внедрение нельзя отменить)
         checkbox.checked = true;
@@ -3835,6 +3859,13 @@ async function vnOnToggleDone(taskId, checkbox) {
 
     var task = vnedrenieTasks.find(function(t) { return t.id === taskId; });
     if (!task) return;
+
+    // Если задача уже выполнена — выходим
+    if (task.state === 'rab_done' || task.state === 'demo_done') {
+        checkbox.checked = true;
+        checkbox.disabled = true;
+        return;
+    }
 
     var isRab = (task.state === 'rab_new' || task.state === 'rab_queued');
     var tagVnedit = isRab ? VN_TAG.vnedritRab : VN_TAG.vnedritDemo;
@@ -3859,7 +3890,7 @@ async function vnOnToggleDone(taskId, checkbox) {
         // 2. Отправляем отбивку в чат ВНЕДРЕНИЯ
         var now = new Date();
         var ts = vnFormatDoneTime(now.getTime());
-        var chatMsg = '✅ Задача [URL]' + VNEDRENIE_TASK_URL + taskId + '/[/URL] «' + task.title.substring(0, 80) + '» [B]внедрена в ' + targetLabel + ' базу ' + ts + '[/B]';
+        var chatMsg = '[S]✅ Задача [URL]' + VNEDRENIE_TASK_URL + taskId + '/[/URL] «' + task.title.substring(0, 80) + '» [B]внедрена в ' + targetLabel + ' базу ' + ts + '[/S][/B]';
         await vnSendChatMessage(chatMsg);
 
         // 3. Обновляем локальное состояние
@@ -3875,6 +3906,8 @@ async function vnOnToggleDone(taskId, checkbox) {
         }
         if (switchEl) switchEl.classList.remove('saving');
         if (rowEl) rowEl.classList.add('done');
+        // Блокируем тумблер — повторное нажатие невозможно
+        checkbox.disabled = true;
 
         // Через 1.5 сек закрываем превью и перерисовываем
         setTimeout(function() {
