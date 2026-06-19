@@ -1156,7 +1156,7 @@
             background: #f0fdf4;
             border-color: #bbf7d0;
             cursor: default;
-            opacity: 0.85;
+            opacity: 0.9;
         }
         .vnedrenie-task-item.completed:hover {
             border-color: #bbf7d0;
@@ -1165,6 +1165,33 @@
         .vnedrenie-task-item.completed .vnedrenie-task-title {
             text-decoration: line-through;
             color: #6b7280;
+        }
+
+        /* Выполненная задача — зачёркнутая строка-ссылка (как на скриншоте 2) */
+        .vnedrenie-done-row {
+            font-size: 13px;
+            color: #1a1a2e;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+        .vnedrenie-done-strike {
+            text-decoration: line-through;
+            color: #6b7280;
+        }
+        .vnedrenie-done-link {
+            color: #6b7280;
+            text-decoration: line-through;
+            word-break: break-all;
+        }
+        .vnedrenie-done-link:hover {
+            color: #1a1a2e;
+            text-decoration: line-through underline;
+        }
+        .vnedrenie-done-bold {
+            font-weight: 700;
+            color: #15803d;
+            text-decoration: none;  /* жирная часть НЕ зачёркнута */
+            margin-left: 4px;
         }
 
         /* Grid: карточки в 2 колонки на широких экранах */
@@ -3451,16 +3478,34 @@ function renderVnedrenieTasks() {
 function vnRenderTaskCard(task, section) {
     var isDone = section.isDone;
     var doneInfo = isDone ? vnGetDoneInfo(task.id, task.state === 'rab_done' ? 'rab' : 'demo') : null;
+    var isRabDone = task.state === 'rab_done';
+    var targetLabel = isRabDone ? 'РАБОЧУЮ' : 'ДЕМО';
+    var doneTs = doneInfo ? vnFormatDoneTime(doneInfo.ts) : vnFormatDoneTime(Date.now());
 
+    // === СПЕЦИАЛЬНЫЙ РЕНДЕР ДЛЯ ВЫПОЛНЕННЫХ ЗАДАЧ ===
+    // Формат как на скриншоте: ✅ Задача [URL-ссылка] «Название» [жирным]внедрена в РАБОЧУЮ базу 19.06 17:05[/жирным]
+    // Всё зачёркнуто кроме времени внедрения
+    if (isDone) {
+        return '<div class="vnedrenie-task-item completed">' +
+            '<div class="vnedrenie-done-row">' +
+                '<span class="vnedrenie-done-strike">' +
+                    '✅ Задача ' +
+                    '<a href="' + VNEDRENIE_TASK_URL + task.id + '/" target="_blank" rel="noopener" class="vnedrenie-done-link">' +
+                        VNEDRENIE_TASK_URL + task.id + '/' +
+                    '</a> ' +
+                    '«' + escapeHtml(task.title) + '» ' +
+                '</span>' +
+                '<span class="vnedrenie-done-bold">внедрена в ' + targetLabel + ' базу ' + doneTs + '</span>' +
+            '</div>' +
+        '</div>';
+    }
+
+    // === ОБЫЧНЫЙ РЕНДЕР ДЛЯ АКТИВНЫХ ЗАДАЧ ===
     var badgeHtml;
     if (task.state === 'rab_new' || task.state === 'rab_queued') {
         badgeHtml = '<span class="vnedrenie-badge-rab">⚡ Рабочая</span>';
     } else if (task.state === 'demo_new' || task.state === 'demo_queued') {
         badgeHtml = '<span class="vnedrenie-badge-demo">🧪 Демо</span>';
-    } else if (task.state === 'rab_done') {
-        badgeHtml = '<span class="vnedrenie-badge-done">✅ В рабочей</span>';
-    } else if (task.state === 'demo_done') {
-        badgeHtml = '<span class="vnedrenie-badge-done">✅ В демо</span>';
     } else {
         badgeHtml = '';
     }
@@ -3473,18 +3518,14 @@ function vnRenderTaskCard(task, section) {
         ? '<span class="vnedrenie-task-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>' + formatDate(task.deadline) + '</span>'
         : '';
 
-    var doneTimeTag = doneInfo
-        ? '<span class="vnedrenie-completed-time">✅ Внедрена ' + vnFormatDoneTime(doneInfo.ts) + '</span>'
-        : '';
+    var cls = 'vnedrenie-task-item';
+    var onclick = ' onclick="openVnedreniePreview(' + task.id + ')"';
 
-    var cls = isDone ? 'vnedrenie-task-item completed' : 'vnedrenie-task-item';
-    var onclick = isDone ? '' : ' onclick="openVnedreniePreview(' + task.id + ')"';
-
-    // Inline toggle — только для невыполненных задач
+    // Inline toggle — только для активных задач
     var isRab = (task.state === 'rab_new' || task.state === 'rab_queued');
     var isDemo = (task.state === 'demo_new' || task.state === 'demo_queued');
     var toggleHtml = '';
-    if (!isDone && (isRab || isDemo)) {
+    if (isRab || isDemo) {
         var toggleLabel = isRab ? 'В рабочую' : 'В демо';
         toggleHtml =
             '<div class="vnedrenie-inline-toggle" id="vnInlineToggle_' + task.id + '" onclick="vnInlineToggleClick(event, ' + task.id + ')">' +
@@ -3496,11 +3537,6 @@ function vnRenderTaskCard(task, section) {
             '</div>';
     }
 
-    // Для выполненных — кнопка «Открыть» в Битрикс
-    var openBtn = isDone
-        ? '<a class="vnedrenie-btn-open-task" href="' + VNEDRENIE_TASK_URL + task.id + '/" target="_blank" rel="noopener" onclick="event.stopPropagation()">↗ Б24</a>'
-        : '';
-
     return '<div class="' + cls + '"' + onclick + '>' +
         '<div class="vnedrenie-task-left">' +
             '<div class="vnedrenie-task-title">' + escapeHtml(task.title) + '</div>' +
@@ -3510,12 +3546,10 @@ function vnRenderTaskCard(task, section) {
                 deadlineTag +
                 '<span class="vnedrenie-task-meta-item">' + escapeHtml(task.responsibleName) + '</span>' +
                 fileTag +
-                doneTimeTag +
             '</div>' +
         '</div>' +
         '<div class="vnedrenie-task-right-inline">' +
             toggleHtml +
-            openBtn +
         '</div>' +
     '</div>';
 }
@@ -3572,7 +3606,7 @@ async function vnOnInlineToggleDone(taskId, checkbox) {
         // 2. Отправляем отбивку в чат
         var now = new Date();
         var ts = vnFormatDoneTime(now.getTime());
-        var chatMsg = '✅ Задача [URL]' + VNEDRENIE_TASK_URL + taskId + '/[/URL] «' + task.title.substring(0, 80) + '» внедрена в ' + targetLabel + ' базу ' + ts;
+        var chatMsg = '✅ Задача [URL]' + VNEDRENIE_TASK_URL + taskId + '/[/URL] «' + task.title.substring(0, 80) + '» [B]внедрена в ' + targetLabel + ' базу ' + ts + '[/B]';
         await vnSendChatMessage(chatMsg);
 
         // 3. Обновляем локальное состояние
@@ -3602,6 +3636,18 @@ async function vnOnInlineToggleDone(taskId, checkbox) {
 function vnFormatDoneTime(ts) {
     var d = new Date(ts);
     if (isNaN(d.getTime())) return '';
+    var dd = String(d.getDate()).padStart(2, '0');
+    var mm = String(d.getMonth() + 1).padStart(2, '0');
+    var hh = String(d.getHours()).padStart(2, '0');
+    var mi = String(d.getMinutes()).padStart(2, '0');
+    return dd + '.' + mm + ' ' + hh + ':' + mi;
+}
+
+// Форматирование ISO-даты из API Битрикс24 (2026-06-19T17:05:00+03:00 → 19.06 17:05)
+function vnFormatDateTime(isoStr) {
+    if (!isoStr) return '';
+    var d = new Date(isoStr);
+    if (isNaN(d.getTime())) return isoStr;
     var dd = String(d.getDate()).padStart(2, '0');
     var mm = String(d.getMonth() + 1).padStart(2, '0');
     var hh = String(d.getHours()).padStart(2, '0');
@@ -3675,6 +3721,21 @@ async function vnFetchTaskComments(taskId) {
 }
 
 // ===== ВНЕДРЕНИЕ: ПРЕВЬЮ =====
+// Маппинг числового статуса задачи Битрикс24 → текстовое описание
+function vnStatusToText(status) {
+    switch (parseInt(status)) {
+        case 1: return 'Новая (не просмотрена)';
+        case 2: return 'Ждет выполнения';
+        case 3: return 'Выполняется';
+        case 4: return 'Завершена (ожидает контроля)';
+        case 5: return 'Завершена';
+        case 6: return 'Отложена';
+        case 7: return 'Делегирована';
+        case -1: return 'Просрочена';
+        default: return 'Статус ' + status;
+    }
+}
+
 function openVnedreniePreview(taskId) {
     var task = vnedrenieTasks.find(function(t) { return t.id === taskId; });
     if (!task) return;
@@ -3683,6 +3744,7 @@ function openVnedreniePreview(taskId) {
     var isDemo = (task.state === 'demo_new' || task.state === 'demo_queued');
     var targetLabel = isRab ? 'РАБОЧУЮ' : (isDemo ? 'ДЕМО' : '?');
     var toggleLabel = isRab ? 'Перенесено в рабочую базу' : 'Внедрено в демо базу';
+    var statusText = vnStatusToText(task.status);
 
     document.getElementById("previewTitle").textContent = task.title;
 
@@ -3692,11 +3754,23 @@ function openVnedreniePreview(taskId) {
             (isDemo ? '<span class="vnedrenie-badge-demo">🧪 Демо</span>' : '') +
             '<span class="project-badge" style="font-size:11px;padding:4px 10px">' + escapeHtml(task.groupName) + '</span>' +
         '</div>' +
+
+        // Полная форма задачи как в Битрикс24
+        '<div class="preview-field"><div class="preview-field-label">Статус</div><div class="preview-field-value">' + escapeHtml(statusText) + '</div></div>' +
+        '<div class="preview-field"><div class="preview-field-label">Постановщик</div><div class="preview-field-value">' + escapeHtml(task.creatorName || '—') + '</div></div>' +
         '<div class="preview-field"><div class="preview-field-label">Исполнитель</div><div class="preview-field-value">' + escapeHtml(task.responsibleName) + '</div></div>' +
-        (task.creatorName ? '<div class="preview-field"><div class="preview-field-label">Постановщик</div><div class="preview-field-value">' + escapeHtml(task.creatorName) + '</div></div>' : '') +
-        (task.deadline ? '<div class="preview-field"><div class="preview-field-label">Дедлайн</div><div class="preview-field-value">' + formatDate(task.deadline) + '</div></div>' : '') +
+        '<div class="preview-field"><div class="preview-field-label">Проект</div><div class="preview-field-value">' + escapeHtml(task.groupName) + '</div></div>' +
+        (task.deadline ? '<div class="preview-field"><div class="preview-field-label">Крайний срок</div><div class="preview-field-value">' + formatDate(task.deadline) + '</div></div>' : '') +
         '<div class="preview-field"><div class="preview-field-label">Создана</div><div class="preview-field-value">' + (task.created ? formatDate(task.created) : '—') + '</div></div>' +
-        (task.description ? '<div class="preview-field"><div class="preview-field-label">Описание</div><div class="preview-description">' + escapeHtml(task.description.substring(0, 500)) + (task.description.length > 500 ? '…' : '') + '</div></div>' : '') +
+        (task.changedDate ? '<div class="preview-field"><div class="preview-field-label">Изменена</div><div class="preview-field-value">' + vnFormatDateTime(task.changedDate) + '</div></div>' : '') +
+        (task.description ? '<div class="preview-field"><div class="preview-field-label">Описание</div><div class="preview-description">' + escapeHtml(task.description) + '</div></div>' : '') +
+
+        // Теги задачи
+        (task.tags && task.tags.length > 0
+            ? '<div class="preview-field"><div class="preview-field-label">Теги</div><div class="preview-field-value" style="display:flex;gap:4px;flex-wrap:wrap">' +
+                task.tags.map(function(t) { return '<span style="background:#e0e7ff;color:#3730a3;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:600">' + escapeHtml(t) + '</span>'; }).join('') +
+              '</div></div>'
+            : '') +
 
         // Блок загрузки комментариев (загружаются асинхронно)
         '<div class="preview-field" id="vnCommentsBlock">' +
@@ -3704,7 +3778,7 @@ function openVnedreniePreview(taskId) {
             '<div id="vnCommentsContent" style="padding:10px;color:#98a2b3;font-size:12px">Загрузка комментариев…</div>' +
         '</div>' +
 
-        // Тумблер «Внедрено» + поле времени
+        // Тумблер «Внедрено» — БЕЗ поля времени
         '<div class="vnedrenie-toggle-row" id="vnToggleRow">' +
             '<label class="toggle-switch" id="vnToggleSwitch">' +
                 '<input type="checkbox" id="vnToggleDone" onchange="vnOnToggleDone(' + task.id + ', this)">' +
@@ -3713,8 +3787,6 @@ function openVnedreniePreview(taskId) {
             '<label class="vnedrenie-toggle-label" id="vnToggleLabel" onclick="document.getElementById(\'vnToggleDone\').click()">' +
                 escapeHtml(toggleLabel) +
             '</label>' +
-            '<span style="font-size:11px;color:#667085">Время:</span>' +
-            '<input type="number" class="vnedrenie-time-input" id="vnTimeInput" placeholder="мин" min="0" step="5" value="30">' +
         '</div>';
 
     document.getElementById("previewBody").innerHTML = bodyHtml;
@@ -3775,7 +3847,6 @@ async function vnOnToggleDone(taskId, checkbox) {
     var switchEl = document.getElementById('vnToggleSwitch');
     var labelEl = document.getElementById('vnToggleLabel');
     var rowEl = document.getElementById('vnToggleRow');
-    var timeInput = document.getElementById('vnTimeInput');
 
     if (!newVal) {
         // Если сняли галку — ничего не делаем (внедрение нельзя отменить)
@@ -3806,21 +3877,13 @@ async function vnOnToggleDone(taskId, checkbox) {
         var ok = await vnUpdateTaskTags(taskId, newTags);
         if (!ok) throw new Error('Не удалось обновить теги задачи');
 
-        // 2. Записываем время (если указано)
-        var minutes = parseInt(timeInput ? timeInput.value : 0) || 0;
-        if (minutes > 0) {
-            var timeComment = 'Внедрение в ' + targetLabel + ' базу через веб-интерфейс';
-            await vnAddElapsedTime(taskId, minutes, timeComment);
-        }
-
-        // 3. Отправляем отбивку в чат ВНЕДРЕНИЯ
+        // 2. Отправляем отбивку в чат ВНЕДРЕНИЯ
         var now = new Date();
         var ts = vnFormatDoneTime(now.getTime());
-        var chatMsg = '✅ Задача [URL]' + VNEDRENIE_TASK_URL + taskId + '/[/URL] «' + task.title.substring(0, 80) + '» внедрена в ' + targetLabel + ' базу ' + ts;
-        if (minutes > 0) chatMsg += ' (затрачено ' + minutes + ' мин)';
+        var chatMsg = '✅ Задача [URL]' + VNEDRENIE_TASK_URL + taskId + '/[/URL] «' + task.title.substring(0, 80) + '» [B]внедрена в ' + targetLabel + ' базу ' + ts + '[/B]';
         await vnSendChatMessage(chatMsg);
 
-        // 4. Обновляем локальное состояние
+        // 3. Обновляем локальное состояние
         task.tags = newTags;
         task.state = isRab ? 'rab_done' : 'demo_done';
         vnMarkDone(taskId, doneType);
