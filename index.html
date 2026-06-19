@@ -1178,11 +1178,16 @@
         }
 
         /* Выполненная задача — просто голая строка с URL, без карточки */
+        .vnedrenie-done-line-wrap {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 2px 0;
+        }
         .vnedrenie-done-line {
+            flex: 1;
             font-size: 12px;
             color: #6b7280;
-            padding: 2px 0;
-            margin: 0;
             line-height: 1.4;
             word-break: break-word;
             text-decoration: line-through;  /* вся строка зачёркнута */
@@ -1198,6 +1203,35 @@
         }
         .vnedrenie-done-line-bold {
             font-weight: 700;
+            color: #15803d;
+        }
+
+        /* Кнопка «↩ Вернуть» для выполненных задач */
+        .vnedrenie-restore-btn {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border: 1px solid #d0d5dd;
+            background: #fff;
+            color: #475469;
+            border-radius: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+        .vnedrenie-restore-btn:hover {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #92400e;
+        }
+        .vnedrenie-restore-btn.saving {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .vnedrenie-restore-btn.done {
+            background: #dcfce7;
+            border-color: #86efac;
             color: #15803d;
         }
 
@@ -3110,8 +3144,12 @@ async function fetchVnedrenieUsers() {
 }
 
 // ===== ВНЕДРЕНИЕ: ОТПРАВКА СООБЩЕНИЯ В ЧАТ ВНЕДРЕНИЯ =====
+// ВАЖНО: Bitrix24 при отправке URL в чат автоматически прикрепляет rich-preview (большую карточку с названием задачи).
+// Чтобы отправить ПРОСТО текст с кликабельной ссылкой без карточки, нужно сразу после add сделать update с URL_PREVIEW=N.
+// Это убирает attach, оставляя только текст с BB-кодами ([S], [B], [URL] и т.д.).
 async function vnSendChatMessage(text) {
     try {
+        // 1. Отправляем сообщение
         incrementApiCount();
         var resp = await fetch(VNEDRENIE_API + 'im.message.add', {
             method: 'POST',
@@ -3122,7 +3160,26 @@ async function vnSendChatMessage(text) {
             })
         });
         var data = await resp.json();
-        return data.result || null;
+        var msgId = data.result;
+        if (!msgId) return null;
+
+        // 2. Сразу обновляем с URL_PREVIEW=N — это убирает rich-preview attach
+        incrementApiCount();
+        try {
+            await fetch(VNEDRENIE_API + 'im.message.update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    MESSAGE_ID: msgId,
+                    MESSAGE: text,
+                    URL_PREVIEW: 'N'
+                })
+            });
+        } catch(e2) {
+            console.warn('im.message.update (URL_PREVIEW=N) failed:', e2);
+        }
+
+        return msgId;
     } catch(e) {
         console.error('vnSendChatMessage error:', e);
         return null;
@@ -3349,6 +3406,85 @@ async function loadVnedrenieData() {
     }
 }
 
+// ===== ВНЕДРЕНИЕ: ВОЗВРАТ ЗАДАЧИ ИЗ ВЫПОЛНЕННЫХ ВО ВНЕДРЕНИЕ =====
+// Снимает тег «внедрена_в_*», ставит «внедрить_*» (без маркера в_чате_*, чтобы сайт не отправил новый алерт,
+// т.к. сообщение в чате уже было при первом внедрении).
+// Отправляет в чат сообщение «↩ Возвращена во внедрение».
+async function vnRestoreTask(event, taskId) {
+    if (event) event.stopPropagation();
+    var btn = document.getElementById('vnRestore_' + taskId);
+    if (!btn) return;
+    if (btn.disabled) return;
+
+    var task = vnedrenieTasks.find(function(t) { return t.id === taskId; });
+    if (!task) return;
+
+    if (!task.state || (task.state !== 'rab_done' && task.state !== 'demo_done')) {
+        // Уже не в состоянии done
+        return;
+    }
+
+    var isRab = task.state === 'rab_done';
+    var tagVnedrena = isRab ? VN_TAG.vnedrenaRab : VN_TAG.vnedrenaDemo;
+    var tagVnedit = isRab ? VN_TAG.vnedritRab : VN_TAG.vnedritDemo;
+    var tagVChate = isRab ? VN_TAG.vChateRab : VN_TAG.vChateDemo;
+    var targetLabel = isRab ? 'РАБОЧУЮ' : 'ДЕМО';
+
+    // UI: saving
+    btn.disabled = true;
+    btn.classList.add('saving');
+    var origText = btn.textContent;
+    btn.textContent = '...';
+
+    try {
+        // 1. Обновляем теги: убираем «внедрена_в_*», ставим «внедрить_*» + маркер «в_чате_*»
+        //    (маркер нужен чтобы сайт не отправил повторный алерт при следующем обновлении)
+        var newTags = task.tags.filter(function(t) {
+            return t !== tagVnedrena && t !== tagVnedit && t !== tagVChate;
+        });
+        newTags.push(tagVnedit);
+        newTags.push(tagVChate);
+        var ok = await vnUpdateTaskTags(taskId, newTags);
+        if (!ok) throw new Error('Не удалось обновить теги задачи');
+
+        // 2. Отправляем в чат сообщение о возврате
+        var now = new Date();
+        var ts = vnFormatDoneTime(now.getTime());
+        var chatMsg = '↩ Задача [URL]' + VNEDRENIE_TASK_URL + taskId + '/[/URL] «' + task.title.substring(0, 80) + '» возвращена во внедрение в ' + targetLabel + ' базу ' + ts;
+        await vnSendChatMessage(chatMsg);
+
+        // 3. Обновляем локальное состояние
+        task.tags = newTags;
+        task.state = isRab ? 'rab_queued' : 'demo_queued';
+
+        // 4. Удаляем запись из лога завершённых (чтобы время не показывалось)
+        try {
+            var log = vnGetDoneLog();
+            var logKey = taskId + '_' + (isRab ? 'rab' : 'demo');
+            if (log[logKey]) {
+                delete log[logKey];
+                vnSaveDoneLog(log);
+            }
+        } catch(e) {}
+
+        btn.textContent = '✓';
+        btn.classList.remove('saving');
+        btn.classList.add('done');
+
+        // Через 800мс перерисовываем список
+        setTimeout(function() {
+            renderVnedrenieTasks();
+        }, 800);
+
+    } catch(e) {
+        console.error('vnRestoreTask error:', e);
+        btn.disabled = false;
+        btn.classList.remove('saving');
+        btn.textContent = origText;
+        alert('Ошибка при возврате задачи: ' + e.message);
+    }
+}
+
 // ===== ВНЕДРЕНИЕ: ЛОК ЛОГ ЗАВЕРШЁННЫХ =====
 function vnGetDoneLog() {
     try {
@@ -3471,14 +3607,23 @@ function vnRenderTaskCard(task, section) {
     // === СПЕЦИАЛЬНЫЙ РЕНДЕР ДЛЯ ВЫПОЛНЕННЫХ ЗАДАЧ ===
     // Просто голая строка с URL и допиской — без карточки, без фона, без бордера
     // Формат: ✅ Задача [URL] «Название» внедрена в РАБОЧУЮ базу 19.06 17:05
+    // + кнопка «↩ Вернуть» справа
     if (isDone) {
-        return '<div class="vnedrenie-done-line">' +
-            '✅ Задача ' +
-            '<a href="' + VNEDRENIE_TASK_URL + task.id + '/" target="_blank" rel="noopener" class="vnedrenie-done-line-link">' +
-                VNEDRENIE_TASK_URL + task.id + '/' +
-            '</a> ' +
-            '«' + escapeHtml(task.title) + '» ' +
-            '<span class="vnedrenie-done-line-bold">внедрена в ' + targetLabel + ' базу ' + doneTs + '</span>' +
+        var isRabDoneState = task.state === 'rab_done';
+        var restoreTag = isRabDoneState ? VN_TAG.vnedritRab : VN_TAG.vnedritDemo;
+        var restoreLabel = isRabDoneState ? 'РАБОЧУЮ' : 'ДЕМО';
+        return '<div class="vnedrenie-done-line-wrap">' +
+            '<div class="vnedrenie-done-line">' +
+                '✅ Задача ' +
+                '<a href="' + VNEDRENIE_TASK_URL + task.id + '/" target="_blank" rel="noopener" class="vnedrenie-done-line-link">' +
+                    VNEDRENIE_TASK_URL + task.id + '/' +
+                '</a> ' +
+                '«' + escapeHtml(task.title) + '» ' +
+                '<span class="vnedrenie-done-line-bold">внедрена в ' + targetLabel + ' базу ' + doneTs + '</span>' +
+            '</div>' +
+            '<button class="vnedrenie-restore-btn" id="vnRestore_' + task.id + '" ' +
+                'title="Вернуть задачу во внедрение (снять тег «внедрена» и снова поставить «внедрить»)" ' +
+                'onclick="vnRestoreTask(event, ' + task.id + ')">↩ Вернуть</button>' +
         '</div>';
     }
 
