@@ -3145,9 +3145,11 @@ async function fetchVnedrenieUsers() {
 
 // ===== ВНЕДРЕНИЕ: ОТПРАВКА СООБЩЕНИЯ В ЧАТ ВНЕДРЕНИЯ =====
 // ВАЖНО: Bitrix24 при отправке URL в чат автоматически прикрепляет rich-preview (большую карточку с названием задачи).
-// Чтобы отправить ПРОСТО текст с кликабельной ссылкой без карточки, нужно сразу после add сделать update с URL_PREVIEW=N.
-// Это убирает attach, оставляя только текст с BB-кодами ([S], [B], [URL] и т.д.).
-async function vnSendChatMessage(text) {
+//
+// Параметр noAttach:
+//   false (по умолчанию) — оставить rich-preview (для ⚠ алертов о новых задачах на внедрение)
+//   true                  — убрать rich-preview через im.message.update + URL_PREVIEW=N (для ✅ отбивок о внедрении)
+async function vnSendChatMessage(text, noAttach) {
     try {
         // 1. Отправляем сообщение
         incrementApiCount();
@@ -3163,20 +3165,22 @@ async function vnSendChatMessage(text) {
         var msgId = data.result;
         if (!msgId) return null;
 
-        // 2. Сразу обновляем с URL_PREVIEW=N — это убирает rich-preview attach
-        incrementApiCount();
-        try {
-            await fetch(VNEDRENIE_API + 'im.message.update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    MESSAGE_ID: msgId,
-                    MESSAGE: text,
-                    URL_PREVIEW: 'N'
-                })
-            });
-        } catch(e2) {
-            console.warn('im.message.update (URL_PREVIEW=N) failed:', e2);
+        // 2. Если noAttach=true — убираем rich-preview через update с URL_PREVIEW=N
+        if (noAttach) {
+            incrementApiCount();
+            try {
+                await fetch(VNEDRENIE_API + 'im.message.update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        MESSAGE_ID: msgId,
+                        MESSAGE: text,
+                        URL_PREVIEW: 'N'
+                    })
+                });
+            } catch(e2) {
+                console.warn('im.message.update (URL_PREVIEW=N) failed:', e2);
+            }
         }
 
         return msgId;
@@ -3451,7 +3455,7 @@ async function vnRestoreTask(event, taskId) {
         var now = new Date();
         var ts = vnFormatDoneTime(now.getTime());
         var chatMsg = '↩ Задача [URL]' + VNEDRENIE_TASK_URL + taskId + '/[/URL] «' + task.title.substring(0, 80) + '» возвращена во внедрение в ' + targetLabel + ' базу ' + ts;
-        await vnSendChatMessage(chatMsg);
+        await vnSendChatMessage(chatMsg, true);  // noAttach=true — компактное без rich-preview
 
         // 3. Обновляем локальное состояние
         task.tags = newTags;
@@ -3748,7 +3752,7 @@ async function vnOnInlineToggleDone(taskId, checkbox) {
         var now = new Date();
         var ts = vnFormatDoneTime(now.getTime());
         var chatMsg = '[S]✅ Задача [URL]' + VNEDRENIE_TASK_URL + taskId + '/[/URL] «' + task.title.substring(0, 80) + '» [B]внедрена в ' + targetLabel + ' базу ' + ts + '[/S][/B]';
-        await vnSendChatMessage(chatMsg);
+        await vnSendChatMessage(chatMsg, true);  // noAttach=true — компактное зачёркнутое без rich-preview
 
         // 3. Обновляем локальное состояние
         task.tags = newTags;
@@ -4039,7 +4043,7 @@ async function vnOnToggleDone(taskId, checkbox) {
         var now = new Date();
         var ts = vnFormatDoneTime(now.getTime());
         var chatMsg = '[S]✅ Задача [URL]' + VNEDRENIE_TASK_URL + taskId + '/[/URL] «' + task.title.substring(0, 80) + '» [B]внедрена в ' + targetLabel + ' базу ' + ts + '[/S][/B]';
-        await vnSendChatMessage(chatMsg);
+        await vnSendChatMessage(chatMsg, true);  // noAttach=true — компактное зачёркнутое без rich-preview
 
         // 3. Обновляем локальное состояние
         task.tags = newTags;
