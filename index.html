@@ -1089,15 +1089,228 @@
         /* ===== TAB VISIBILITY ===== */
         .dakar-only { }
         .atilab-only { display: none !important; }
+        .vnedrenie-only { display: none !important; }
         body.tab-atilab .dakar-only { display: none !important; }
         body.tab-atilab .atilab-only { display: flex !important; }
         /* For project-chips-row which is a block */
         body.tab-atilab .atilab-only.atilab-block { display: block !important; }
+        body.tab-vnedrenie .dakar-only { display: none !important; }
+        body.tab-vnedrenie .atilab-only { display: none !important; }
+        body.tab-vnedrenie .vnedrenie-only { display: flex !important; }
+        body.tab-vnedrenie .vnedrenie-only.vnedrenie-block { display: block !important; }
+
+        /* ===== ВНЕДРЕНИЕ: SECTIONS & BADGES ===== */
+        .vnedrenie-section {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin: 12px 20px;
+            padding: 12px 16px;
+        }
+        .vnedrenie-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .vnedrenie-section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .vnedrenie-section-count {
+            background: #1a1a2e;
+            color: #fff;
+            border-radius: 10px;
+            padding: 1px 8px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .vnedrenie-section-title.rab .vnedrenie-section-count { background: #dc2626; }
+        .vnedrenie-section-title.demo .vnedrenie-section-count { background: #3b82f6; }
+        .vnedrenie-section-title.done-rab .vnedrenie-section-count { background: #15803d; }
+        .vnedrenie-section-title.done-demo .vnedrenie-section-count { background: #0891b2; }
+
+        .vnedrenie-task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+            background: #fff;
+        }
+        .vnedrenie-task-item:hover {
+            border-color: #1a1a2e;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        }
+        .vnedrenie-task-item.completed {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+            cursor: default;
+            opacity: 0.85;
+        }
+        .vnedrenie-task-item.completed:hover {
+            border-color: #bbf7d0;
+            box-shadow: none;
+        }
+        .vnedrenie-task-item.completed .vnedrenie-task-title {
+            text-decoration: line-through;
+            color: #6b7280;
+        }
+        .vnedrenie-task-left { flex: 1; min-width: 0; padding-right: 12px; }
+        .vnedrenie-task-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+        .vnedrenie-task-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 11px;
+            color: #667085;
+        }
+        .vnedrenie-task-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .vnedrenie-task-meta-item svg {
+            width: 11px;
+            height: 11px;
+        }
+        .vnedrenie-badge-rab {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 1px 7px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .vnedrenie-badge-demo {
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 1px 7px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .vnedrenie-badge-done {
+            background: #dcfce7;
+            color: #15803d;
+            padding: 1px 7px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+        .vnedrenie-file-tag {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .vnedrenie-comment-tag {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .vnedrenie-empty {
+            padding: 30px 16px;
+            text-align: center;
+            color: #98a2b3;
+            font-size: 12px;
+            font-style: italic;
+        }
+        .vnedrenie-completed-time {
+            font-size: 11px;
+            color: #15803d;
+            font-weight: 600;
+        }
+
+        /* Toggle switch для Внедрено */
+        .vnedrenie-toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 8px;
+        }
+        .vnedrenie-toggle-row.done {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+        .vnedrenie-toggle-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a2e;
+            cursor: pointer;
+            user-select: none;
+            flex: 1;
+        }
+        .vnedrenie-toggle-label.active {
+            color: #15803d;
+        }
+        .vnedrenie-time-input {
+            width: 80px;
+            padding: 4px 8px;
+            border: 1px solid #d0d5dd;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        .vnedrenie-comment-block {
+            background: #f8fafc;
+            border-left: 3px solid #cbd5e1;
+            padding: 8px 12px;
+            margin: 6px 0;
+            font-size: 12px;
+            color: #475469;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .vnedrenie-comment-block.done { border-left-color: #22c55e; background: #f0fdf4; }
+        .vnedrenie-comment-block.test { border-left-color: #8b5cf6; background: #f5f3ff; }
+        .vnedrenie-comment-block.next { border-left-color: #3b82f6; background: #eff6ff; }
+        .vnedrenie-comment-block.block { border-left-color: #ef4444; background: #fef2f2; }
+        .vnedrenie-comment-block-label {
+            font-weight: 700;
+            font-size: 10px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            color: #1a1a2e;
+        }
 
         @media (max-width: 640px) {
             .header-tabs { margin-top: 2px; }
             .tab-btn { padding: 4px 12px; font-size: 12px; }
             .project-chips-row { padding: 6px 12px; }
+            .vnedrenie-section { margin: 8px 12px; padding: 10px 12px; }
         }
     </style>
 </head>
@@ -1117,8 +1330,9 @@
                 <div class="header-tabs">
                     <button class="tab-btn active" data-tab="dakar" onclick="switchTab('dakar')">Дакар</button>
                     <button class="tab-btn" data-tab="atilab" onclick="switchTab('atilab')">АтиЛаб</button>
+                    <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
                 </div>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.18</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.19</span>
             </div>
             <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
@@ -1190,6 +1404,18 @@
     <span class="project-chip active" data-project="" onclick="toggleAtilabProjectFilter(this)">Все</span>
 </div>
 
+<!-- Toolbar: ВНЕДРЕНИЕ -->
+<div class="toolbar vnedrenie-only vnedrenie-block" style="flex-wrap:wrap;gap:6px 8px" id="vnedrenieToolbar">
+    <span class="filter-label">Очередь:</span>
+    <span class="filter-chip fc-release active" data-vfilter="rab" onclick="toggleVnedrenieFilter(this)">На рабочую <span class="chip-count" id="vCountRab">0</span></span>
+    <span class="filter-chip fc-testing active" data-vfilter="demo" onclick="toggleVnedrenieFilter(this)">На демо <span class="chip-count" id="vCountDemo">0</span></span>
+    <span class="filter-chip fc-done active" data-vfilter="done" onclick="toggleVnedrenieFilter(this)">Внедрено <span class="chip-count" id="vCountDone">0</span></span>
+    <input class="search-input" type="text" id="vnedrenieSearchInput" placeholder="Поиск..." oninput="renderVnedrenieTasks()">
+    <span class="summary-hours" id="vnedrenieSummaryBar" style="white-space:nowrap;font-size:11px;color:#475469;margin-left:auto"><span id="vnedrenieFilteredCount" class="task-count">0 задач</span></span>
+</div>
+<!-- Container: ВНЕДРЕНИЕ -->
+<div class="vnedrenie-only vnedrenie-block" id="vnedrenieContainer" style="display:none"></div>
+
 <!-- Task List -->
 <div class="container">
     <div class="task-list" id="taskList"></div>
@@ -1223,6 +1449,31 @@ const TASK_URL_PREFIX = 'https://dakar.bitrix24.ru/crm/type/129/details/';
 // АтиЛаб: вебхук и шаблон ссылки на задачу
 const ATILAB_API = 'https://1c-cms.bitrix24.ru/rest/116/REPLACE_ATILAB_WEBHOOK_SECRET/';
 const ATILAB_TASK_URL = 'https://1c-cms.bitrix24.ru/company/personal/user/116/tasks/task/view/';
+
+// ВНЕДРЕНИЕ: тот же вебхук что и АтиЛаб (т.к. только у него есть скоупы im, disk)
+const VNEDRENIE_API = ATILAB_API;  // https://1c-cms.bitrix24.ru/rest/116/REPLACE_ATILAB_WEBHOOK_SECRET/
+const VNEDRENIE_TASK_URL = ATILAB_TASK_URL;
+// ID чата «ВНЕДРЕНИЯ» на портале 1c-cms.bitrix24.ru (найден через im.recent.list)
+const VNEDRENIE_CHAT_DIALOG_ID = 'chat7568';
+
+// ВНЕДРЕНИЕ: теги машины состояний (кириллица, как договорились)
+const VN_TAG = {
+    vnedritDemo:    'внедрить_демо',
+    vChateDemo:     'в_чате_демо',
+    vnedrenaDemo:   'внедрена_в_демо',
+    vnedritRab:     'внедрить_раб',
+    vChateRab:      'в_чате_раб',
+    vnedrenaRab:    'внедрена_в_рабочую'
+};
+// Все теги ВНЕДРЕНИЯ — для фильтра (используем OR, но Bitrix24 не поддерживает OR через filter[TAG][] — нужен отдельный запрос)
+const VN_ALL_TAGS = [VN_TAG.vnedritDemo, VN_TAG.vChateDemo, VN_TAG.vnedrenaDemo,
+                     VN_TAG.vnedritRab, VN_TAG.vChateRab, VN_TAG.vnedrenaRab];
+
+// За сколько дней смотрим изменения (опрос задач)
+const VN_DAYS_BACK = 3;
+
+// Хранилище времени завершения внедрения в localStorage (для отображения «✅ Внедрена 19.06 15:30» в течение 24ч)
+const VN_DONE_LOG_KEY = 'vnedrenie_done_log';
 
 // АтиЛаб: маппинг stageId → название канбан-колонки (по groupId)
 const ATILAB_STAGE_MAP = {
@@ -1353,13 +1604,20 @@ let dateTo = null;
 let lastFilteredTasks = []; // Для копирования списка задач
 
 // ===== АТИЛАБ STATE =====
-let currentTab = 'dakar'; // 'dakar' or 'atilab'
+let currentTab = 'dakar'; // 'dakar' | 'atilab' | 'vnedrenie'
 let atilabTasks = [];
 let atilabActiveFilters = new Set(['new', 'inwork', 'testing', 'release', 'done', 'revisions', 'pause', 'invoice', 'payment']);
 let atilabProjectFilter = null; // null = all projects
 let atilabLastFiltered = [];
 let atilabIsLoaded = false;
 let atilabUserMap = {};
+
+// ===== ВНЕДРЕНИЕ STATE =====
+let vnedrenieTasks = [];          // массив задач с тегами ВНЕДРЕНИЕ за последние N дней
+let vnedrenieActiveFilters = new Set(['rab', 'demo', 'done']);
+let vnedrenieIsLoaded = false;
+let vnedrenieUserMap = {};
+let vnedrenieLastFiltered = [];
 
 // ===== DATE RANGE =====
 function initDateRange() {
@@ -1717,6 +1975,15 @@ function refreshData() {
         loadAtilabData().then(function() {
             renderAtilabTasks();
             updateAtilabProjectChips();
+            updateTimestamp();
+            btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h-6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Обновить';
+            btn.disabled = false;
+        });
+    } else if (currentTab === 'vnedrenie') {
+        vnedrenieIsLoaded = false;
+        vnedrenieTasks = [];
+        loadVnedrenieData().then(function() {
+            renderVnedrenieTasks();
             updateTimestamp();
             btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h-6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Обновить';
             btn.disabled = false;
@@ -2234,16 +2501,20 @@ function switchTab(tab) {
     });
 
     // Toggle body class for CSS visibility
+    document.body.classList.remove('tab-atilab');
+    document.body.classList.remove('tab-vnedrenie');
     if (tab === 'atilab') {
         document.body.classList.add('tab-atilab');
-    } else {
-        document.body.classList.remove('tab-atilab');
+    } else if (tab === 'vnedrenie') {
+        document.body.classList.add('tab-vnedrenie');
     }
 
     // Update header title
     var titleEl = document.getElementById('headerTitle');
     if (titleEl) {
-        titleEl.textContent = tab === 'atilab' ? 'ИТ Поддержка — АтиЛаб' : 'ИТ Поддержка — Дакар';
+        if (tab === 'atilab') titleEl.textContent = 'ИТ Поддержка — АтиЛаб';
+        else if (tab === 'vnedrenie') titleEl.textContent = 'ИТ Поддержка — Внедрение';
+        else titleEl.textContent = 'ИТ Поддержка — Дакар';
     }
 
     // Update data source badge
@@ -2252,6 +2523,9 @@ function switchTab(tab) {
         if (tab === 'atilab') {
             badge.textContent = atilabIsLoaded ? 'LIVE API' : 'МОК';
             badge.className = atilabIsLoaded ? 'data-source-badge live' : 'data-source-badge mock';
+        } else if (tab === 'vnedrenie') {
+            badge.textContent = vnedrenieIsLoaded ? 'LIVE API' : 'МОК';
+            badge.className = vnedrenieIsLoaded ? 'data-source-badge live' : 'data-source-badge mock';
         }
         // Dakar badge is managed by loadLiveData
     }
@@ -2274,6 +2548,23 @@ function switchTab(tab) {
             });
         } else {
             renderAtilabTasks();
+        }
+    } else if (tab === 'vnedrenie') {
+        if (!vnedrenieIsLoaded) {
+            var btn2 = document.getElementById('refreshBtn');
+            btn2.innerHTML = '<span class="spinner"></span> Загрузка...';
+            btn2.disabled = true;
+            loadVnedrenieData().then(function() {
+                renderVnedrenieTasks();
+                updateTimestamp();
+                btn2.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h-6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Обновить';
+                btn2.disabled = false;
+                var badge3 = document.getElementById('dataSourceBadge');
+                badge3.textContent = 'LIVE API';
+                badge3.className = 'data-source-badge live';
+            });
+        } else {
+            renderVnedrenieTasks();
         }
     } else {
         renderTasks();
@@ -2668,6 +2959,709 @@ async function toggleMovedToWorking(taskId, checkbox) {
         if (labelEl) { labelEl.classList.remove('saving'); labelEl.textContent = 'Перенесено в рабочую: ' + (!newVal ? 'Да' : 'Нет'); }
         if (switchEl) switchEl.classList.remove('saving');
         alert('Ошибка: ' + e.message);
+    }
+}
+
+// ===== ВНЕДРЕНИЕ: УТИЛИТЫ ДЛЯ ТЕГОВ =====
+
+// Извлекает массив названий тегов из ответа tasks.task.list
+// Формат может быть: {id: {id, title}} или [{}] или null
+function vnExtractTagTitles(tagsField) {
+    if (!tagsField) return [];
+    var titles = [];
+    if (Array.isArray(tagsField)) {
+        tagsField.forEach(function(t) {
+            if (t && t.title) titles.push(t.title);
+        });
+    } else if (typeof tagsField === 'object') {
+        Object.keys(tagsField).forEach(function(k) {
+            var t = tagsField[k];
+            if (t && t.title) titles.push(t.title);
+        });
+    }
+    return titles;
+}
+
+// Проверяет наличие тега в массиве тегов
+function vnHasTag(tagTitles, tagName) {
+    return tagTitles.indexOf(tagName) !== -1;
+}
+
+// ===== ВНЕДРЕНИЕ: ЗАГРУЗКА ПОЛЬЗОВАТЕЛЕЙ =====
+async function fetchVnedrenieUsers() {
+    try {
+        var start = 0;
+        while (true) {
+            incrementApiCount();
+            var resp = await fetch(VNEDRENIE_API + 'user.get?start=' + start);
+            var data = await resp.json();
+            var users = data.result || [];
+            if (users.length === 0) break;
+            users.forEach(function(u) {
+                var name = (u.LAST_NAME + ' ' + u.NAME).trim();
+                if (name) vnedrenieUserMap[u.ID] = name;
+            });
+            if (data.next && data.next > start) {
+                start = data.next;
+                await new Promise(function(r) { setTimeout(r, 50); });
+            } else {
+                break;
+            }
+        }
+        return true;
+    } catch(e) {
+        console.error('Failed to fetch Vnedrenie users:', e);
+        return false;
+    }
+}
+
+// ===== ВНЕДРЕНИЕ: ОТПРАВКА СООБЩЕНИЯ В ЧАТ ВНЕДРЕНИЯ =====
+async function vnSendChatMessage(text) {
+    try {
+        incrementApiCount();
+        var resp = await fetch(VNEDRENIE_API + 'im.message.add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                DIALOG_ID: VNEDRENIE_CHAT_DIALOG_ID,
+                MESSAGE: text
+            })
+        });
+        var data = await resp.json();
+        return data.result || null;
+    } catch(e) {
+        console.error('vnSendChatMessage error:', e);
+        return null;
+    }
+}
+
+// ===== ВНЕДРЕНИЕ: ОБНОВЛЕНИЕ ТЕГОВ ЗАДАЧИ =====
+async function vnUpdateTaskTags(taskId, newTagsArray) {
+    try {
+        incrementApiCount();
+        var resp = await fetch(VNEDRENIE_API + 'tasks.task.update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                taskId: taskId,
+                fields: { TAGS: newTagsArray }
+            })
+        });
+        var data = await resp.json();
+        return !!data.result;
+    } catch(e) {
+        console.error('vnUpdateTaskTags error:', e);
+        return false;
+    }
+}
+
+// ===== ВНЕДРЕНИЕ: ДОБАВЛЕНИЕ ЗАПИСИ ВРЕМЕНИ =====
+async function vnAddElapsedTime(taskId, minutes, comment) {
+    try {
+        incrementApiCount();
+        var fields = { SECONDS: Math.round(minutes * 60) };
+        if (comment) fields.COMMENT_TEXT = comment;
+        var resp = await fetch(VNEDRENIE_API + 'task.elapseditem.add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ TASKID: taskId, ARFIELDS: fields })
+        });
+        var data = await resp.json();
+        return data.result || null;
+    } catch(e) {
+        console.error('vnAddElapsedTime error:', e);
+        return null;
+    }
+}
+
+// ===== ВНЕДРЕНИЕ: ЗАГРУЗКА ЗАДАЧ =====
+// Алгоритм машины состояний:
+// 1. Опрос за последние 3 дня по фильтру [>=CHANGED_DATE] И [TAG=внедрить_демо]
+// 2. Опрос за последние 3 дня по фильтру [>=CHANGED_DATE] И [TAG=внедрить_раб]
+// 3. Опрос за последние 3 дня по фильтру [>=CHANGED_DATE] И [TAG=внедрена_в_демо] — для блока "Внедрено"
+// 4. Опрос за последние 3 дня по фильтру [>=CHANGED_DATE] И [TAG=внедрена_в_рабочую] — для блока "Внедрено"
+// 5. Дедупликация по ID
+// 6. Для активных задач (внедрить_демо без в_чате_демо): отправить в чат + добавить маркер в_чате_демо
+// 7. Для активных задач (внедрить_раб без в_чате_раб): отправить в чат + добавить маркер в_чате_раб
+async function loadVnedrenieData() {
+    var bar = document.getElementById('loadingBar');
+    var fill = document.getElementById('loadingFill');
+    bar.classList.add('active');
+    fill.style.width = '10%';
+
+    try {
+        // Шаг 1: пользователи
+        fill.style.width = '15%';
+        await fetchVnedrenieUsers();
+        fill.style.width = '25%';
+
+        // Шаг 2: вычисляем дату N дней назад
+        var fromDate = new Date();
+        fromDate.setDate(fromDate.getDate() - VN_DAYS_BACK);
+        var dateStr = fromDate.toISOString().substring(0, 10); // YYYY-MM-DD
+
+        // Шаг 3: запросы задач по тегам (параллельно)
+        // 4 запроса: внедрить_демо, внедрить_раб, внедрена_в_демо, внедрена_в_рабочую
+        var allRawTasks = [];
+        var seenIds = {};
+
+        var tagQueries = [
+            VN_TAG.vnedritDemo,
+            VN_TAG.vnedritRab,
+            VN_TAG.vnedrenaDemo,
+            VN_TAG.vnedrenaRab
+        ];
+
+        for (var qi = 0; qi < tagQueries.length; qi++) {
+            var tag = tagQueries[qi];
+            var start = 0;
+            while (true) {
+                incrementApiCount();
+                try {
+                    var encodedTag = encodeURIComponent(tag);
+                    var url = VNEDRENIE_API + 'tasks.task.list?filter%5B%3E%3DCHANGED_DATE%5D=' + dateStr +
+                              '&filter%5BTAG%5D=' + encodedTag +
+                              '&start=' + start +
+                              '&select%5B%5D=ID&select%5B%5D=TITLE&select%5B%5D=TAGS' +
+                              '&select%5B%5D=STATUS&select%5B%5D=STAGE_ID&select%5B%5D=GROUP_ID' +
+                              '&select%5B%5D=RESPONSIBLE_ID&select%5B%5D=CREATED_BY' +
+                              '&select%5B%5D=DEADLINE&select%5B%5D=CREATED_DATE' +
+                              '&select%5B%5D=CHANGED_DATE&select%5B%5D=COMMENTS_COUNT' +
+                              '&select%5B%5D=DESCRIPTION';
+                    var resp = await fetch(url);
+                    var data = await resp.json();
+                    if (!isValidApiResponse(data)) {
+                        console.error('VN load error at tag=' + tag + ' start=' + start, data.error);
+                        break;
+                    }
+                    var tasks = (data.result || {}).tasks || [];
+                    tasks.forEach(function(t) {
+                        if (!seenIds[t.id]) {
+                            seenIds[t.id] = true;
+                            allRawTasks.push(t);
+                        }
+                    });
+                    if (data.next && data.next > start) {
+                        start = data.next;
+                        await new Promise(function(r) { setTimeout(r, 80); });
+                    } else {
+                        break;
+                    }
+                } catch(e) {
+                    console.error('VN fetch error at tag=' + tag + ' start=' + start, e);
+                    break;
+                }
+            }
+            fill.style.width = (25 + (qi + 1) * 12) + '%';
+        }
+
+        // Шаг 4: мапим задачи
+        vnedrenieTasks = allRawTasks.map(function(t) {
+            var tagTitles = vnExtractTagTitles(t.tags);
+            var groupName = (t.group && t.group.name) ? t.group.name : ('Проект ' + (t.groupId || '?'));
+            var responsibleName = (t.responsible && t.responsible.name) ? t.responsible.name : (vnedrenieUserMap[String(t.responsibleId)] || 'Пользователь ' + t.responsibleId);
+            var creatorName = (t.creator && t.creator.name) ? t.creator.name : (vnedrenieUserMap[String(t.createdBy)] || '');
+            var deadlineStr = t.deadline ? t.deadline.substring(0, 10) : '';
+            var createdStr = t.createdDate ? t.createdDate.substring(0, 10) : '';
+            var desc = t.description || '';
+            desc = desc.replace(/\[\/?(b|i|u|quote|code|url|user|file|disk)[^\]]*\]/g, ' ').replace(/\s+/g, ' ').trim();
+
+            // Определяем состояние задачи
+            var state = 'unknown';
+            if (vnHasTag(tagTitles, VN_TAG.vnedritRab)) {
+                state = vnHasTag(tagTitles, VN_TAG.vChateRab) ? 'rab_queued' : 'rab_new';
+            } else if (vnHasTag(tagTitles, VN_TAG.vnedrenaRab)) {
+                state = 'rab_done';
+            } else if (vnHasTag(tagTitles, VN_TAG.vnedritDemo)) {
+                state = vnHasTag(tagTitles, VN_TAG.vChateDemo) ? 'demo_queued' : 'demo_new';
+            } else if (vnHasTag(tagTitles, VN_TAG.vnedrenaDemo)) {
+                state = 'demo_done';
+            }
+
+            return {
+                id: parseInt(t.id) || 0,
+                title: t.title || '',
+                tags: tagTitles,
+                state: state,
+                groupId: String(t.groupId || ''),
+                groupName: groupName,
+                responsibleId: String(t.responsibleId || ''),
+                responsibleName: responsibleName,
+                createdBy: String(t.createdBy || ''),
+                creatorName: creatorName,
+                deadline: deadlineStr,
+                created: createdStr,
+                changedDate: t.changedDate || '',
+                commentsCount: parseInt(t.commentsCount || 0) || 0,
+                description: desc,
+                status: t.status
+            };
+        }).filter(function(t) { return t.id > 0 && t.state !== 'unknown'; });
+
+        // Сортировка: новые (new) сверху, потом queued, потом done
+        var stateOrder = { 'rab_new': 0, 'rab_queued': 1, 'demo_new': 2, 'demo_queued': 3, 'rab_done': 4, 'demo_done': 5 };
+        vnedrenieTasks.sort(function(a, b) {
+            var oa = stateOrder[a.state] !== undefined ? stateOrder[a.state] : 99;
+            var ob = stateOrder[b.state] !== undefined ? stateOrder[b.state] : 99;
+            if (oa !== ob) return oa - ob;
+            // Внутри одной группы — по дате изменения (новые сверху)
+            return (b.changedDate || '').localeCompare(a.changedDate || '');
+        });
+
+        fill.style.width = '85%';
+
+        // Шаг 5: для новых задач (без маркера в чате) — отправляем алерт в чат + добавляем маркер
+        var newTasks = vnedrenieTasks.filter(function(t) {
+            return t.state === 'rab_new' || t.state === 'demo_new';
+        });
+        for (var i = 0; i < newTasks.length; i++) {
+            var nt = newTasks[i];
+            var isRab = nt.state === 'rab_new';
+            var tagVnedit = isRab ? VN_TAG.vnedritRab : VN_TAG.vnedritDemo;
+            var tagVChate = isRab ? VN_TAG.vChateRab : VN_TAG.vChateDemo;
+            var targetLabel = isRab ? 'РАБОЧУЮ' : 'ДЕМО';
+
+            // Отправляем сообщение в чат
+            var msgText = '⚠ Внедрить в ' + targetLabel + ' [URL]' + VNEDRENIE_TASK_URL + nt.id + '/[/URL] ' + nt.groupName;
+            await vnSendChatMessage(msgText);
+
+            // Обновляем теги: добавляем маркер в_чате_*
+            var newTags = nt.tags.filter(function(tag) { return tag !== tagVnedit; });
+            newTags.push(tagVnedit);
+            newTags.push(tagVChate);
+            var ok = await vnUpdateTaskTags(nt.id, newTags);
+            if (ok) {
+                // Обновляем локальное состояние
+                nt.tags = newTags;
+                nt.state = isRab ? 'rab_queued' : 'demo_queued';
+            }
+            // Небольшая пауза чтобы не упереться в лимит
+            await new Promise(function(r) { setTimeout(r, 100); });
+        }
+
+        vnedrenieIsLoaded = true;
+        fill.style.width = '100%';
+        console.log('VN data loaded:', vnedrenieTasks.length, 'tasks,', newTasks.length, 'alerts sent');
+        return true;
+    } catch(e) {
+        console.error('VN data load failed:', e);
+        showErrorNotification('Ошибка загрузки данных Внедрение!');
+        return false;
+    } finally {
+        setTimeout(function() {
+            bar.classList.remove('active');
+            fill.style.width = '0%';
+        }, 400);
+    }
+}
+
+// ===== ВНЕДРЕНИЕ: ЛОК ЛОГ ЗАВЕРШЁННЫХ =====
+function vnGetDoneLog() {
+    try {
+        var raw = localStorage.getItem(VN_DONE_LOG_KEY);
+        var data = raw ? JSON.parse(raw) : {};
+        // Чистим записи старше 24 часов
+        var now = Date.now();
+        var cleaned = {};
+        Object.keys(data).forEach(function(k) {
+            if (data[k] && (now - data[k].ts) < 86400000) {
+                cleaned[k] = data[k];
+            }
+        });
+        return cleaned;
+    } catch(e) {
+        return {};
+    }
+}
+
+function vnSaveDoneLog(data) {
+    try { localStorage.setItem(VN_DONE_LOG_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+function vnMarkDone(taskId, type) {
+    var log = vnGetDoneLog();
+    log[taskId + '_' + type] = { ts: Date.now(), type: type };
+    vnSaveDoneLog(log);
+}
+
+function vnGetDoneInfo(taskId, type) {
+    var log = vnGetDoneLog();
+    return log[taskId + '_' + type] || null;
+}
+
+// ===== ВНЕДРЕНИЕ: РЕНДЕР =====
+function renderVnedrenieTasks() {
+    if (currentTab !== 'vnedrenie') return;
+    var container = document.getElementById('vnedrenieContainer');
+    if (!container) return;
+
+    var query = (document.getElementById("vnedrenieSearchInput") ? document.getElementById("vnedrenieSearchInput").value : "").toLowerCase().trim();
+
+    // Считаем по группам
+    var rabQueue = vnedrenieTasks.filter(function(t) { return t.state === 'rab_new' || t.state === 'rab_queued'; });
+    var demoQueue = vnedrenieTasks.filter(function(t) { return t.state === 'demo_new' || t.state === 'demo_queued'; });
+    var rabDone = vnedrenieTasks.filter(function(t) { return t.state === 'rab_done'; });
+    var demoDone = vnedrenieTasks.filter(function(t) { return t.state === 'demo_done'; });
+
+    // Обновляем счётчики в тулбаре
+    var el;
+    el = document.getElementById('vCountRab'); if (el) el.textContent = rabQueue.length;
+    el = document.getElementById('vCountDemo'); if (el) el.textContent = demoQueue.length;
+    el = document.getElementById('vCountDone'); if (el) el.textContent = rabDone.length + demoDone.length;
+
+    // Применяем фильтры
+    var showRab = vnedrenieActiveFilters.has('rab');
+    var showDemo = vnedrenieActiveFilters.has('demo');
+    var showDone = vnedrenieActiveFilters.has('done');
+
+    var sections = [];
+    if (showRab) sections.push({ key: 'rab', title: 'На внедрение в РАБОЧУЮ базу', tasks: rabQueue, badgeClass: 'rab', badgeText: 'РАБ' });
+    if (showDemo) sections.push({ key: 'demo', title: 'На внедрение в ДЕМО базу', tasks: demoQueue, badgeClass: 'demo', badgeText: 'ДЕМО' });
+    if (showDone) {
+        if (rabDone.length > 0) sections.push({ key: 'done-rab', title: '✅ Внедрено в РАБОЧУЮ базу', tasks: rabDone, badgeClass: 'done-rab', badgeText: '✅', isDone: true });
+        if (demoDone.length > 0) sections.push({ key: 'done-demo', title: '✅ Внедрено в ДЕМО базу', tasks: demoDone, badgeClass: 'done-demo', badgeText: '✅', isDone: true });
+    }
+
+    // Применяем поиск
+    if (query) {
+        sections = sections.map(function(s) {
+            return {
+                key: s.key, title: s.title, badgeClass: s.badgeClass, badgeText: s.badgeText, isDone: s.isDone,
+                tasks: s.tasks.filter(function(t) {
+                    return t.title.toLowerCase().includes(query) ||
+                           t.groupName.toLowerCase().includes(query) ||
+                           t.responsibleName.toLowerCase().includes(query);
+                })
+            };
+        });
+    }
+
+    var totalVisible = sections.reduce(function(acc, s) { return acc + s.tasks.length; }, 0);
+    var fcEl = document.getElementById('vnedrenieFilteredCount');
+    if (fcEl) fcEl.textContent = totalVisible + ' задач';
+
+    vnedrenieLastFiltered = sections.reduce(function(acc, s) { return acc.concat(s.tasks); }, []);
+
+    // Рендерим
+    var html = '';
+    sections.forEach(function(s) {
+        html += '<div class="vnedrenie-section">';
+        html += '<div class="vnedrenie-section-header">';
+        html += '<div class="vnedrenie-section-title ' + s.badgeClass + '">' + escapeHtml(s.title) + ' <span class="vnedrenie-section-count">' + s.tasks.length + '</span></div>';
+        html += '</div>';
+        if (s.tasks.length === 0) {
+            html += '<div class="vnedrenie-empty">Нет задач в этой очереди</div>';
+        } else {
+            s.tasks.forEach(function(task) {
+                html += vnRenderTaskCard(task, s);
+            });
+        }
+        html += '</div>';
+    });
+    if (sections.length === 0) {
+        html = '<div class="vnedrenie-section"><div class="vnedrenie-empty">Выберите хотя бы одну очередь в фильтре выше</div></div>';
+    }
+
+    container.innerHTML = html;
+}
+
+function vnRenderTaskCard(task, section) {
+    var isDone = section.isDone;
+    var doneInfo = isDone ? vnGetDoneInfo(task.id, task.state === 'rab_done' ? 'rab' : 'demo') : null;
+
+    var badgeHtml;
+    if (task.state === 'rab_new' || task.state === 'rab_queued') {
+        badgeHtml = '<span class="vnedrenie-badge-rab">⚡ Рабочая</span>';
+    } else if (task.state === 'demo_new' || task.state === 'demo_queued') {
+        badgeHtml = '<span class="vnedrenie-badge-demo">🧪 Демо</span>';
+    } else if (task.state === 'rab_done') {
+        badgeHtml = '<span class="vnedrenie-badge-done">✅ В рабочей</span>';
+    } else if (task.state === 'demo_done') {
+        badgeHtml = '<span class="vnedrenie-badge-done">✅ В демо</span>';
+    } else {
+        badgeHtml = '';
+    }
+
+    var fileTag = task.commentsCount > 0
+        ? '<span class="vnedrenie-comment-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' + task.commentsCount + '</span>'
+        : '';
+
+    var deadlineTag = task.deadline
+        ? '<span class="vnedrenie-task-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>' + formatDate(task.deadline) + '</span>'
+        : '';
+
+    var doneTimeTag = doneInfo
+        ? '<span class="vnedrenie-completed-time">✅ Внедрена ' + vnFormatDoneTime(doneInfo.ts) + '</span>'
+        : '';
+
+    var cls = isDone ? 'vnedrenie-task-item completed' : 'vnedrenie-task-item';
+    var onclick = isDone ? '' : ' onclick="openVnedreniePreview(' + task.id + ')"';
+
+    return '<div class="' + cls + '"' + onclick + '>' +
+        '<div class="vnedrenie-task-left">' +
+            '<div class="vnedrenie-task-title">' + escapeHtml(task.title) + '</div>' +
+            '<div class="vnedrenie-task-meta">' +
+                '<span class="project-badge">' + escapeHtml(task.groupName) + '</span>' +
+                badgeHtml +
+                deadlineTag +
+                '<span class="vnedrenie-task-meta-item">' + escapeHtml(task.responsibleName) + '</span>' +
+                fileTag +
+                doneTimeTag +
+            '</div>' +
+        '</div>' +
+        '<div class="task-right">' +
+            (isDone ? '<a class="btn-open-bitrix" href="' + VNEDRENIE_TASK_URL + task.id + '/" target="_blank" rel="noopener" style="padding:4px 10px;font-size:11px" onclick="event.stopPropagation()">Открыть</a>' : '') +
+        '</div>' +
+    '</div>';
+}
+
+function vnFormatDoneTime(ts) {
+    var d = new Date(ts);
+    if (isNaN(d.getTime())) return '';
+    var dd = String(d.getDate()).padStart(2, '0');
+    var mm = String(d.getMonth() + 1).padStart(2, '0');
+    var hh = String(d.getHours()).padStart(2, '0');
+    var mi = String(d.getMinutes()).padStart(2, '0');
+    return dd + '.' + mm + ' ' + hh + ':' + mi;
+}
+
+// ===== ВНЕДРЕНИЕ: ФИЛЬТРЫ =====
+function toggleVnedrenieFilter(chip) {
+    var f = chip.dataset.vfilter;
+    if (vnedrenieActiveFilters.has(f)) {
+        vnedrenieActiveFilters.delete(f);
+        chip.classList.remove("active");
+    } else {
+        vnedrenieActiveFilters.add(f);
+        chip.classList.add("active");
+    }
+    renderVnedrenieTasks();
+}
+
+// ===== ВНЕДРЕНИЕ: ПАРСИНГ БЛОКОВ DONE/TEST/NEXT/BLOCK ИЗ КОММЕНТАРИЕВ =====
+function vnParseCommentBlocks(text) {
+    // Ищем маркеры done: / test: / next: / block: (case-insensitive, на отдельной строке или после перевода)
+    var blocks = [];
+    var lines = text.split('\n');
+    var current = null;
+    var currentLines = [];
+    var markers = ['done', 'test', 'next', 'block'];
+    function flush() {
+        if (current) {
+            blocks.push({ type: current, text: currentLines.join('\n').trim() });
+        }
+        current = null;
+        currentLines = [];
+    }
+    lines.forEach(function(line) {
+        var lower = line.trim().toLowerCase();
+        var matched = null;
+        for (var i = 0; i < markers.length; i++) {
+            var m = markers[i];
+            if (lower === m + ':' || lower.indexOf(m + ':') === 0) {
+                matched = m;
+                break;
+            }
+        }
+        if (matched) {
+            flush();
+            current = matched;
+            // Текст после маркера на той же строке
+            var rest = line.trim().substring(matched.length + 1).trim();
+            if (rest) currentLines.push(rest);
+        } else if (current) {
+            currentLines.push(line);
+        }
+    });
+    flush();
+    return blocks;
+}
+
+// ===== ВНЕДРЕНИЕ: ПОЛУЧЕНИЕ КОММЕНТАРИЕВ ЗАДАЧИ =====
+async function vnFetchTaskComments(taskId) {
+    try {
+        incrementApiCount();
+        var resp = await fetch(VNEDRENIE_API + 'task.commentitem.getlist?TASKID=' + taskId);
+        var data = await resp.json();
+        return data.result || [];
+    } catch(e) {
+        console.error('vnFetchTaskComments error:', e);
+        return [];
+    }
+}
+
+// ===== ВНЕДРЕНИЕ: ПРЕВЬЮ =====
+function openVnedreniePreview(taskId) {
+    var task = vnedrenieTasks.find(function(t) { return t.id === taskId; });
+    if (!task) return;
+
+    var isRab = (task.state === 'rab_new' || task.state === 'rab_queued');
+    var isDemo = (task.state === 'demo_new' || task.state === 'demo_queued');
+    var targetLabel = isRab ? 'РАБОЧУЮ' : (isDemo ? 'ДЕМО' : '?');
+    var toggleLabel = isRab ? 'Перенесено в рабочую базу' : 'Внедрено в демо базу';
+
+    document.getElementById("previewTitle").textContent = task.title;
+
+    var bodyHtml =
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">' +
+            (isRab ? '<span class="vnedrenie-badge-rab">⚡ Рабочая</span>' : '') +
+            (isDemo ? '<span class="vnedrenie-badge-demo">🧪 Демо</span>' : '') +
+            '<span class="project-badge" style="font-size:11px;padding:4px 10px">' + escapeHtml(task.groupName) + '</span>' +
+        '</div>' +
+        '<div class="preview-field"><div class="preview-field-label">Исполнитель</div><div class="preview-field-value">' + escapeHtml(task.responsibleName) + '</div></div>' +
+        (task.creatorName ? '<div class="preview-field"><div class="preview-field-label">Постановщик</div><div class="preview-field-value">' + escapeHtml(task.creatorName) + '</div></div>' : '') +
+        (task.deadline ? '<div class="preview-field"><div class="preview-field-label">Дедлайн</div><div class="preview-field-value">' + formatDate(task.deadline) + '</div></div>' : '') +
+        '<div class="preview-field"><div class="preview-field-label">Создана</div><div class="preview-field-value">' + (task.created ? formatDate(task.created) : '—') + '</div></div>' +
+        (task.description ? '<div class="preview-field"><div class="preview-field-label">Описание</div><div class="preview-description">' + escapeHtml(task.description.substring(0, 500)) + (task.description.length > 500 ? '…' : '') + '</div></div>' : '') +
+
+        // Блок загрузки комментариев (загружаются асинхронно)
+        '<div class="preview-field" id="vnCommentsBlock">' +
+            '<div class="preview-field-label">Комментарии (done/test/next/block)</div>' +
+            '<div id="vnCommentsContent" style="padding:10px;color:#98a2b3;font-size:12px">Загрузка комментариев…</div>' +
+        '</div>' +
+
+        // Тумблер «Внедрено» + поле времени
+        '<div class="vnedrenie-toggle-row" id="vnToggleRow">' +
+            '<label class="toggle-switch" id="vnToggleSwitch">' +
+                '<input type="checkbox" id="vnToggleDone" onchange="vnOnToggleDone(' + task.id + ', this)">' +
+                '<span class="toggle-slider"></span>' +
+            '</label>' +
+            '<label class="vnedrenie-toggle-label" id="vnToggleLabel" onclick="document.getElementById(\'vnToggleDone\').click()">' +
+                escapeHtml(toggleLabel) +
+            '</label>' +
+            '<span style="font-size:11px;color:#667085">Время:</span>' +
+            '<input type="number" class="vnedrenie-time-input" id="vnTimeInput" placeholder="мин" min="0" step="5" value="30">' +
+        '</div>';
+
+    document.getElementById("previewBody").innerHTML = bodyHtml;
+
+    document.getElementById("previewFooter").innerHTML =
+        '<a class="btn-open-bitrix" href="' + VNEDRENIE_TASK_URL + task.id + '/" target="_blank" rel="noopener">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
+            'Открыть в Битрикс24' +
+        '</a>';
+
+    document.getElementById("previewOverlay").classList.add("active");
+    document.getElementById("previewPanel").classList.add("active");
+    document.body.classList.add("blurred");
+
+    // Асинхронно грузим комментарии
+    vnFetchTaskComments(task.id).then(function(comments) {
+        vnRenderCommentsInPreview(comments);
+    });
+}
+
+function vnRenderCommentsInPreview(comments) {
+    var container = document.getElementById('vnCommentsContent');
+    if (!container) return;
+    if (!comments || comments.length === 0) {
+        container.innerHTML = '<div style="color:#98a2b3;font-style:italic">Нет комментариев</div>';
+        return;
+    }
+    // Берём последние 10 комментариев (самые свежие)
+    var last = comments.slice(-10).reverse();
+    var html = '';
+    last.forEach(function(c) {
+        var text = c.POST_MESSAGE || '';
+        // Чистим BB-коды (упрощённо)
+        text = text.replace(/\[\/?(b|i|u|quote|code|url[^\]]*|user[^\]]*|file[^\]]*|disk[^\]]*)\]/g, '');
+        var author = c.AUTHOR_NAME || '—';
+        var date = c.POST_DATE ? c.POST_DATE.substring(0, 16).replace('T', ' ') : '';
+        html += '<div style="margin-bottom:10px;padding:8px;border-left:2px solid #cbd5e1;background:#f8fafc;border-radius:4px">' +
+            '<div style="font-size:10px;color:#667085;margin-bottom:4px"><strong>' + escapeHtml(author) + '</strong> · ' + escapeHtml(date) + '</div>' +
+            '<div style="font-size:12px;color:#1a1a2e;white-space:pre-wrap;word-wrap:break-word">' + escapeHtml(text.substring(0, 800)) + (text.length > 800 ? '…' : '') + '</div>';
+
+        // Парсим блоки done/test/next/block
+        var blocks = vnParseCommentBlocks(text);
+        if (blocks.length > 0) {
+            blocks.forEach(function(b) {
+                if (b.text) {
+                    html += '<div class="vnedrenie-comment-block ' + b.type + '"><div class="vnedrenie-comment-block-label">' + b.type + '</div>' + escapeHtml(b.text.substring(0, 400)) + '</div>';
+                }
+            });
+        }
+        html += '</div>';
+    });
+    container.innerHTML = html;
+}
+
+// ===== ВНЕДРЕНИЕ: ОБРАБОТКА ТУМБЛЕРА =====
+async function vnOnToggleDone(taskId, checkbox) {
+    var newVal = checkbox.checked;
+    var switchEl = document.getElementById('vnToggleSwitch');
+    var labelEl = document.getElementById('vnToggleLabel');
+    var rowEl = document.getElementById('vnToggleRow');
+    var timeInput = document.getElementById('vnTimeInput');
+
+    if (!newVal) {
+        // Если сняли галку — ничего не делаем (внедрение нельзя отменить)
+        checkbox.checked = true;
+        return;
+    }
+
+    var task = vnedrenieTasks.find(function(t) { return t.id === taskId; });
+    if (!task) return;
+
+    var isRab = (task.state === 'rab_new' || task.state === 'rab_queued');
+    var tagVnedit = isRab ? VN_TAG.vnedritRab : VN_TAG.vnedritDemo;
+    var tagVChate = isRab ? VN_TAG.vChateRab : VN_TAG.vChateDemo;
+    var tagVnedrena = isRab ? VN_TAG.vnedrenaRab : VN_TAG.vnedrenaDemo;
+    var targetLabel = isRab ? 'РАБОЧУЮ' : 'ДЕМО';
+    var doneType = isRab ? 'rab' : 'demo';
+
+    // UI: saving state
+    if (switchEl) switchEl.classList.add('saving');
+    if (labelEl) { labelEl.classList.add('saving'); labelEl.textContent = 'Фиксация в Битрикс24…'; }
+
+    try {
+        // 1. Обновляем теги: убираем внедрить_* и в_чате_*, добавляем внедрена_в_*
+        var newTags = task.tags.filter(function(t) {
+            return t !== tagVnedit && t !== tagVChate && t !== tagVnedrena;
+        });
+        newTags.push(tagVnedrena);
+        var ok = await vnUpdateTaskTags(taskId, newTags);
+        if (!ok) throw new Error('Не удалось обновить теги задачи');
+
+        // 2. Записываем время (если указано)
+        var minutes = parseInt(timeInput ? timeInput.value : 0) || 0;
+        if (minutes > 0) {
+            var timeComment = 'Внедрение в ' + targetLabel + ' базу через веб-интерфейс';
+            await vnAddElapsedTime(taskId, minutes, timeComment);
+        }
+
+        // 3. Отправляем отбивку в чат ВНЕДРЕНИЯ
+        var now = new Date();
+        var ts = vnFormatDoneTime(now.getTime());
+        var chatMsg = '✅ Задача [URL]' + VNEDRENIE_TASK_URL + taskId + '/[/URL] «' + task.title.substring(0, 80) + '» внедрена в ' + targetLabel + ' базу ' + ts;
+        if (minutes > 0) chatMsg += ' (затрачено ' + minutes + ' мин)';
+        await vnSendChatMessage(chatMsg);
+
+        // 4. Обновляем локальное состояние
+        task.tags = newTags;
+        task.state = isRab ? 'rab_done' : 'demo_done';
+        vnMarkDone(taskId, doneType);
+
+        // UI: success
+        if (labelEl) {
+            labelEl.classList.remove('saving');
+            labelEl.classList.add('active');
+            labelEl.textContent = '✅ ' + (isRab ? 'Перенесено в рабочую базу' : 'Внедрено в демо базу') + ' — ' + ts;
+        }
+        if (switchEl) switchEl.classList.remove('saving');
+        if (rowEl) rowEl.classList.add('done');
+
+        // Через 1.5 сек закрываем превью и перерисовываем
+        setTimeout(function() {
+            closePreview();
+            renderVnedrenieTasks();
+        }, 1500);
+
+    } catch(e) {
+        console.error('vnOnToggleDone error:', e);
+        checkbox.checked = false;
+        if (switchEl) switchEl.classList.remove('saving');
+        if (labelEl) { labelEl.classList.remove('saving'); labelEl.textContent = 'Ошибка — попробуйте снова'; }
+        alert('Ошибка при фиксации внедрения: ' + e.message);
     }
 }
 
