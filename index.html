@@ -1166,6 +1166,87 @@
             text-decoration: line-through;
             color: #6b7280;
         }
+
+        /* Grid: карточки в 2 колонки на широких экранах */
+        .vnedrenie-section-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+        @media (max-width: 900px) {
+            .vnedrenie-section-body { grid-template-columns: 1fr; }
+        }
+
+        /* Inline toggle внутри карточки */
+        .vnedrenie-inline-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 6px;
+            cursor: pointer;
+            flex-shrink: 0;
+            user-select: none;
+            transition: all 0.15s;
+        }
+        .vnedrenie-inline-toggle:hover {
+            background: #ffedd5;
+        }
+        .vnedrenie-inline-toggle.done {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+            cursor: default;
+        }
+        .vnedrenie-inline-toggle.done:hover {
+            background: #f0fdf4;
+        }
+        .vnedrenie-inline-toggle .toggle-switch {
+            transform: scale(0.85);
+            margin: 0;
+        }
+        .vnedrenie-inline-toggle-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #1a1a2e;
+            white-space: nowrap;
+        }
+        .vnedrenie-inline-toggle.done .vnedrenie-inline-toggle-label {
+            color: #15803d;
+        }
+        .vnedrenie-inline-toggle.saving {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .vnedrenie-inline-toggle .spinner-inline {
+            width: 10px;
+            height: 10px;
+            border: 2px solid rgba(0,0,0,0.15);
+            border-top-color: #666;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        .vnedrenie-task-right-inline {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .vnedrenie-btn-open-task {
+            padding: 4px 8px;
+            font-size: 10px;
+            background: #1a1a2e;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .vnedrenie-btn-open-task:hover { background: #2d2d4a; }
         .vnedrenie-task-left { flex: 1; min-width: 0; padding-right: 12px; }
         .vnedrenie-task-title {
             font-size: 13px;
@@ -1417,7 +1498,7 @@
 <div class="vnedrenie-only vnedrenie-block" id="vnedrenieContainer" style="display:none"></div>
 
 <!-- Task List -->
-<div class="container">
+<div class="container dakar-only">
     <div class="task-list" id="taskList"></div>
     <div class="copy-tasks-bar" id="copyTasksBar" style="display:none">
         <button class="btn-copy-tasks" id="btnCopyTasks" onclick="copyTasksForCurrentTab()">
@@ -3352,9 +3433,11 @@ function renderVnedrenieTasks() {
         if (s.tasks.length === 0) {
             html += '<div class="vnedrenie-empty">Нет задач в этой очереди</div>';
         } else {
+            html += '<div class="vnedrenie-section-body">';
             s.tasks.forEach(function(task) {
                 html += vnRenderTaskCard(task, s);
             });
+            html += '</div>';
         }
         html += '</div>';
     });
@@ -3397,6 +3480,27 @@ function vnRenderTaskCard(task, section) {
     var cls = isDone ? 'vnedrenie-task-item completed' : 'vnedrenie-task-item';
     var onclick = isDone ? '' : ' onclick="openVnedreniePreview(' + task.id + ')"';
 
+    // Inline toggle — только для невыполненных задач
+    var isRab = (task.state === 'rab_new' || task.state === 'rab_queued');
+    var isDemo = (task.state === 'demo_new' || task.state === 'demo_queued');
+    var toggleHtml = '';
+    if (!isDone && (isRab || isDemo)) {
+        var toggleLabel = isRab ? 'В рабочую' : 'В демо';
+        toggleHtml =
+            '<div class="vnedrenie-inline-toggle" id="vnInlineToggle_' + task.id + '" onclick="vnInlineToggleClick(event, ' + task.id + ')">' +
+                '<label class="toggle-switch">' +
+                    '<input type="checkbox" onchange="vnOnInlineToggleDone(' + task.id + ', this)">' +
+                    '<span class="toggle-slider"></span>' +
+                '</label>' +
+                '<span class="vnedrenie-inline-toggle-label">' + toggleLabel + '</span>' +
+            '</div>';
+    }
+
+    // Для выполненных — кнопка «Открыть» в Битрикс
+    var openBtn = isDone
+        ? '<a class="vnedrenie-btn-open-task" href="' + VNEDRENIE_TASK_URL + task.id + '/" target="_blank" rel="noopener" onclick="event.stopPropagation()">↗ Б24</a>'
+        : '';
+
     return '<div class="' + cls + '"' + onclick + '>' +
         '<div class="vnedrenie-task-left">' +
             '<div class="vnedrenie-task-title">' + escapeHtml(task.title) + '</div>' +
@@ -3409,10 +3513,90 @@ function vnRenderTaskCard(task, section) {
                 doneTimeTag +
             '</div>' +
         '</div>' +
-        '<div class="task-right">' +
-            (isDone ? '<a class="btn-open-bitrix" href="' + VNEDRENIE_TASK_URL + task.id + '/" target="_blank" rel="noopener" style="padding:4px 10px;font-size:11px" onclick="event.stopPropagation()">Открыть</a>' : '') +
+        '<div class="vnedrenie-task-right-inline">' +
+            toggleHtml +
+            openBtn +
         '</div>' +
     '</div>';
+}
+
+// Клик по inline-тумблеру — НЕ открывает превью (stop propagation)
+function vnInlineToggleClick(event, taskId) {
+    event.stopPropagation();
+    // Находим чекбокс внутри и переключаем
+    var toggle = document.getElementById('vnInlineToggle_' + taskId);
+    if (!toggle) return;
+    var checkbox = toggle.querySelector('input[type=checkbox]');
+    if (checkbox) {
+        checkbox.checked = true;  // только в одну сторону — включение
+        checkbox.dispatchEvent(new Event('change'));
+    }
+}
+
+// Обработчик inline-тумблера «Внедрено»
+async function vnOnInlineToggleDone(taskId, checkbox) {
+    var toggle = document.getElementById('vnInlineToggle_' + taskId);
+    if (!toggle) return;
+
+    if (!checkbox.checked) {
+        // Сняли галку — откатываем (внедрение нельзя отменить)
+        checkbox.checked = true;
+        return;
+    }
+
+    var task = vnedrenieTasks.find(function(t) { return t.id === taskId; });
+    if (!task) return;
+
+    var isRab = (task.state === 'rab_new' || task.state === 'rab_queued');
+    var tagVnedit = isRab ? VN_TAG.vnedritRab : VN_TAG.vnedritDemo;
+    var tagVChate = isRab ? VN_TAG.vChateRab : VN_TAG.vChateDemo;
+    var tagVnedrena = isRab ? VN_TAG.vnedrenaRab : VN_TAG.vnedrenaDemo;
+    var targetLabel = isRab ? 'РАБОЧУЮ' : 'ДЕМО';
+    var doneType = isRab ? 'rab' : 'demo';
+
+    // UI: saving state
+    toggle.classList.add('saving');
+    var labelEl = toggle.querySelector('.vnedrenie-inline-toggle-label');
+    var origLabel = labelEl ? labelEl.textContent : '';
+    if (labelEl) labelEl.textContent = '...';
+
+    try {
+        // 1. Обновляем теги
+        var newTags = task.tags.filter(function(t) {
+            return t !== tagVnedit && t !== tagVChate && t !== tagVnedrena;
+        });
+        newTags.push(tagVnedrena);
+        var ok = await vnUpdateTaskTags(taskId, newTags);
+        if (!ok) throw new Error('Не удалось обновить теги задачи');
+
+        // 2. Отправляем отбивку в чат
+        var now = new Date();
+        var ts = vnFormatDoneTime(now.getTime());
+        var chatMsg = '✅ Задача [URL]' + VNEDRENIE_TASK_URL + taskId + '/[/URL] «' + task.title.substring(0, 80) + '» внедрена в ' + targetLabel + ' базу ' + ts;
+        await vnSendChatMessage(chatMsg);
+
+        // 3. Обновляем локальное состояние
+        task.tags = newTags;
+        task.state = isRab ? 'rab_done' : 'demo_done';
+        vnMarkDone(taskId, doneType);
+
+        // UI: success
+        toggle.classList.remove('saving');
+        toggle.classList.add('done');
+        if (labelEl) labelEl.textContent = '✅ ' + ts;
+
+        // Через 1 сек перерисовываем список
+        setTimeout(function() {
+            renderVnedrenieTasks();
+        }, 1000);
+
+    } catch(e) {
+        console.error('vnOnInlineToggleDone error:', e);
+        checkbox.checked = false;
+        toggle.classList.remove('saving');
+        if (labelEl) labelEl.textContent = origLabel;
+        alert('Ошибка при фиксации внедрения: ' + e.message);
+    }
 }
 
 function vnFormatDoneTime(ts) {
