@@ -3496,26 +3496,36 @@ async function vnRestoreTask(event, taskId) {
 // ===== ВНЕДРЕНИЕ: ОТПРАВИТЬ СПИСОК АКТИВНЫХ ЗАДАЧ В ЧАТ =====
 // Кнопка «📋 В чат» в тулбаре — отправляет единое сообщение-список всех активных задач
 // (внедрить_демо / внедрить_раб) в чат ВНЕДРЕНИЯ.
-// Формат: пронумерованный список с названием и ссылкой каждой задачи, разбитый по типам.
+// Формат: группировка по проектам (Дакар, Бигап, ...), внутри — по типу (РАБОЧУЮ/ДЕМО),
+// пронумерованный список с названием и ссылкой каждой задачи.
 // noAttach=true (компактно, без rich-preview карточек).
 async function vnSendListToChat() {
     var btn = document.getElementById('vnSendListBtn');
     if (!btn) return;
     if (btn.disabled) return;
 
-    // Берём активные задачи (рабочая и демо очередь)
-    var rabActive = vnedrenieTasks.filter(function(t) {
-        return t.state === 'rab_new' || t.state === 'rab_queued';
-    });
-    var demoActive = vnedrenieTasks.filter(function(t) {
-        return t.state === 'demo_new' || t.state === 'demo_queued';
+    // Берём ВСЕ активные задачи (рабочая и демо очередь)
+    var activeTasks = vnedrenieTasks.filter(function(t) {
+        return t.state === 'rab_new' || t.state === 'rab_queued' ||
+               t.state === 'demo_new' || t.state === 'demo_queued';
     });
 
-    var total = rabActive.length + demoActive.length;
-    if (total === 0) {
+    if (activeTasks.length === 0) {
         alert('Нет активных задач для отправки. Поставьте задаче тег "внедрить_демо" или "внедрить_раб" и нажмите «Обновить».');
         return;
     }
+
+    // Группируем по проектам (groupName)
+    var byProject = {};
+    activeTasks.forEach(function(t) {
+        var proj = t.groupName || 'Без проекта';
+        if (!byProject[proj]) byProject[proj] = { rab: [], demo: [] };
+        if (t.state === 'rab_new' || t.state === 'rab_queued') {
+            byProject[proj].rab.push(t);
+        } else {
+            byProject[proj].demo.push(t);
+        }
+    });
 
     // UI: saving
     var origHtml = btn.innerHTML;
@@ -3531,25 +3541,34 @@ async function vnSendListToChat() {
         lines.push('');
 
         var counter = 1;
-        if (rabActive.length > 0) {
-            lines.push('В РАБОЧУЮ базу:');
-            rabActive.forEach(function(t) {
-                lines.push(counter + '. ' + t.title);
-                lines.push('[URL]' + VNEDRENIE_TASK_URL + t.id + '/[/URL]');
-                counter++;
-            });
-            lines.push('');
-        }
+        Object.keys(byProject).forEach(function(proj) {
+            var projData = byProject[proj];
+            var projTotal = projData.rab.length + projData.demo.length;
+            if (projTotal === 0) return;
 
-        if (demoActive.length > 0) {
-            lines.push('В ДЕМО базу:');
-            demoActive.forEach(function(t) {
-                lines.push(counter + '. ' + t.title);
-                lines.push('[URL]' + VNEDRENIE_TASK_URL + t.id + '/[/URL]');
-                counter++;
-            });
+            lines.push('📦 ' + proj);
             lines.push('');
-        }
+
+            if (projData.rab.length > 0) {
+                lines.push('В РАБОЧУЮ базу:');
+                projData.rab.forEach(function(t) {
+                    lines.push(counter + '. ' + t.title);
+                    lines.push('[URL]' + VNEDRENIE_TASK_URL + t.id + '/[/URL]');
+                    counter++;
+                });
+                lines.push('');
+            }
+
+            if (projData.demo.length > 0) {
+                lines.push('В ДЕМО базу:');
+                projData.demo.forEach(function(t) {
+                    lines.push(counter + '. ' + t.title);
+                    lines.push('[URL]' + VNEDRENIE_TASK_URL + t.id + '/[/URL]');
+                    counter++;
+                });
+                lines.push('');
+            }
+        });
 
         var msgText = lines.join('\n');
 
