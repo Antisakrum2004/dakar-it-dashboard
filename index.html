@@ -1540,6 +1540,10 @@
     <span class="filter-chip fc-done active" data-vfilter="done" onclick="toggleVnedrenieFilter(this)">Внедрено <span class="chip-count" id="vCountDone">0</span></span>
     <input class="search-input" type="text" id="vnedrenieSearchInput" placeholder="Поиск..." oninput="renderVnedrenieTasks()">
     <span class="summary-hours" id="vnedrenieSummaryBar" style="white-space:nowrap;font-size:11px;color:#475469;margin-left:auto"><span id="vnedrenieFilteredCount" class="task-count">0 задач</span></span>
+    <button class="btn btn-primary" id="vnSendListBtn" onclick="vnSendListToChat()" title="Отправить актуальный список активных задач в чат ВНЕДРЕНИЯ" style="padding:5px 12px;font-size:11px">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        📋 В чат
+    </button>
 </div>
 <!-- Container: ВНЕДРЕНИЕ -->
 <div class="vnedrenie-only vnedrenie-block" id="vnedrenieContainer" style="display:none"></div>
@@ -3486,6 +3490,86 @@ async function vnRestoreTask(event, taskId) {
         btn.classList.remove('saving');
         btn.textContent = origText;
         alert('Ошибка при возврате задачи: ' + e.message);
+    }
+}
+
+// ===== ВНЕДРЕНИЕ: ОТПРАВИТЬ СПИСОК АКТИВНЫХ ЗАДАЧ В ЧАТ =====
+// Кнопка «📋 В чат» в тулбаре — отправляет единое сообщение-список всех активных задач
+// (внедрить_демо / внедрить_раб) в чат ВНЕДРЕНИЯ.
+// Формат: пронумерованный список с названием и ссылкой каждой задачи, разбитый по типам.
+// noAttach=true (компактно, без rich-preview карточек).
+async function vnSendListToChat() {
+    var btn = document.getElementById('vnSendListBtn');
+    if (!btn) return;
+    if (btn.disabled) return;
+
+    // Берём активные задачи (рабочая и демо очередь)
+    var rabActive = vnedrenieTasks.filter(function(t) {
+        return t.state === 'rab_new' || t.state === 'rab_queued';
+    });
+    var demoActive = vnedrenieTasks.filter(function(t) {
+        return t.state === 'demo_new' || t.state === 'demo_queued';
+    });
+
+    var total = rabActive.length + demoActive.length;
+    if (total === 0) {
+        alert('Нет активных задач для отправки. Поставьте задаче тег "внедрить_демо" или "внедрить_раб" и нажмите «Обновить».');
+        return;
+    }
+
+    // UI: saving
+    var origHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Отправка...';
+
+    try {
+        // Формируем текст списка
+        var now = new Date();
+        var ts = vnFormatDoneTime(now.getTime());
+        var lines = [];
+        lines.push('📋 Актуальный список на внедрение (' + ts + '):');
+        lines.push('');
+
+        var counter = 1;
+        if (rabActive.length > 0) {
+            lines.push('В РАБОЧУЮ базу:');
+            rabActive.forEach(function(t) {
+                lines.push(counter + '. ' + t.title);
+                lines.push('[URL]' + VNEDRENIE_TASK_URL + t.id + '/[/URL]');
+                counter++;
+            });
+            lines.push('');
+        }
+
+        if (demoActive.length > 0) {
+            lines.push('В ДЕМО базу:');
+            demoActive.forEach(function(t) {
+                lines.push(counter + '. ' + t.title);
+                lines.push('[URL]' + VNEDRENIE_TASK_URL + t.id + '/[/URL]');
+                counter++;
+            });
+            lines.push('');
+        }
+
+        var msgText = lines.join('\n');
+
+        // Отправляем через vnSendChatMessage с noAttach=true (без rich-preview карточек)
+        var msgId = await vnSendChatMessage(msgText, true);
+
+        if (msgId) {
+            btn.innerHTML = '✅ Отправлено';
+            setTimeout(function() {
+                btn.innerHTML = origHtml;
+                btn.disabled = false;
+            }, 2000);
+        } else {
+            throw new Error('Не удалось отправить сообщение');
+        }
+    } catch(e) {
+        console.error('vnSendListToChat error:', e);
+        btn.innerHTML = origHtml;
+        btn.disabled = false;
+        alert('Ошибка при отправке списка в чат: ' + e.message);
     }
 }
 
