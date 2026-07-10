@@ -497,8 +497,8 @@ await vnSendChatMessage('[S]✅ Задача [URL]...[/URL] «название»
    - `.env.example` — то же для серверных скриптов
    - При отсутствии `config.js` показывается понятная ошибка с инструкцией
 2. **Переписали всю историю git** через `git filter-repo --replace-text`:
-   - `REPLACE_DAKAR_WEBHOOK_SECRET` → `REPLACE_DAKAR_WEBHOOK_SECRET`
-   - `REPLACE_ATILAB_WEBHOOK_SECRET` → `REPLACE_ATILAB_WEBHOOK_SECRET`
+   - Дакар-вебхук `<DAKAR_SECRET>` → `REPLACE_DAKAR_WEBHOOK_SECRET`
+   - АтиЛаб-вебхук `<ATILAB_SECRET>` → `REPLACE_ATILAB_WEBHOOK_SECRET`
    - Переписано **84 коммита** (51 main + 33 gh-pages), все сообщения/авторы/даты сохранены
    - Изменились только SHA — это норма при history rewrite
    - Force push обеих веток: `main` и `gh-pages`
