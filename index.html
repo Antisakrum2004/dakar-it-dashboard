@@ -1572,21 +1572,38 @@
     <div class="preview-footer" id="previewFooter"></div>
 </div>
 
+<!-- Конфигурация с секретами — НЕ в репозитории. См. config.example.js -->
+<script src="config.js"></script>
 <script>
-// ===== CONFIG =====
-const API_BASE = 'https://dakar.bitrix24.ru/rest/103557/REPLACE_DAKAR_WEBHOOK_SECRET/';
-const ENTITY_TYPE_ID = 129;
-const TASK_URL_PREFIX = 'https://dakar.bitrix24.ru/crm/type/129/details/';
+// ===== CONFIG (загружается из внешнего config.js, см. config.example.js) =====
+// Если config.js не подключён — показываем предупреждение и не пускаем дальше.
+(function () {
+  const cfg = window.DASHBOARD_CONFIG || {};
+  if (!cfg.BITRIX_DAKAR_WEBHOOK_URL || cfg.BITRIX_DAKAR_WEBHOOK_URL.indexOf('REPLACE_') !== -1) {
+    document.body.innerHTML = '<div style="font-family:sans-serif;padding:40px;max-width:700px;margin:0 auto;color:#333">' +
+      '<h2 style="color:#dc2626">⚠ Конфигурация не найдена</h2>' +
+      '<p>Файл <code>config.js</code> отсутствует или содержит плейсхолдеры.</p>' +
+      '<p>Создайте его из шаблона:</p>' +
+      '<pre style="background:#f5f5f5;padding:12px;border-radius:6px">cp config.example.js config.js</pre>' +
+      '<p>Затем откройте <code>config.js</code> и подставьте реальные значения вебхуков Bitrix24.</p>' +
+      '</div>';
+    throw new Error('config.js missing or contains placeholders');
+  }
+})();
+
+const API_BASE = window.DASHBOARD_CONFIG.BITRIX_DAKAR_WEBHOOK_URL;
+const ENTITY_TYPE_ID = window.DASHBOARD_CONFIG.BITRIX_DAKAR_ENTITY_TYPE_ID;
+const TASK_URL_PREFIX = window.DASHBOARD_CONFIG.BITRIX_DAKAR_TASK_URL_PREFIX;
 
 // АтиЛаб: вебхук и шаблон ссылки на задачу
-const ATILAB_API = 'https://1c-cms.bitrix24.ru/rest/116/REPLACE_ATILAB_WEBHOOK_SECRET/';
-const ATILAB_TASK_URL = 'https://1c-cms.bitrix24.ru/company/personal/user/116/tasks/task/view/';
+const ATILAB_API = window.DASHBOARD_CONFIG.BITRIX_ATILAB_WEBHOOK_URL;
+const ATILAB_TASK_URL = window.DASHBOARD_CONFIG.BITRIX_ATILAB_TASK_URL;
 
 // ВНЕДРЕНИЕ: тот же вебхук что и АтиЛаб (т.к. только у него есть скоупы im, disk)
-const VNEDRENIE_API = ATILAB_API;  // https://1c-cms.bitrix24.ru/rest/116/REPLACE_ATILAB_WEBHOOK_SECRET/
+const VNEDRENIE_API = ATILAB_API;
 const VNEDRENIE_TASK_URL = ATILAB_TASK_URL;
 // ID чата «ВНЕДРЕНИЯ» на портале 1c-cms.bitrix24.ru (найден через im.recent.list)
-const VNEDRENIE_CHAT_DIALOG_ID = 'chat7568';
+const VNEDRENIE_CHAT_DIALOG_ID = window.DASHBOARD_CONFIG.BITRIX_VNEDRENIE_CHAT_DIALOG_ID;
 
 // ВНЕДРЕНИЕ: теги машины состояний (кириллица, как договорились)
 const VN_TAG = {

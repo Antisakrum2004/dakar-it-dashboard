@@ -33,9 +33,9 @@
 
 | Вкладка | API | entityTypeId / метод | Видимость |
 |---------|-----|----------------------|-----------|
-| **Дакар** (по умолчанию) | `dakar.bitrix24.ru/rest/103557/REPLACE_DAKAR_WEBHOOK_SECRET/` | `crm.item.list?entityTypeId=129` (CRM-смарт-процесс) | `.dakar-only` |
-| **АтиЛаб** | `1c-cms.bitrix24.ru/rest/116/REPLACE_ATILAB_WEBHOOK_SECRET/` | `tasks.task.list` | `.atilab-only` |
-| **Внедрение** (новая) | `1c-cms.bitrix24.ru/rest/116/REPLACE_ATILAB_WEBHOOK_SECRET/` (тот же вебхук) | `tasks.task.list` + `tasks.task.update` + `im.message.add` + `im.message.update` + `task.commentitem.getlist` | `.vnedrenie-only` |
+| **Дакар** (по умолчанию) | `dakar.bitrix24.ru/rest/<USER_ID>/<WEBHOOK_SECRET>/` (см. `config.js`) | `crm.item.list?entityTypeId=129` (CRM-смарт-процесс) | `.dakar-only` |
+| **АтиЛаб** | `1c-cms.bitrix24.ru/rest/<USER_ID>/<WEBHOOK_SECRET>/` (см. `config.js`) | `tasks.task.list` | `.atilab-only` |
+| **Внедрение** (новая) | тот же вебхук, что и АтиЛаб | `tasks.task.list` + `tasks.task.update` + `im.message.add` + `im.message.update` + `task.commentitem.getlist` | `.vnedrenie-only` |
 
 **Per-вкладка переключается в `switchTab(tab)`** (строка ~2484). `refreshData()` также ветвится по `currentTab`.
 
@@ -45,7 +45,7 @@
 
 ### 3.1. Вебхук Дакара (CRM)
 ```
-https://dakar.bitrix24.ru/rest/103557/REPLACE_DAKAR_WEBHOOK_SECRET/
+https://dakar.bitrix24.ru/rest/<USER_ID>/<WEBHOOK_SECRET>/
 ```
 - Скоупы: `crm, lists, log, sonet_group, task, tasks, tasks_extended, user`
 - **НЕТ `im` (чаты) и `disk` (файлы)** — это ограничение вебхука
@@ -53,12 +53,12 @@ https://dakar.bitrix24.ru/rest/103557/REPLACE_DAKAR_WEBHOOK_SECRET/
 
 ### 3.2. Вебхук 1c-cms (Tasks + IM + Disk) — ОСНОВНОЙ ДЛЯ ВНЕДРЕНИЯ
 ```
-https://1c-cms.bitrix24.ru/rest/116/REPLACE_ATILAB_WEBHOOK_SECRET/
+https://1c-cms.bitrix24.ru/rest/<USER_ID>/<WEBHOOK_SECRET>/
 ```
 - **Скоупы:** `disk, entity, im, im.import, log, sonet_group, task, tasks, tasks_extended, user`
 - **Есть `im` и `disk`** — критично для чата ВНЕДРЕНИЯ и получения файлов
 - Используется для вкладок АтиЛаб и Внедрение
-- Пользователь вебхука: 116 (Андрей Предеин, "Менеджер проектов")
+- Пользователь вебхука: см. `config.js` (это сотрудник с ролями "Менеджер проектов")
 
 ### 3.3. Чат ВНЕДРЕНИЯ
 - Портал: `1c-cms.bitrix24.ru`
@@ -390,8 +390,43 @@ curl -s "https://antisakrum2004.github.io/dakar-it-dashboard/" | grep -c "vnedre
 ```
 
 ### 8.3. Токены доступа (для скриптов)
-- GitHub PAT: `${GITHUB_TOKEN}`
+- GitHub PAT: `${GITHUB_TOKEN}` (берётся из окружения, **НЕ коммитится**)
 - Репозиторий: `Antisakrum2004/dakar-it-dashboard`
+
+### 8.4. 🔐 Управление секретами (ВАЖНО!)
+
+**Вебхуки Bitrix24 содержат токен прямо в URL** (`/rest/<user_id>/<secret>/`), поэтому URL вебхука = секрет. Хранить их в коде нельзя — репозиторий публичный.
+
+**Архитектура:**
+- `index.html` — читает конфиг из `window.DASHBOARD_CONFIG` (глобальный объект)
+- `config.js` — реальный файл с вебхуками, **в `.gitignore`**, не коммитится
+- `config.example.js` — шаблон с плейсхолдерами, коммитится
+- `.env.example` — то же самое для серверной части / локальной разработки
+- `.gitignore` — исключает `config.js`, `.env`, `*.local`
+
+**Локальный запуск:**
+```bash
+cp config.example.js config.js
+# Отредактировать config.js — подставить реальные вебхуки
+# Открыть index.html в браузере (через локальный сервер: python3 -m http.server 8000)
+```
+
+**Деплой для команды:**
+- `config.js` НЕ попадает в публичный репозиторий
+- Каждый член команды создаёт `config.js` локально из шаблона
+- Шаблон `config.example.js` рассылается команде через приватный канал (НЕ через GitHub)
+
+**Что НИКОГДА не коммитить:**
+- `config.js` (с реальными вебхуками)
+- `.env`, `.env.local`
+- Любые файлы с URL вида `bitrix24.ru/rest/<число>/<строка>/`
+- GitHub PAT, Vercel tokens, пароли
+
+**Если случайно закоммитили секрет — что делать:**
+1. НЕ делать `git push` (если ещё не запушили — `git reset HEAD~1`)
+2. Если уже запушено — **перевыпустить вебхук** в Bitrix24 (Разработчикам → Вебхуки → перевыпустить)
+3. Удалить секрет из истории: `git filter-repo` или BFG Repo-Cleaner
+4. Принудительно запушить: `git push --force`
 
 ---
 
