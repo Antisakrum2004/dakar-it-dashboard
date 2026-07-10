@@ -473,6 +473,109 @@ await vnSendChatMessage('[S]✅ Задача [URL]...[/URL] «название»
 | **v2.27** | **20.06** | Кнопка «📋 В чат» в тулбаре — отправляет единое сообщение-список всех активных задач в чат ВНЕДРЕНИЯ (пронумерованный, с названиями и ссылками, без rich-preview). |
 | **v2.28** | **20.06** | Группировка списка «📋 В чат» по проектам (Дакар, Бигап, ...) → внутри по типам (РАБОЧУЮ/ДЕМО). |
 | **v2.29** | **10.07** | **Security: секреты вынесены в `config.js`, история git очищена от вебхуков, репо переведён в public.** См. раздел 15. |
+| **v2.30** | **10.07** | **Vercel: добавлена serverless-функция `/api/config`, сайт работает на `dakar-it-dashboard.vercel.app` без ручной раздачи `config.js`.** См. раздел 16. |
+
+---
+
+## ☁️ 16. Vercel миграция (10.07.2026) — рабочий публичный дашборд
+
+### 16.1. Зачем понадобилось
+После v2.29 сайт на GitHub Pages (`antisakrum2004.github.io/dakar-it-dashboard/`) открывается, но показывает «⚠ Конфигурация не найдена» — потому что `config.js` с вебхуками не публикуется (он в `.gitignore`). Чтобы дашборд заработал, нужно было либо:
+- (A) Положить `config.js` с вебхуками в публичный репо → вебхук видит весь интернет
+- (B) Vercel + serverless-прокси → вебхук в env Vercel, не в коде ✅ выбрано
+- (C) Раздавать `config.js` каждому вручную → только локально
+
+### 16.2. Архитектура решения
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  Браузер: https://dakar-it-dashboard.vercel.app/                 │
+│                                                                  │
+│  index.html                                                      │
+│    └── <script src="config.js">                                  │
+│          (Vercel перехватывает через rewrite в vercel.json)      │
+│                │                                                 │
+│                ▼                                                 │
+│  /api/config (serverless function, Node.js)                      │
+│    └── читает process.env.BITRIX_* (env vars Vercel)             │
+│    └── возвращает JS: window.DASHBOARD_CONFIG = {...}            │
+└──────────────────────────────────────────────────────────────────┘
+         ▲
+         │ env vars установлены через Vercel Dashboard / API
+         │ (НЕ в коде, НЕ в репозитории, НЕ в git history)
+         │
+┌──────────────────────────────────────────────────────────────────┐
+│  Vercel Project: dakar-it-dashboard                              │
+│  - Linked to GitHub: Antisakrum2004/dakar-it-dashboard           │
+│  - Production branch: main (auto-deploy on push)                 │
+│  - Env vars (6 штук, encrypted):                                 │
+│      BITRIX_DAKAR_WEBHOOK_URL                                    │
+│      BITRIX_DAKAR_ENTITY_TYPE_ID                                 │
+│      BITRIX_DAKAR_TASK_URL_PREFIX                                │
+│      BITRIX_ATILAB_WEBHOOK_URL                                   │
+│      BITRIX_ATILAB_TASK_URL                                      │
+│      BITRIX_VNEDRENIE_CHAT_DIALOG_ID                             │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### 16.3. Что добавилось в репо
+- `api/config.js` — serverless-функция Vercel (Node.js). Читает `process.env`, возвращает JS с `window.DASHBOARD_CONFIG`. **Не содержит секретов в коде.**
+- `vercel.json` — конфигурация Vercel. Содержит `rewrite`: запросы `/config.js` → `/api/config`. Также `cleanUrls` (URL без `.html`) и `headers` (no-cache для `/api/*`).
+- `.gitignore` — обновлён: теперь игнорируется только `/config.js` (в корне, для локальной разработки), а `api/config.js` коммитится.
+
+### 16.4. Деплой
+- **Production URL:** `https://dakar-it-dashboard.vercel.app`
+- **Auto-deploy:** на каждый push в `main` Vercel автоматически собирает и публикует (обычно 30–60 секунд).
+- **Project ID:** `prj_T7JgvBcs70FntAxfxpQ8awdOhlVa`
+- **Team:** `antisakrum555-6798` (`team_FZzl1NrBI13a1rApX3p5LRF4`)
+
+### 16.5. Как менять вебхуки на Vercel
+Вебхуки хранятся в env-переменных Vercel, **НЕ в коде**. Чтобы их поменять:
+1. Vercel Dashboard → `dakar-it-dashboard` → Settings → Environment Variables
+2. Отредактировать нужную переменную (или удалить + создать новую)
+3. Нажать «Save»
+4. Trigger redeploy: Vercel Dashboard → Deployments → «Redeploy» (или просто сделать пустой push)
+
+Через API:
+```bash
+# Удалить старую
+curl -X DELETE -H "Authorization: Bearer $VERCEL_TOKEN" \
+  "https://api.vercel.com/v9/projects/<project_id>/env/<env_id>?teamId=<team_id>"
+
+# Создать новую
+curl -X POST -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
+  -d '{"key":"BITRIX_DAKAR_WEBHOOK_URL","value":"https://dakar.bitrix24.ru/rest/.../.../","type":"encrypted","target":["production","preview","development"]}' \
+  "https://api.vercel.com/v9/projects/<project_id>/env?teamId=<team_id>"
+```
+
+### 16.6. Локальная разработка — по-прежнему работает
+Для локального запуска `index.html` через `python3 -m http.server`:
+```bash
+cp config.example.js config.js
+# Подставить реальные вебхуки в config.js
+python3 -m http.server 8000
+# Открыть http://localhost:8000
+```
+В этом случае используется **статический** `config.js` из корня (в `.gitignore`). Serverless-функция `api/config.js` в локальной разработке не задействована.
+
+### 16.7. Что осталось на GitHub Pages
+- `https://antisakrum2004.github.io/dakar-it-dashboard/` — по-прежнему отдаёт `index.html`, но показывает «⚠ Конфигурация не найдена» (т.к. там нет ни `config.js`, ни serverless-функции).
+- **Рекомендация:** отключить GitHub Pages (Settings → Pages → три точки → Delete), чтобы не путать пользователей. Рабочий URL теперь только на Vercel.
+
+### 16.8. Безопасность — текущее состояние
+| Где | Вебхук виден? | Кто может увидеть |
+|-----|--------------|-------------------|
+| Git-репозиторий (код) | ❌ нет | — |
+| Git-история (84 коммита) | ❌ нет | — |
+| GitHub Pages | ❌ нет | — |
+| Vercel env vars (Dashboard) | ✅ да | Только owner/team members Vercel |
+| Vercel production URL `/api/config` | ✅ да | Любой, кто знает URL |
+
+**Компромисс:** чтобы дашборд работал без логина, `/api/config` отдаёт конфиг публично. Это значительно безопаснее, чем раньше (вебхук не в git-истории, легко ротейтился через Vercel UI без переписывания истории), но не идеально.
+
+**Если нужна полная приватность** (опционально, на будущее):
+- Включить Vercel Password Protection (Pro план, $20/мес) → посетитель вводит пароль
+- Или проксировать `/api/config` через Bitrix24 OAuth flow (но это уже полноценное приложение, не статика)
 
 ---
 
