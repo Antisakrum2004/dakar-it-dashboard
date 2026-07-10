@@ -1548,11 +1548,25 @@
 <!-- Container: ВНЕДРЕНИЕ -->
 <div class="vnedrenie-only vnedrenie-block" id="vnedrenieContainer" style="display:none"></div>
 
-<!-- Task List -->
+<!-- Task List — Дакар (скрыт на АтиЛаб и Внедрение) -->
 <div class="container dakar-only">
     <div class="task-list" id="taskList"></div>
     <div class="copy-tasks-bar" id="copyTasksBar" style="display:none">
         <button class="btn-copy-tasks" id="btnCopyTasks" onclick="copyTasksForCurrentTab()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Копировать список
+        </button>
+    </div>
+</div>
+
+<!-- Task List — АтиЛаб (скрыт на Дакар и Внедрение).
+     Отдельный контейнер нужен, т.к. #taskList один на обе вкладки —
+     а раньше .container.dakar-only скрывал АтиЛабовский список тоже.
+     См. фикс регрессии v2.20 (коммит 92c1a34). -->
+<div class="container atilab-only atilab-block">
+    <div class="task-list" id="taskListAtilab"></div>
+    <div class="copy-tasks-bar" id="copyTasksBarAtilab" style="display:none">
+        <button class="btn-copy-tasks" id="btnCopyTasksAtilab" onclick="copyTasksForCurrentTab()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             Копировать список
         </button>
@@ -2723,7 +2737,7 @@ function switchTab(tab) {
 // ===== АТИЛАБ: RENDER TASKS =====
 function renderAtilabTasks() {
     if (currentTab !== 'atilab') return;
-    var list = document.getElementById('taskList');
+    var list = document.getElementById('taskListAtilab') || document.getElementById('taskList');
     var query = (document.getElementById("atilabSearchInput") ? document.getElementById("atilabSearchInput").value : "").toLowerCase().trim();
 
     // === Status counts ===
@@ -2772,8 +2786,8 @@ function renderAtilabTasks() {
 
     atilabLastFiltered = filtered;
 
-    // Copy button
-    var copyBar = document.getElementById('copyTasksBar');
+    // Copy button (try atilab-specific first, fallback to shared for backward compat)
+    var copyBar = document.getElementById('copyTasksBarAtilab') || document.getElementById('copyTasksBar');
     if (copyBar) copyBar.style.display = filtered.length > 0 ? '' : 'none';
 
     // Comments for indicators
@@ -3002,7 +3016,9 @@ function copyAtilabTasksToClipboard() {
     });
     var text = lines.join('\n');
 
-    var btn = document.getElementById('btnCopyTasks');
+    // На вкладке АтиЛаб используем отдельную кнопку (в .atilab-only контейнере),
+    // т.к. #btnCopyTasks лежит в .dakar-only и скрыт.
+    var btn = document.getElementById('btnCopyTasksAtilab') || document.getElementById('btnCopyTasks');
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(function() {
             showCopySuccess(btn);
