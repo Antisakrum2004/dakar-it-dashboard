@@ -1434,6 +1434,62 @@
             color: #1a1a2e;
         }
 
+        /* ===== Журнал Внедрений ===== */
+        .vn-log-section {
+            margin: 12px 20px 20px;
+            border-top: 2px solid #3b82f6;
+            padding-top: 10px;
+        }
+        .vn-log-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .vn-log-title svg { width: 14px; height: 14px; }
+        .vn-log-container {
+            background: #1a1a2e;
+            border-radius: 6px;
+            max-height: 360px;
+            overflow-y: auto;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        .vn-log-container::-webkit-scrollbar { width: 5px; }
+        .vn-log-container::-webkit-scrollbar-track { background: #2d2d48; }
+        .vn-log-container::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 3px; }
+        .vn-log-entry { padding: 2px 0; border-bottom: 1px solid #2d2d48; }
+        .vn-log-time { color: #6b7280; margin-right: 6px; }
+        .vn-log-action { color: #3b82f6; font-weight: 600; }
+        .vn-log-action.action-loaded { color: #6b7280; }
+        .vn-log-action.action-deployed { color: #22c55e; }
+        .vn-log-action.action-reverted { color: #ef4444; }
+        .vn-log-action.action-changed { color: #eab308; }
+        .vn-log-action.action-note { color: #8b5cf6; }
+        .vn-log-action.action-chat { color: #60a5fa; }
+        .vn-log-action.action-disappeared { color: #ef4444; }
+        .vn-log-action.action-error { color: #f97316; }
+        .vn-log-taskid { color: #f97316; margin-right: 4px; }
+        .vn-log-detail { color: #d1d5db; }
+        .vn-log-group { color: #60a5fa; }
+        .vn-log-add-row { display: flex; gap: 6px; margin-top: 6px; }
+        .vn-log-add-input {
+            flex: 1; padding: 5px 8px;
+            border: 1px solid #4b5563; border-radius: 4px;
+            background: #2d2d48; color: #d1d5db; font-size: 11px;
+        }
+        .vn-log-add-btn {
+            padding: 5px 12px; background: #3b82f6; color: #fff;
+            border: none; border-radius: 4px; cursor: pointer;
+            font-size: 11px; font-weight: 500;
+        }
+        .vn-log-add-btn:hover { background: #2563eb; }
+
         @media (max-width: 640px) {
             .header-tabs { margin-top: 2px; }
             .tab-btn { padding: 4px 12px; font-size: 12px; }
@@ -1460,7 +1516,7 @@
                     <button class="tab-btn" data-tab="atilab" onclick="switchTab('atilab')">АтиЛаб</button>
                     <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
                 </div>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.20</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.21</span>
             </div>
             <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
@@ -1547,6 +1603,19 @@
 </div>
 <!-- Container: ВНЕДРЕНИЕ -->
 <div class="vnedrenie-only vnedrenie-block" id="vnedrenieContainer" style="display:none"></div>
+
+<!-- Журнал Внедрений -->
+<div class="vnedrenie-only vnedrenie-block vn-log-section" id="vnLogSection" style="display:none">
+    <div class="vn-log-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Журнал внедрений
+    </div>
+    <div class="vn-log-container" id="vnLogContainer"></div>
+    <div class="vn-log-add-row">
+        <input class="vn-log-add-input" type="text" id="vnLogNoteInput" placeholder="Добавить запись (например: '#8124 внедрена в рабочую Бигап')...">
+        <button class="vn-log-add-btn" onclick="vnAddLogNote()">+ Запись</button>
+    </div>
+</div>
 
 <!-- Task List — Дакар (скрыт на АтиЛаб и Внедрение) -->
 <div class="container dakar-only">
@@ -1637,6 +1706,10 @@ const VN_DAYS_BACK = 3;
 
 // Хранилище времени завершения внедрения в localStorage (для отображения «✅ Внедрена 19.06 15:30» в течение 24ч)
 const VN_DONE_LOG_KEY = 'vnedrenie_done_log';
+
+// ===== ЖУРНАЛ ВНЕДРЕНИЙ (накопительный, localStorage) =====
+const VN_LOG_KEY = 'vnedrenie_cumulative_log';
+const VN_LOG_MAX = 500; // максимальное количество записей
 
 // АтиЛаб: маппинг stageId → название канбан-колонки (по groupId)
 const ATILAB_STAGE_MAP = {
@@ -3434,6 +3507,17 @@ async function loadVnedrenieData() {
         vnedrenieIsLoaded = true;
         fill.style.width = '100%';
         console.log('VN data loaded:', vnedrenieTasks.length, 'tasks,', newTasks.length, 'alerts sent');
+
+        // ===== ЛОГИРОВАНИЕ ЗАГРУЗКИ =====
+        vnedrenieTasks.forEach(function(t) {
+            var stateLabel = { 'rab_new': 'Новая→РАБ', 'rab_queued': 'В очереди→РАБ', 'rab_done': 'Внедрена→РАБ',
+                'demo_new': 'Новая→ДЕМО', 'demo_queued': 'В очереди→ДЕМО', 'demo_done': 'Внедрена→ДЕМО' };
+            vnAddLog('loaded', t.id, t.title, 'Состояние: ' + (stateLabel[t.state] || t.state) + ', Теги: ' + t.tags.join(', '), t.groupName, t.tags);
+        });
+        if (newTasks.length > 0) {
+            vnAddLog('chat', 0, '', 'Отправлено ' + newTasks.length + ' алерт(ов) в чат ВНЕДРЕНИЯ', '', []);
+        }
+
         return true;
     } catch(e) {
         console.error('VN data load failed:', e);
@@ -3511,6 +3595,9 @@ async function vnRestoreTask(event, taskId) {
         btn.textContent = '✓';
         btn.classList.remove('saving');
         btn.classList.add('done');
+
+        // ===== ЛОГИРОВАНИЕ ВОЗВРАТА =====
+        vnAddLog('reverted', taskId, task.title, 'Возвращена во внедрение → ' + targetLabel + ', Новые теги: ' + task.tags.join(', '), task.groupName, task.tags);
 
         // Через 800мс перерисовываем список
         setTimeout(function() {
@@ -3659,6 +3746,110 @@ function vnGetDoneInfo(taskId, type) {
     return log[taskId + '_' + type] || null;
 }
 
+// ===== ЖУРНАЛ ВНЕДРЕНИЙ: ФУНКЦИИ =====
+function vnGetLog() {
+    try {
+        var raw = localStorage.getItem(VN_LOG_KEY);
+        return raw ? JSON.parse(raw) : [];
+    } catch(e) { return []; }
+}
+function vnSaveLog(log) {
+    try {
+        localStorage.setItem(VN_LOG_KEY, JSON.stringify(log));
+    } catch(e) { console.error('VN log save error:', e); }
+}
+
+function vnAddLog(action, taskId, taskTitle, details, groupName, tags) {
+    var log = vnGetLog();
+    var now = new Date();
+    var months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+    var timeStr = now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear() +
+        ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
+
+    log.push({
+        id: Date.now(),
+        time: timeStr,
+        iso: now.toISOString(),
+        action: action,
+        taskId: taskId || 0,
+        taskTitle: taskTitle || '',
+        details: details || '',
+        groupName: groupName || '',
+        tags: tags || []
+    });
+
+    // Keep last VN_LOG_MAX entries
+    if (log.length > VN_LOG_MAX) log = log.slice(log.length - VN_LOG_MAX);
+
+    vnSaveLog(log);
+    vnRenderLog();
+}
+
+function vnAddLogNote() {
+    var input = document.getElementById('vnLogNoteInput');
+    if (!input) return;
+    var text = input.value.trim();
+    if (!text) return;
+
+    // Parse task # from note
+    var taskMatch = text.match(/#(\d+)/);
+    var taskId = taskMatch ? parseInt(taskMatch[1]) : 0;
+    var taskTitle = '';
+
+    if (taskId) {
+        var found = vnedrenieTasks.find(function(t) { return t.id === taskId; });
+        if (found) taskTitle = found.title;
+    }
+
+    vnAddLog('note', taskId, taskTitle, text, '', []);
+    input.value = '';
+}
+
+function vnRenderLog() {
+    var container = document.getElementById('vnLogContainer');
+    if (!container) return;
+
+    var log = vnGetLog();
+    if (log.length === 0) {
+        container.innerHTML = '<div style="color:#6b7280;text-align:center;padding:16px">Журнал пуст. Данные появятся после загрузки.</div>';
+        return;
+    }
+
+    // Newest first
+    var reversed = log.slice().reverse();
+
+    container.innerHTML = reversed.map(function(entry) {
+        var actionClass = 'action-' + entry.action;
+        var actionLabels = {
+            'loaded': 'ЗАГРУЖЕНА',
+            'deployed': 'ВНЕДРЕНА',
+            'reverted': 'ВОЗВРАЩЕНА',
+            'changed': 'СТАДИЯ_ИЗМЕНЕНА',
+            'chat': 'В_ЧАТ',
+            'disappeared': 'ИСЧЕЗЛА',
+            'note': 'ЗАПИСЬ',
+            'error': 'ОШИБКА',
+            'tag_update': 'ТЕГИ_ИЗМЕНЕНЫ'
+        };
+        var actionLabel = actionLabels[entry.action] || entry.action.toUpperCase();
+
+        var taskIdStr = entry.taskId ? '<span class="vn-log-taskid">#' + entry.taskId + '</span>' : '';
+        var groupStr = entry.groupName ? '<span class="vn-log-group">[' + escapeHtml(entry.groupName) + ']</span>' : '';
+        var detailStr = entry.details ? '<span class="vn-log-detail">' + escapeHtml(entry.details) + '</span>' : '';
+
+        return '<div class="vn-log-entry">' +
+            '<span class="vn-log-time">' + escapeHtml(entry.time) + '</span>' +
+            taskIdStr +
+            groupStr +
+            '<span class="vn-log-action ' + actionClass + '">' + actionLabel + '</span> ' +
+            detailStr +
+        '</div>';
+    }).join('');
+
+    // Scroll to top (newest)
+    container.scrollTop = 0;
+}
+
 // ===== ВНЕДРЕНИЕ: РЕНДЕР =====
 function renderVnedrenieTasks() {
     if (currentTab !== 'vnedrenie') return;
@@ -3735,6 +3926,9 @@ function renderVnedrenieTasks() {
     }
 
     container.innerHTML = html;
+
+    // Render log
+    vnRenderLog();
 }
 
 function vnRenderTaskCard(task, section) {
@@ -3903,6 +4097,10 @@ async function vnOnInlineToggleDone(taskId, checkbox) {
         if (cb) cb.disabled = true;
         toggle.style.pointerEvents = 'none';
         if (labelEl) labelEl.textContent = '✅ ' + ts;
+
+        // ===== ЛОГИРОВАНИЕ ВНЕДРЕНИЯ =====
+        vnAddLog('deployed', taskId, task.title, 'Внедрена в ' + targetLabel + ' базу ' + ts + ', Теги: ' + task.tags.join(', '), task.groupName, task.tags);
+        vnAddLog('chat', taskId, task.title, 'Отправлена отбивка в чат: внедрена в ' + targetLabel, task.groupName, []);
 
         // Через 1 сек перерисовываем список
         setTimeout(function() {
