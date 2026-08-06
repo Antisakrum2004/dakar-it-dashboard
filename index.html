@@ -2080,7 +2080,7 @@
                     <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
                 </div>
                 <span class="concept-badge" id="conceptBadge">КАНБАН · КОНЦЕПТ</span>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.31</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.32</span>
                 <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
             </div>
         </div>
@@ -2218,8 +2218,8 @@
     <div class="hook-modal-card">
         <div class="hook-modal-head">
             <div>
-                <div class="hook-modal-title">Хуки пользователей</div>
-                <div class="hook-modal-subtitle">Смена стадии, чат и чипсы Дем/Раб будут отправляться от выбранного вебхука.</div>
+                <div class="hook-modal-title" id="hookModalTitle">Хуки пользователей</div>
+                <div class="hook-modal-subtitle" id="hookModalSubtitle">Смена стадии, чат и чипсы Дем/Раб будут отправляться от выбранного вебхука.</div>
             </div>
             <button class="preview-close" onclick="closeHookModal()">&times;</button>
         </div>
@@ -2234,8 +2234,8 @@
                     <input class="hook-input" id="hookNameInput" type="text" placeholder="Имя пользователя, например: Владимир">
                     <input class="hook-input" id="hookUrlInput" type="text" placeholder="https://1c-cms.bitrix24.ru/rest/USER_ID/WEBHOOK/">
                 </div>
-                <div class="hook-note" style="margin-top:8px">
-                    Хук сохраняется только локально в этом браузере. После выбора нажмите "Применить" или просто сделайте его активным в списке.
+                <div class="hook-note" style="margin-top:8px" id="hookModalNote">
+                    Хук сохраняется только локально в этом браузере. Дакар и АтиЛаб — разные порталы, хуки у них отдельные.
                 </div>
                 <div class="hook-modal-actions">
                     <button class="btn" onclick="closeHookModal()">Закрыть</button>
@@ -2278,7 +2278,8 @@
   }
 })();
 
-const API_BASE = window.DASHBOARD_CONFIG.BITRIX_DAKAR_WEBHOOK_URL;
+const DAKAR_READ_API = window.DASHBOARD_CONFIG.BITRIX_DAKAR_WEBHOOK_URL;
+let API_BASE = DAKAR_READ_API;
 const ENTITY_TYPE_ID = window.DASHBOARD_CONFIG.BITRIX_DAKAR_ENTITY_TYPE_ID;
 const TASK_URL_PREFIX = window.DASHBOARD_CONFIG.BITRIX_DAKAR_TASK_URL_PREFIX;
 
@@ -2296,7 +2297,10 @@ const VNEDRENIE_CHAT_DIALOG_ID = window.DASHBOARD_CONFIG.BITRIX_VNEDRENIE_CHAT_D
 
 const ATILAB_HOOKS_KEY = 'atilab_user_hooks';
 const ATILAB_ACTIVE_HOOK_KEY = 'atilab_active_hook_id';
+const DAKAR_HOOKS_KEY = 'dakar_user_hooks';
+const DAKAR_ACTIVE_HOOK_KEY = 'dakar_active_hook_id';
 let activeAtilabHookId = null;
+let activeDakarHookId = null;
 
 // ВНЕДРЕНИЕ: теги машины состояний (кириллица, как договорились)
 const VN_TAG = {
@@ -2329,27 +2333,34 @@ function sanitizeWebhookUrl(url) {
     return v;
 }
 
-function getDefaultAtilabHooks() {
-    return [];
+/** Скоуп хуков: на вкладке Дакар — свой портал, на АтиЛаб/Внедрение — 1c-cms */
+function getHookScope() {
+    return currentTab === 'dakar' ? 'dakar' : 'atilab';
 }
 
-function getStoredAtilabHooks() {
+function getHookStorageKeys(scope) {
+    if (scope === 'dakar') {
+        return { list: DAKAR_HOOKS_KEY, active: DAKAR_ACTIVE_HOOK_KEY };
+    }
+    return { list: ATILAB_HOOKS_KEY, active: ATILAB_ACTIVE_HOOK_KEY };
+}
+
+function getStoredHooks(scope) {
+    var key = getHookStorageKeys(scope).list;
     try {
-        var raw = localStorage.getItem(ATILAB_HOOKS_KEY);
+        var raw = localStorage.getItem(key);
         var arr = raw ? JSON.parse(raw) : [];
         if (!Array.isArray(arr)) arr = [];
         return arr;
-    } catch(e) {
+    } catch (e) {
         return [];
     }
 }
 
-function getAllAtilabHooks() {
-    var defaults = getDefaultAtilabHooks();
-    var custom = getStoredAtilabHooks();
+function getAllHooks(scope) {
     var seen = {};
     var merged = [];
-    defaults.concat(custom).forEach(function(h) {
+    getStoredHooks(scope).forEach(function(h) {
         if (!h || !h.id || !h.url) return;
         if (seen[h.id]) return;
         seen[h.id] = true;
@@ -2363,18 +2374,56 @@ function getAllAtilabHooks() {
     return merged;
 }
 
-function saveCustomAtilabHooks(items) {
+function saveCustomHooks(scope, items) {
     try {
-        localStorage.setItem(ATILAB_HOOKS_KEY, JSON.stringify(items || []));
-    } catch(e) {
-        console.warn('saveCustomAtilabHooks failed', e);
+        localStorage.setItem(getHookStorageKeys(scope).list, JSON.stringify(items || []));
+    } catch (e) {
+        console.warn('saveCustomHooks failed', e);
     }
 }
 
-function getActiveAtilabHook() {
-    var hooks = getAllAtilabHooks();
-    var savedId = localStorage.getItem(ATILAB_ACTIVE_HOOK_KEY);
+function getActiveHook(scope) {
+    var hooks = getAllHooks(scope);
+    var savedId = localStorage.getItem(getHookStorageKeys(scope).active);
     return hooks.find(function(h) { return h.id === savedId; }) || null;
+}
+
+function getActiveAtilabHook() {
+    return getActiveHook('atilab');
+}
+
+function getActiveDakarHook() {
+    return getActiveHook('dakar');
+}
+
+function updateActiveHookBadge() {
+    var badge = document.getElementById('activeHookBadge');
+    if (!badge) return;
+    var scope = getHookScope();
+    var hook = getActiveHook(scope);
+    if (!hook) {
+        badge.textContent = scope === 'dakar' ? 'Дакар: хук не выбран' : 'Хук: не выбран';
+        return;
+    }
+    var uid = parseWebhookUserId(hook.url) || '?';
+    var prefix = scope === 'dakar' ? 'Дакар: ' : 'Хук: ';
+    badge.textContent = prefix + (hook.name || uid) + ' (' + uid + ')';
+}
+
+function applyActiveDakarHook(hook, skipReload) {
+    if (!hook) {
+        activeDakarHookId = null;
+        API_BASE = DAKAR_READ_API;
+        updateActiveHookBadge();
+        return;
+    }
+    activeDakarHookId = hook.id;
+    localStorage.setItem(DAKAR_ACTIVE_HOOK_KEY, hook.id);
+    API_BASE = sanitizeWebhookUrl(hook.url);
+    updateActiveHookBadge();
+    if (!skipReload && currentTab === 'dakar') {
+        refreshData();
+    }
 }
 
 function applyActiveAtilabHook(hook, skipReload) {
@@ -2384,8 +2433,7 @@ function applyActiveAtilabHook(hook, skipReload) {
         ATILAB_TASK_URL = ATILAB_READ_TASK_URL;
         VNEDRENIE_API = ATILAB_READ_API;
         VNEDRENIE_TASK_URL = ATILAB_READ_TASK_URL;
-        var emptyBadge = document.getElementById('activeHookBadge');
-        if (emptyBadge) emptyBadge.textContent = 'Хук: не выбран';
+        updateActiveHookBadge();
         return;
     }
     activeAtilabHookId = hook.id;
@@ -2394,25 +2442,46 @@ function applyActiveAtilabHook(hook, skipReload) {
     ATILAB_TASK_URL = buildTaskUrlFromWebhook(ATILAB_API);
     VNEDRENIE_API = ATILAB_API;
     VNEDRENIE_TASK_URL = ATILAB_TASK_URL;
-    var badge = document.getElementById('activeHookBadge');
-    if (badge) {
-        var uid = parseWebhookUserId(ATILAB_API) || '?';
-        badge.textContent = 'Хук: ' + (hook.name || uid) + ' (' + uid + ')';
-    }
-    if (!skipReload && currentTab === 'atilab') {
-        atilabIsLoaded = false;
-        atilabTasks = [];
+    updateActiveHookBadge();
+    if (!skipReload && (currentTab === 'atilab' || currentTab === 'vnedrenie')) {
+        if (currentTab === 'atilab') {
+            atilabIsLoaded = false;
+            atilabTasks = [];
+        } else {
+            vnedrenieIsLoaded = false;
+            vnedrenieTasks = [];
+        }
         refreshData();
+    }
+}
+
+function syncHookModalCopy() {
+    var scope = getHookScope();
+    var title = document.getElementById('hookModalTitle');
+    var sub = document.getElementById('hookModalSubtitle');
+    var note = document.getElementById('hookModalNote');
+    var urlEl = document.getElementById('hookUrlInput');
+    if (scope === 'dakar') {
+        if (title) title.textContent = 'Хуки Дакар';
+        if (sub) sub.textContent = 'Отдельный вебхук портала dakar.bitrix24.ru (CRM). Не путать с хуком АтиЛаб.';
+        if (note) note.textContent = 'Хук Дакара сохраняется отдельно от АтиЛаб. Только локально в этом браузере.';
+        if (urlEl) urlEl.placeholder = 'https://dakar.bitrix24.ru/rest/USER_ID/WEBHOOK/';
+    } else {
+        if (title) title.textContent = 'Хуки АтиЛаб / Внедрение';
+        if (sub) sub.textContent = 'Смена стадии, чат и чипсы Дем/Раб — от вебхука 1c-cms.bitrix24.ru.';
+        if (note) note.textContent = 'Хук АтиЛаб сохраняется отдельно от Дакара. Только локально в этом браузере.';
+        if (urlEl) urlEl.placeholder = 'https://1c-cms.bitrix24.ru/rest/USER_ID/WEBHOOK/';
     }
 }
 
 function renderHookList() {
     var list = document.getElementById('hookList');
     if (!list) return;
-    var hooks = getAllAtilabHooks();
-    var active = getActiveAtilabHook();
+    var scope = getHookScope();
+    var hooks = getAllHooks(scope);
+    var active = getActiveHook(scope);
     if (!hooks.length) {
-        list.innerHTML = '<div class="hook-note">Сохранённых хуков пока нет. Каждый пользователь вводит свой сам.</div>';
+        list.innerHTML = '<div class="hook-note">Сохранённых хуков ' + (scope === 'dakar' ? 'Дакара' : 'АтиЛаб') + ' пока нет. Введите свой ниже.</div>';
         return;
     }
     list.innerHTML = hooks.map(function(h) {
@@ -2421,7 +2490,7 @@ function renderHookList() {
         var safeUrl = escapeHtml(h.url.replace(/\/rest\/\d+\/[^/]+\//, '/rest/' + userId + '/***\/'));
         return '<div class="hook-item' + (checked ? ' active' : '') + '">' +
             '<div class="hook-item-left">' +
-                '<input type="radio" name="atilabHookChoice" ' + (checked ? 'checked' : '') + ' onchange="selectHookById(\'' + escapeHtml(h.id) + '\')">' +
+                '<input type="radio" name="hookChoice" ' + (checked ? 'checked' : '') + ' onchange="selectHookById(\'' + escapeHtml(h.id) + '\')">' +
                 '<div class="hook-item-text">' +
                     '<div class="hook-item-name">' + escapeHtml(h.name) + '</div>' +
                     '<div class="hook-item-meta">userId: ' + escapeHtml(userId) + ' · ' + safeUrl + '</div>' +
@@ -2446,6 +2515,7 @@ function openHookModal() {
     var urlEl = document.getElementById('hookUrlInput');
     if (nameEl) nameEl.value = '';
     if (urlEl) urlEl.value = '';
+    syncHookModalCopy();
     renderHookList();
 }
 
@@ -2455,25 +2525,30 @@ function closeHookModal() {
 }
 
 function selectHookById(id) {
-    var hooks = getAllAtilabHooks();
-    var hook = hooks.find(function(h) { return h.id === id; });
+    var scope = getHookScope();
+    var hook = getAllHooks(scope).find(function(h) { return h.id === id; });
     if (!hook) return;
-    applyActiveAtilabHook(hook, false);
+    if (scope === 'dakar') applyActiveDakarHook(hook, false);
+    else applyActiveAtilabHook(hook, false);
     renderHookList();
-    showKbToast('Активный хук: ' + hook.name, false);
+    showKbToast((scope === 'dakar' ? 'Хук Дакара: ' : 'Активный хук: ') + hook.name, false);
 }
 
 function deleteHookById(id) {
-    var custom = getStoredAtilabHooks().filter(function(h) { return h.id !== id; });
-    saveCustomAtilabHooks(custom);
-    if (localStorage.getItem(ATILAB_ACTIVE_HOOK_KEY) === id) {
-        localStorage.removeItem(ATILAB_ACTIVE_HOOK_KEY);
-        applyActiveAtilabHook(null, true);
+    var scope = getHookScope();
+    var keys = getHookStorageKeys(scope);
+    var custom = getStoredHooks(scope).filter(function(h) { return h.id !== id; });
+    saveCustomHooks(scope, custom);
+    if (localStorage.getItem(keys.active) === id) {
+        localStorage.removeItem(keys.active);
+        if (scope === 'dakar') applyActiveDakarHook(null, true);
+        else applyActiveAtilabHook(null, true);
     }
     renderHookList();
 }
 
 function saveHookFromModal() {
+    var scope = getHookScope();
     var nameEl = document.getElementById('hookNameInput');
     var urlEl = document.getElementById('hookUrlInput');
     var name = (nameEl && nameEl.value ? nameEl.value : '').trim();
@@ -2487,8 +2562,16 @@ function saveHookFromModal() {
         showErrorNotification('Не удалось определить userId из webhook');
         return;
     }
-    var custom = getStoredAtilabHooks();
-    var id = 'hook-' + userId;
+    if (scope === 'dakar' && url.indexOf('dakar.bitrix24.ru') === -1) {
+        showErrorNotification('Для вкладки Дакар нужен хук dakar.bitrix24.ru');
+        return;
+    }
+    if (scope !== 'dakar' && url.indexOf('1c-cms.bitrix24.ru') === -1) {
+        showErrorNotification('Для АтиЛаб нужен хук 1c-cms.bitrix24.ru');
+        return;
+    }
+    var custom = getStoredHooks(scope);
+    var id = (scope === 'dakar' ? 'dakar-' : 'hook-') + userId;
     var existing = custom.find(function(h) { return h.id === id; });
     if (existing) {
         existing.name = name || ('Пользователь ' + userId);
@@ -2500,7 +2583,7 @@ function saveHookFromModal() {
             url: url
         });
     }
-    saveCustomAtilabHooks(custom);
+    saveCustomHooks(scope, custom);
     if (nameEl) nameEl.value = '';
     if (urlEl) urlEl.value = '';
     renderHookList();
@@ -3641,6 +3724,13 @@ function switchTab(tab) {
         if (tab === 'atilab') titleEl.textContent = 'ИТ Поддержка — АтиЛаб';
         else if (tab === 'vnedrenie') titleEl.textContent = 'ИТ Поддержка — Внедрение';
         else titleEl.textContent = 'ИТ Поддержка — Дакар';
+    }
+
+    // Бейдж хука зависит от вкладки (Дакар ≠ АтиЛаб)
+    updateActiveHookBadge();
+    if (document.getElementById('hookModal') && document.getElementById('hookModal').classList.contains('active')) {
+        syncHookModalCopy();
+        renderHookList();
     }
 
     // Update data source badge
@@ -6398,6 +6488,8 @@ document.addEventListener("DOMContentLoaded", function() {
     var titleEl = document.getElementById('headerTitle');
     if (titleEl) titleEl.textContent = 'ИТ Поддержка — АтиЛаб';
     applyActiveAtilabHook(getActiveAtilabHook(), true);
+    applyActiveDakarHook(getActiveDakarHook(), true);
+    updateActiveHookBadge();
     refreshData();
 });
 
