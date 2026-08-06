@@ -2080,7 +2080,7 @@
                     <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
                 </div>
                 <span class="concept-badge" id="conceptBadge">КАНБАН · КОНЦЕПТ</span>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.32</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.33</span>
                 <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
             </div>
         </div>
@@ -2345,6 +2345,19 @@ function getHookStorageKeys(scope) {
     return { list: ATILAB_HOOKS_KEY, active: ATILAB_ACTIVE_HOOK_KEY };
 }
 
+/** Системный хук Дакара из config/env — тот, что уже был на проде */
+function getDefaultDakarHooks() {
+    var url = sanitizeWebhookUrl(DAKAR_READ_API);
+    if (!url || url.indexOf('REPLACE_') !== -1 || url.indexOf('/rest/') === -1) return [];
+    var userId = parseWebhookUserId(url) || 'dakar';
+    return [{
+        id: 'default-dakar-' + userId,
+        name: 'Дакар / ' + userId,
+        url: url,
+        locked: true
+    }];
+}
+
 function getStoredHooks(scope) {
     var key = getHookStorageKeys(scope).list;
     try {
@@ -2358,9 +2371,10 @@ function getStoredHooks(scope) {
 }
 
 function getAllHooks(scope) {
+    var defaults = scope === 'dakar' ? getDefaultDakarHooks() : [];
     var seen = {};
     var merged = [];
-    getStoredHooks(scope).forEach(function(h) {
+    defaults.concat(getStoredHooks(scope)).forEach(function(h) {
         if (!h || !h.id || !h.url) return;
         if (seen[h.id]) return;
         seen[h.id] = true;
@@ -2385,7 +2399,14 @@ function saveCustomHooks(scope, items) {
 function getActiveHook(scope) {
     var hooks = getAllHooks(scope);
     var savedId = localStorage.getItem(getHookStorageKeys(scope).active);
-    return hooks.find(function(h) { return h.id === savedId; }) || null;
+    var found = hooks.find(function(h) { return h.id === savedId; });
+    if (found) return found;
+    // Дакар: сразу активен системный хук из конфига
+    if (scope === 'dakar') {
+        var def = hooks.find(function(h) { return h.locked; }) || hooks[0] || null;
+        return def || null;
+    }
+    return null;
 }
 
 function getActiveAtilabHook() {
@@ -6488,7 +6509,14 @@ document.addEventListener("DOMContentLoaded", function() {
     var titleEl = document.getElementById('headerTitle');
     if (titleEl) titleEl.textContent = 'ИТ Поддержка — АтиЛаб';
     applyActiveAtilabHook(getActiveAtilabHook(), true);
-    applyActiveDakarHook(getActiveDakarHook(), true);
+    // Дакар: сразу вбиваем системный хук из конфига (тот же, что был раньше)
+    var dakarHook = getActiveDakarHook();
+    if (dakarHook) {
+        localStorage.setItem(DAKAR_ACTIVE_HOOK_KEY, dakarHook.id);
+        applyActiveDakarHook(dakarHook, true);
+    } else {
+        applyActiveDakarHook(null, true);
+    }
     updateActiveHookBadge();
     refreshData();
 });
