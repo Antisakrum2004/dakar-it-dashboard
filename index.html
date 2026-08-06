@@ -2025,7 +2025,7 @@
         <span class="api-counter" id="apiCounter">API: 0</span>
         <span class="data-source-badge mock" id="dataSourceBadge">MOCK</span>
         <button class="btn btn-hook" onclick="openHookModal()" id="hookBtn" title="Выбрать хук пользователя">*</button>
-        <span class="hook-user-badge" id="activeHookBadge">Хук: 116</span>
+        <span class="hook-user-badge" id="activeHookBadge">Хук: не выбран</span>
         <button class="btn" onclick="refreshData()" id="refreshBtn">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h-6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
             Обновить
@@ -2208,9 +2208,11 @@ const API_BASE = window.DASHBOARD_CONFIG.BITRIX_DAKAR_WEBHOOK_URL;
 const ENTITY_TYPE_ID = window.DASHBOARD_CONFIG.BITRIX_DAKAR_ENTITY_TYPE_ID;
 const TASK_URL_PREFIX = window.DASHBOARD_CONFIG.BITRIX_DAKAR_TASK_URL_PREFIX;
 
-// АтиЛаб: вебхук и шаблон ссылки на задачу
-let ATILAB_API = window.DASHBOARD_CONFIG.BITRIX_ATILAB_WEBHOOK_URL;
-let ATILAB_TASK_URL = window.DASHBOARD_CONFIG.BITRIX_ATILAB_TASK_URL;
+// АтиЛаб: базовый read-only хук для загрузки доски и отдельный action-хук пользователя
+const ATILAB_READ_API = window.DASHBOARD_CONFIG.BITRIX_ATILAB_WEBHOOK_URL;
+const ATILAB_READ_TASK_URL = window.DASHBOARD_CONFIG.BITRIX_ATILAB_TASK_URL;
+let ATILAB_API = ATILAB_READ_API;
+let ATILAB_TASK_URL = ATILAB_READ_TASK_URL;
 
 // ВНЕДРЕНИЕ: тот же вебхук что и АтиЛаб (т.к. только у него есть скоупы im, disk)
 let VNEDRENIE_API = ATILAB_API;
@@ -2254,12 +2256,7 @@ function sanitizeWebhookUrl(url) {
 }
 
 function getDefaultAtilabHooks() {
-    return [{
-        id: 'default-116',
-        name: 'Андрей / 116',
-        url: sanitizeWebhookUrl(window.DASHBOARD_CONFIG.BITRIX_ATILAB_WEBHOOK_URL),
-        locked: true
-    }];
+    return [];
 }
 
 function getStoredAtilabHooks() {
@@ -2303,12 +2300,20 @@ function saveCustomAtilabHooks(items) {
 function getActiveAtilabHook() {
     var hooks = getAllAtilabHooks();
     var savedId = localStorage.getItem(ATILAB_ACTIVE_HOOK_KEY);
-    var hook = hooks.find(function(h) { return h.id === savedId; }) || hooks[0];
-    return hook || null;
+    return hooks.find(function(h) { return h.id === savedId; }) || null;
 }
 
 function applyActiveAtilabHook(hook, skipReload) {
-    if (!hook) return;
+    if (!hook) {
+        activeAtilabHookId = null;
+        ATILAB_API = ATILAB_READ_API;
+        ATILAB_TASK_URL = ATILAB_READ_TASK_URL;
+        VNEDRENIE_API = ATILAB_READ_API;
+        VNEDRENIE_TASK_URL = ATILAB_READ_TASK_URL;
+        var emptyBadge = document.getElementById('activeHookBadge');
+        if (emptyBadge) emptyBadge.textContent = 'Хук: не выбран';
+        return;
+    }
     activeAtilabHookId = hook.id;
     localStorage.setItem(ATILAB_ACTIVE_HOOK_KEY, hook.id);
     ATILAB_API = sanitizeWebhookUrl(hook.url);
@@ -2332,6 +2337,10 @@ function renderHookList() {
     if (!list) return;
     var hooks = getAllAtilabHooks();
     var active = getActiveAtilabHook();
+    if (!hooks.length) {
+        list.innerHTML = '<div class="hook-note">Сохранённых хуков пока нет. Каждый пользователь вводит свой сам.</div>';
+        return;
+    }
     list.innerHTML = hooks.map(function(h) {
         var userId = parseWebhookUserId(h.url) || '?';
         var checked = active && active.id === h.id;
@@ -2385,7 +2394,7 @@ function deleteHookById(id) {
     saveCustomAtilabHooks(custom);
     if (localStorage.getItem(ATILAB_ACTIVE_HOOK_KEY) === id) {
         localStorage.removeItem(ATILAB_ACTIVE_HOOK_KEY);
-        applyActiveAtilabHook(getActiveAtilabHook(), true);
+        applyActiveAtilabHook(null, true);
     }
     renderHookList();
 }
@@ -3846,6 +3855,11 @@ function bindAtilabKanbanDnD(board) {
 }
 
 async function moveAtilabTaskToStage(taskId, toStageKey) {
+    if (!activeAtilabHookId) {
+        showErrorNotification('Сначала выберите свой хук через *');
+        openHookModal();
+        return;
+    }
     var task = atilabTasks.find(function(t) { return t.id === taskId; });
     if (!task) return;
 
@@ -3933,6 +3947,12 @@ async function atilabAddTaskComment(taskId, text) {
 }
 
 async function atilabOnDeployToggle(taskId, kind, checked, inputEl) {
+    if (!activeAtilabHookId) {
+        if (inputEl) inputEl.checked = !checked;
+        showErrorNotification('Сначала выберите свой хук через *');
+        openHookModal();
+        return;
+    }
     var task = atilabTasks.find(function(t) { return t.id === taskId; });
     if (!task) return;
 
