@@ -1318,29 +1318,29 @@
             transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
         .kb-col-head {
-            padding: 12px 14px 10px;
+            padding: 10px 12px 8px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
+            gap: 6px;
             border-bottom: 1px solid rgba(0,0,0,0.04);
         }
         .kb-col-title {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
             color: #1e293b;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
         .kb-col-count {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
             background: rgba(255,255,255,0.75);
             color: #475569;
-            padding: 2px 8px;
+            padding: 1px 7px;
             border-radius: 999px;
-            min-width: 22px;
+            min-width: 20px;
             text-align: center;
         }
         .kb-col-body {
@@ -2079,8 +2079,8 @@
                     <button class="tab-btn active" data-tab="atilab" onclick="switchTab('atilab')">АтиЛаб</button>
                     <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
                 </div>
-                <span class="concept-badge">КАНБАН · КОНЦЕПТ</span>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.29</span>
+                <span class="concept-badge" id="conceptBadge">КАНБАН · КОНЦЕПТ</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.30</span>
                 <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
             </div>
         </div>
@@ -6388,6 +6388,11 @@ function exportExcelEvich() {
 
 // ===== INIT =====
 document.addEventListener("DOMContentLoaded", function() {
+    // Чип «КАНБАН · КОНЦЕПТ» только на локалке; на проде скрываем
+    var isLocalHost = /^(localhost|127\.0\.0\.1)$/i.test(location.hostname);
+    var conceptBadge = document.getElementById('conceptBadge');
+    if (conceptBadge && !isLocalHost) conceptBadge.style.display = 'none';
+
     // По умолчанию открываем АтиЛаб, но остальные вкладки доступны
     document.body.classList.add('tab-atilab');
     var titleEl = document.getElementById('headerTitle');
