@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>ИТ Поддержка — Дакар</title>
+    <title>ИТ Поддержка — АтиЛаб (канбан)</title>
     <!-- XLSX export with styles -->
     <script src="https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js"></script>
     <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
@@ -19,6 +19,15 @@
             color: #1a1a2e;
             min-height: 100vh;
             transition: filter 0.3s ease;
+        }
+
+        /* Канбан-концепт: на всю высоту окна */
+        html, body { height: 100%; }
+        body.tab-atilab {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: linear-gradient(145deg, #e8eef8 0%, #ece6f5 45%, #e4ecf7 100%);
         }
 
         body.blurred > *:not(.preview-overlay):not(.preview-panel):not(.loading-bar) {
@@ -38,6 +47,7 @@
             top: 0;
             z-index: 100;
             box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            flex-shrink: 0;
         }
 
         .header-left {
@@ -106,6 +116,27 @@
         }
 
         .btn:hover { background: #f9fafb; border-color: #98a2b3; }
+
+        .btn-hook {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            justify-content: center;
+            font-size: 16px;
+            color: #92400e;
+            background: #fff7ed;
+            border-color: #fed7aa;
+        }
+        .btn-hook:hover { background: #ffedd5; border-color: #fdba74; }
+        .hook-user-badge {
+            font-size: 11px;
+            color: #475569;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            padding: 4px 8px;
+            white-space: nowrap;
+        }
 
         .btn-primary {
             background: #1a1a2e;
@@ -488,6 +519,136 @@
         }
 
         .preview-panel.active { transform: translateX(0); }
+
+        .hook-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 260;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.18);
+            backdrop-filter: blur(4px);
+        }
+        .hook-modal.active { display: flex; }
+        .hook-modal-card {
+            width: 640px;
+            max-width: 96vw;
+            max-height: 88vh;
+            overflow: auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 24px 80px rgba(15, 23, 42, 0.22);
+            border: 1px solid #e5e7eb;
+        }
+        .hook-modal-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 18px 20px 14px;
+            border-bottom: 1px solid #eef2f7;
+        }
+        .hook-modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .hook-modal-subtitle {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        .hook-modal-body {
+            padding: 18px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .hook-section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #334155;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .hook-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .hook-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #fff;
+        }
+        .hook-item.active {
+            border-color: #86efac;
+            background: #f6fef8;
+            box-shadow: 0 0 0 1px rgba(134, 239, 172, 0.35);
+        }
+        .hook-item-left {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            min-width: 0;
+        }
+        .hook-item-text {
+            min-width: 0;
+        }
+        .hook-item-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .hook-item-meta {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 3px;
+            word-break: break-all;
+        }
+        .hook-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .hook-form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        .hook-input {
+            width: 100%;
+            border: 1px solid #d0d5dd;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 13px;
+            color: #0f172a;
+            background: #fff;
+        }
+        .hook-input:focus {
+            outline: none;
+            border-color: #22c55e;
+            box-shadow: 0 0 0 3px rgba(134, 239, 172, 0.25);
+        }
+        .hook-note {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.45;
+        }
+        .hook-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            padding-top: 6px;
+        }
 
         .preview-header {
             padding: 16px 20px 12px;
@@ -1094,6 +1255,339 @@
         body.tab-atilab .atilab-only { display: flex !important; }
         /* For project-chips-row which is a block */
         body.tab-atilab .atilab-only.atilab-block { display: block !important; }
+        /* Канбан-контейнер — на всю оставшуюся высоту */
+        body.tab-atilab .atilab-only.atilab-kanban-wrap {
+            display: flex !important;
+            flex: 1;
+            min-height: 0;
+            flex-direction: column;
+            max-width: none;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        /* ===== КАНБАН АТИЛАБ (концепт YouGile-like) ===== */
+        .kb-board {
+            display: flex;
+            gap: 12px;
+            padding: 12px 16px 16px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            flex: 1;
+            min-height: 0;
+            align-items: stretch;
+        }
+        .kb-board::-webkit-scrollbar { height: 10px; }
+        .kb-board::-webkit-scrollbar-thumb {
+            background: rgba(100,116,139,0.35);
+            border-radius: 8px;
+        }
+
+        .kb-col {
+            flex: 0 0 280px;
+            width: 280px;
+            max-height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255,255,255,0.55);
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.7);
+            box-shadow: 0 4px 18px rgba(30,41,59,0.06);
+            overflow: hidden;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .kb-col-head {
+            padding: 12px 14px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+        .kb-col-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .kb-col-count {
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.75);
+            color: #475569;
+            padding: 2px 8px;
+            border-radius: 999px;
+            min-width: 22px;
+            text-align: center;
+        }
+        .kb-col-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 0;
+        }
+        .kb-col-body::-webkit-scrollbar { width: 6px; }
+        .kb-col-body::-webkit-scrollbar-thumb {
+            background: rgba(100,116,139,0.3);
+            border-radius: 6px;
+        }
+        .kb-col-empty {
+            font-size: 12px;
+            color: #94a3b8;
+            text-align: center;
+            padding: 24px 8px;
+        }
+
+        /* Цвета шапок колонок */
+        .kb-col[data-stage="new"] .kb-col-head { background: #f3e8ff; }
+        .kb-col[data-stage="inwork"] .kb-col-head { background: #dcfce7; }
+        .kb-col[data-stage="revisions"] .kb-col-head { background: #fee2e2; }
+        .kb-col[data-stage="testing"] .kb-col-head { background: #ede9fe; }
+        .kb-col[data-stage="release"] .kb-col-head { background: #fef9c3; }
+        .kb-col[data-stage="pause"] .kb-col-head { background: #ffedd5; }
+        .kb-col[data-stage="invoice"] .kb-col-head { background: #dbeafe; }
+        .kb-col[data-stage="payment"] .kb-col-head { background: #bbf7d0; }
+        .kb-col[data-stage="done"] .kb-col-head { background: #e2e8f0; }
+        .kb-col[data-stage="done"] { opacity: 0.92; }
+
+        .kb-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 12px 12px 10px;
+            box-shadow: 0 1px 3px rgba(15,23,42,0.08);
+            border: 1px solid #eef2f7;
+            cursor: grab;
+            transition: box-shadow 0.15s, border-color 0.15s, background 0.15s, opacity 0.12s;
+            user-select: none;
+            -webkit-user-drag: none;
+            position: relative;
+            touch-action: none;
+        }
+        .kb-card:active { cursor: grabbing; }
+        .kb-card:hover {
+            box-shadow: 0 4px 12px rgba(15,23,42,0.1);
+        }
+        .kb-card.is-overdue {
+            border-color: #fecaca;
+            box-shadow: 0 0 0 1px rgba(239,68,68,0.15), 0 1px 3px rgba(15,23,42,0.06);
+        }
+        .kb-card.is-dragging {
+            opacity: 0.35;
+        }
+        .kb-card.is-flash {
+            border-color: #b7e4c7;
+            background: #f3fbf5;
+            box-shadow: 0 0 0 1px rgba(134, 239, 172, 0.35), 0 6px 18px rgba(34, 197, 94, 0.08);
+        }
+        .kb-card.is-saving {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        .kb-col.kb-drop-target {
+            transform: scale(1.04);
+            outline: 2px solid rgba(134, 239, 172, 0.85);
+            outline-offset: 2px;
+            box-shadow: 0 14px 34px rgba(34, 197, 94, 0.12);
+            z-index: 5;
+            background: rgba(247, 254, 250, 0.96);
+            overflow: visible;
+        }
+        .kb-col.kb-drop-target .kb-col-body {
+            min-height: 160px;
+            background: rgba(187, 247, 208, 0.22);
+            border: 2px dashed rgba(74, 222, 128, 0.42);
+            box-shadow: inset 0 0 24px rgba(134, 239, 172, 0.12);
+            border-radius: 10px;
+            margin: 4px;
+        }
+        .kb-col.kb-drop-target .kb-col-empty {
+            color: #15803d;
+            font-weight: 600;
+        }
+        .kb-toast {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%);
+            z-index: 10000;
+            background: #0f172a;
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            max-width: 90vw;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .kb-toast.show { opacity: 1; }
+        .kb-toast.err { background: #b91c1c; }
+        .kb-board.is-dragging-board {
+            cursor: grabbing;
+        }
+        body.kb-dragging {
+            cursor: grabbing !important;
+            user-select: none !important;
+        }
+        body.kb-dragging .kb-board {
+            overflow: hidden !important;
+        }
+        .kb-card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .kb-card-project {
+            display: inline-flex;
+            align-items: center;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: #4338ca;
+            background: #eef2ff;
+            padding: 3px 8px;
+            border-radius: 6px;
+            max-width: calc(100% - 88px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-bottom: 0;
+        }
+        .kb-deploy-toggles {
+            display: inline-flex;
+            gap: 4px;
+            flex-shrink: 0;
+            -webkit-user-drag: none;
+            cursor: default;
+            position: relative;
+            z-index: 2;
+        }
+        .kb-deploy-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #64748b;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 4px 7px;
+            cursor: default;
+            user-select: none;
+            line-height: 1;
+            min-height: 24px;
+            min-width: 44px;
+            transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+        }
+        .kb-deploy-toggle:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(15,23,42,0.08);
+            border-color: #cbd5e1;
+        }
+        .kb-deploy-toggle input {
+            width: 14px;
+            height: 14px;
+            margin: 0;
+            cursor: default;
+            accent-color: #16a34a;
+            flex-shrink: 0;
+        }
+        .kb-deploy-toggle span {
+            cursor: default;
+        }
+        .kb-deploy-toggle.is-on {
+            color: #15803d;
+            background: #ecfdf5;
+            border-color: #86efac;
+        }
+        .kb-deploy-toggle.is-busy {
+            opacity: 0.55;
+            pointer-events: none;
+        }
+        .kb-card-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            line-height: 1.35;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .kb-drag-ghost {
+            position: fixed;
+            z-index: 9999;
+            pointer-events: none;
+            width: 260px;
+            opacity: 0.92;
+            transform: rotate(1deg);
+            box-shadow: 0 12px 28px rgba(15,23,42,0.18);
+            border-radius: 12px;
+        }
+        .kb-card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 10px;
+            align-items: center;
+            font-size: 11px;
+            color: #64748b;
+        }
+        .kb-card-meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .kb-card-meta-item svg { width: 12px; height: 12px; flex-shrink: 0; }
+        .kb-card-meta-item.overdue { color: #dc2626; font-weight: 600; }
+        .kb-card-avatar {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff;
+            font-size: 9px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+        .kb-card-foot {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .concept-badge {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: #6d28d9;
+            background: #f3e8ff;
+            border: 1px solid #e9d5ff;
+            padding: 3px 8px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
         body.tab-vnedrenie .dakar-only { display: none !important; }
         body.tab-vnedrenie .atilab-only { display: none !important; }
         body.tab-vnedrenie .vnedrenie-only { display: flex !important; }
@@ -1510,13 +2004,13 @@
     <div class="header-left">
         <div>
             <div style="display:flex;align-items:center;gap:12px">
-                <div class="header-title" id="headerTitle">ИТ Поддержка — Дакар</div>
+                <div class="header-title" id="headerTitle">ИТ Поддержка — АтиЛаб</div>
                 <div class="header-tabs">
-                    <button class="tab-btn active" data-tab="dakar" onclick="switchTab('dakar')">Дакар</button>
-                    <button class="tab-btn" data-tab="atilab" onclick="switchTab('atilab')">АтиЛаб</button>
-                    <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
+                    <button class="tab-btn active" data-tab="atilab" onclick="switchTab('atilab')">АтиЛаб</button>
+                    <!-- Локальный концепт: Дакар/Внедрение скрыты, чтобы не дёргать лишние API -->
                 </div>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.21</span>
+                <span class="concept-badge">КАНБАН · КОНЦЕПТ</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.26</span>
             </div>
             <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
@@ -1529,6 +2023,8 @@
         </div>
         <span class="api-counter" id="apiCounter">API: 0</span>
         <span class="data-source-badge mock" id="dataSourceBadge">MOCK</span>
+        <button class="btn btn-hook" onclick="openHookModal()" id="hookBtn" title="Выбрать хук пользователя">*</button>
+        <span class="hook-user-badge" id="activeHookBadge">Хук: 116</span>
         <button class="btn" onclick="refreshData()" id="refreshBtn">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h-6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
             Обновить
@@ -1566,24 +2062,24 @@
 </div>
 
 <!-- Toolbar: filters + search — АТИЛАБ -->
-<div class="toolbar atilab-only" style="flex-wrap:wrap;gap:6px 8px" id="atilabToolbar">
-    <span class="filter-label">Статус:</span>
+<div class="toolbar atilab-only" style="flex-wrap:wrap;gap:6px 8px;flex-shrink:0" id="atilabToolbar">
+    <span class="filter-label">Колонки:</span>
     <span class="filter-chip afc-new active" data-stage="new" onclick="toggleAtilabFilter(this)">Новые <span class="chip-count" id="atilabCountNew">0</span></span>
     <span class="filter-chip afc-inwork active" data-stage="inwork" onclick="toggleAtilabFilter(this)">Работа <span class="chip-count" id="atilabCountInwork">0</span></span>
+    <span class="filter-chip afc-revisions active" data-stage="revisions" onclick="toggleAtilabFilter(this)">Правки <span class="chip-count" id="atilabCountRevisions">0</span></span>
     <span class="filter-chip afc-testing active" data-stage="testing" onclick="toggleAtilabFilter(this)">Тест <span class="chip-count" id="atilabCountTesting">0</span></span>
     <span class="filter-chip afc-release active" data-stage="release" onclick="toggleAtilabFilter(this)">Релиз <span class="chip-count" id="atilabCountRelease">0</span></span>
-    <span class="filter-chip afc-done active" data-stage="done" onclick="toggleAtilabFilter(this)">Готово <span class="chip-count" id="atilabCountDone">0</span></span>
-    <span class="filter-chip afc-revisions active" data-stage="revisions" onclick="toggleAtilabFilter(this)">Правки <span class="chip-count" id="atilabCountRevisions">0</span></span>
     <span class="filter-chip afc-pause active" data-stage="pause" onclick="toggleAtilabFilter(this)">Пауза <span class="chip-count" id="atilabCountPause">0</span></span>
     <span class="filter-chip afc-invoice active" data-stage="invoice" onclick="toggleAtilabFilter(this)">Счет <span class="chip-count" id="atilabCountInvoice">0</span></span>
     <span class="filter-chip afc-payment active" data-stage="payment" onclick="toggleAtilabFilter(this)">Оплата <span class="chip-count" id="atilabCountPayment">0</span></span>
+    <span class="filter-chip afc-done active" data-stage="done" onclick="toggleAtilabFilter(this)">Готово <span class="chip-count" id="atilabCountDone">0</span></span>
 
     <input class="search-input" type="text" id="atilabSearchInput" placeholder="Поиск..." oninput="renderAtilabTasks()">
 
     <span class="summary-hours" id="atilabSummaryBar" style="white-space:nowrap;font-size:11px;color:#475469;margin-left:auto"><span id="atilabFilteredCount" class="task-count">0 задач</span></span>
 </div>
 <!-- Project chips — АТИЛАБ -->
-<div class="project-chips-row atilab-only atilab-block" id="atilabProjectChips">
+<div class="project-chips-row atilab-only atilab-block" id="atilabProjectChips" style="flex-shrink:0;background:rgba(255,255,255,0.5)">
     <span class="filter-label" style="font-size:10px;margin-right:2px">Проект:</span>
     <span class="project-chip active" data-project="" onclick="toggleAtilabProjectFilter(this)">Все</span>
 </div>
@@ -1628,13 +2124,10 @@
     </div>
 </div>
 
-<!-- Task List — АтиЛаб (скрыт на Дакар и Внедрение).
-     Отдельный контейнер нужен, т.к. #taskList один на обе вкладки —
-     а раньше .container.dakar-only скрывал АтиЛабовский список тоже.
-     См. фикс регрессии v2.20 (коммит 92c1a34). -->
-<div class="container atilab-only atilab-block">
-    <div class="task-list" id="taskListAtilab"></div>
-    <div class="copy-tasks-bar" id="copyTasksBarAtilab" style="display:none">
+<!-- Канбан — АтиЛаб (концепт). Список заменён на колонки по стадиям. -->
+<div class="container atilab-only atilab-block atilab-kanban-wrap">
+    <div class="kb-board" id="taskListAtilab"></div>
+    <div class="copy-tasks-bar" id="copyTasksBarAtilab" style="display:none;flex-shrink:0">
         <button class="btn-copy-tasks" id="btnCopyTasksAtilab" onclick="copyTasksForCurrentTab()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             Копировать список
@@ -1644,6 +2137,42 @@
 
 <!-- Preview Overlay -->
 <div class="preview-overlay" id="previewOverlay" onclick="closePreview()"></div>
+
+<!-- Hook Modal -->
+<div class="hook-modal" id="hookModal" onclick="if(event.target===this) closeHookModal()">
+    <div class="hook-modal-card">
+        <div class="hook-modal-head">
+            <div>
+                <div class="hook-modal-title">Хуки пользователей</div>
+                <div class="hook-modal-subtitle">Смена стадии, чат и чипсы Дем/Раб будут отправляться от выбранного вебхука.</div>
+            </div>
+            <button class="preview-close" onclick="closeHookModal()">&times;</button>
+        </div>
+        <div class="hook-modal-body">
+            <div>
+                <div class="hook-section-title">Активные хуки</div>
+                <div class="hook-list" id="hookList"></div>
+            </div>
+            <div>
+                <div class="hook-section-title">Добавить хук</div>
+                <div class="hook-form-grid">
+                    <input class="hook-input" id="hookNameInput" type="text" placeholder="Имя пользователя, например: Владимир">
+                    <input class="hook-input" id="hookUrlInput" type="text" placeholder="https://1c-cms.bitrix24.ru/rest/USER_ID/WEBHOOK/">
+                </div>
+                <div class="hook-note" style="margin-top:8px">
+                    Хук сохраняется только локально в этом браузере. После выбора нажмите "Применить" или просто сделайте его активным в списке.
+                </div>
+                <div class="hook-modal-actions">
+                    <button class="btn" onclick="closeHookModal()">Закрыть</button>
+                    <button class="btn btn-primary" onclick="saveHookFromModal()">Сохранить хук</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast for kanban actions -->
+<div class="kb-toast" id="kbToast"></div>
 
 <!-- Preview Panel -->
 <div class="preview-panel" id="previewPanel">
@@ -1679,14 +2208,18 @@ const ENTITY_TYPE_ID = window.DASHBOARD_CONFIG.BITRIX_DAKAR_ENTITY_TYPE_ID;
 const TASK_URL_PREFIX = window.DASHBOARD_CONFIG.BITRIX_DAKAR_TASK_URL_PREFIX;
 
 // АтиЛаб: вебхук и шаблон ссылки на задачу
-const ATILAB_API = window.DASHBOARD_CONFIG.BITRIX_ATILAB_WEBHOOK_URL;
-const ATILAB_TASK_URL = window.DASHBOARD_CONFIG.BITRIX_ATILAB_TASK_URL;
+let ATILAB_API = window.DASHBOARD_CONFIG.BITRIX_ATILAB_WEBHOOK_URL;
+let ATILAB_TASK_URL = window.DASHBOARD_CONFIG.BITRIX_ATILAB_TASK_URL;
 
 // ВНЕДРЕНИЕ: тот же вебхук что и АтиЛаб (т.к. только у него есть скоупы im, disk)
-const VNEDRENIE_API = ATILAB_API;
-const VNEDRENIE_TASK_URL = ATILAB_TASK_URL;
+let VNEDRENIE_API = ATILAB_API;
+let VNEDRENIE_TASK_URL = ATILAB_TASK_URL;
 // ID чата «ВНЕДРЕНИЯ» на портале 1c-cms.bitrix24.ru (найден через im.recent.list)
 const VNEDRENIE_CHAT_DIALOG_ID = window.DASHBOARD_CONFIG.BITRIX_VNEDRENIE_CHAT_DIALOG_ID;
+
+const ATILAB_HOOKS_KEY = 'atilab_user_hooks';
+const ATILAB_ACTIVE_HOOK_KEY = 'atilab_active_hook_id';
+let activeAtilabHookId = null;
 
 // ВНЕДРЕНИЕ: теги машины состояний (кириллица, как договорились)
 const VN_TAG = {
@@ -1700,6 +2233,195 @@ const VN_TAG = {
 // Все теги ВНЕДРЕНИЯ — для фильтра (используем OR, но Bitrix24 не поддерживает OR через filter[TAG][] — нужен отдельный запрос)
 const VN_ALL_TAGS = [VN_TAG.vnedritDemo, VN_TAG.vChateDemo, VN_TAG.vnedrenaDemo,
                      VN_TAG.vnedritRab, VN_TAG.vChateRab, VN_TAG.vnedrenaRab];
+
+function parseWebhookUserId(url) {
+    var m = String(url || '').match(/\/rest\/(\d+)\//);
+    return m ? m[1] : '';
+}
+
+function buildTaskUrlFromWebhook(url) {
+    var userId = parseWebhookUserId(url);
+    if (!userId) return window.DASHBOARD_CONFIG.BITRIX_ATILAB_TASK_URL;
+    return 'https://1c-cms.bitrix24.ru/company/personal/user/' + userId + '/tasks/task/view/';
+}
+
+function sanitizeWebhookUrl(url) {
+    var v = String(url || '').trim();
+    if (!v) return '';
+    if (v.slice(-1) !== '/') v += '/';
+    return v;
+}
+
+function getDefaultAtilabHooks() {
+    return [{
+        id: 'default-116',
+        name: 'Андрей / 116',
+        url: sanitizeWebhookUrl(window.DASHBOARD_CONFIG.BITRIX_ATILAB_WEBHOOK_URL),
+        locked: true
+    }];
+}
+
+function getStoredAtilabHooks() {
+    try {
+        var raw = localStorage.getItem(ATILAB_HOOKS_KEY);
+        var arr = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(arr)) arr = [];
+        return arr;
+    } catch(e) {
+        return [];
+    }
+}
+
+function getAllAtilabHooks() {
+    var defaults = getDefaultAtilabHooks();
+    var custom = getStoredAtilabHooks();
+    var seen = {};
+    var merged = [];
+    defaults.concat(custom).forEach(function(h) {
+        if (!h || !h.id || !h.url) return;
+        if (seen[h.id]) return;
+        seen[h.id] = true;
+        merged.push({
+            id: String(h.id),
+            name: String(h.name || ('Пользователь ' + parseWebhookUserId(h.url))),
+            url: sanitizeWebhookUrl(h.url),
+            locked: !!h.locked
+        });
+    });
+    return merged;
+}
+
+function saveCustomAtilabHooks(items) {
+    try {
+        localStorage.setItem(ATILAB_HOOKS_KEY, JSON.stringify(items || []));
+    } catch(e) {
+        console.warn('saveCustomAtilabHooks failed', e);
+    }
+}
+
+function getActiveAtilabHook() {
+    var hooks = getAllAtilabHooks();
+    var savedId = localStorage.getItem(ATILAB_ACTIVE_HOOK_KEY);
+    var hook = hooks.find(function(h) { return h.id === savedId; }) || hooks[0];
+    return hook || null;
+}
+
+function applyActiveAtilabHook(hook, skipReload) {
+    if (!hook) return;
+    activeAtilabHookId = hook.id;
+    localStorage.setItem(ATILAB_ACTIVE_HOOK_KEY, hook.id);
+    ATILAB_API = sanitizeWebhookUrl(hook.url);
+    ATILAB_TASK_URL = buildTaskUrlFromWebhook(ATILAB_API);
+    VNEDRENIE_API = ATILAB_API;
+    VNEDRENIE_TASK_URL = ATILAB_TASK_URL;
+    var badge = document.getElementById('activeHookBadge');
+    if (badge) {
+        var uid = parseWebhookUserId(ATILAB_API) || '?';
+        badge.textContent = 'Хук: ' + (hook.name || uid) + ' (' + uid + ')';
+    }
+    if (!skipReload && currentTab === 'atilab') {
+        atilabIsLoaded = false;
+        atilabTasks = [];
+        refreshData();
+    }
+}
+
+function renderHookList() {
+    var list = document.getElementById('hookList');
+    if (!list) return;
+    var hooks = getAllAtilabHooks();
+    var active = getActiveAtilabHook();
+    list.innerHTML = hooks.map(function(h) {
+        var userId = parseWebhookUserId(h.url) || '?';
+        var checked = active && active.id === h.id;
+        var safeUrl = escapeHtml(h.url.replace(/\/rest\/\d+\/[^/]+\//, '/rest/' + userId + '/***\/'));
+        return '<div class="hook-item' + (checked ? ' active' : '') + '">' +
+            '<div class="hook-item-left">' +
+                '<input type="radio" name="atilabHookChoice" ' + (checked ? 'checked' : '') + ' onchange="selectHookById(\'' + escapeHtml(h.id) + '\')">' +
+                '<div class="hook-item-text">' +
+                    '<div class="hook-item-name">' + escapeHtml(h.name) + '</div>' +
+                    '<div class="hook-item-meta">userId: ' + escapeHtml(userId) + ' · ' + safeUrl + '</div>' +
+                '</div>' +
+            '</div>' +
+            '<div class="hook-item-actions">' +
+                (h.locked ? '<span class="hook-note">системный</span>' : '<button class="btn" onclick="deleteHookById(\'' + escapeHtml(h.id) + '\')">Удалить</button>') +
+            '</div>' +
+        '</div>';
+    }).join('');
+}
+
+function openHookModal() {
+    var modal = document.getElementById('hookModal');
+    if (!modal) return;
+    if (modal.classList.contains('active')) {
+        closeHookModal();
+        return;
+    }
+    modal.classList.add('active');
+    var nameEl = document.getElementById('hookNameInput');
+    var urlEl = document.getElementById('hookUrlInput');
+    if (nameEl) nameEl.value = '';
+    if (urlEl) urlEl.value = '';
+    renderHookList();
+}
+
+function closeHookModal() {
+    var modal = document.getElementById('hookModal');
+    if (modal) modal.classList.remove('active');
+}
+
+function selectHookById(id) {
+    var hooks = getAllAtilabHooks();
+    var hook = hooks.find(function(h) { return h.id === id; });
+    if (!hook) return;
+    applyActiveAtilabHook(hook, false);
+    renderHookList();
+    showKbToast('Активный хук: ' + hook.name, false);
+}
+
+function deleteHookById(id) {
+    var custom = getStoredAtilabHooks().filter(function(h) { return h.id !== id; });
+    saveCustomAtilabHooks(custom);
+    if (localStorage.getItem(ATILAB_ACTIVE_HOOK_KEY) === id) {
+        localStorage.removeItem(ATILAB_ACTIVE_HOOK_KEY);
+        applyActiveAtilabHook(getActiveAtilabHook(), true);
+    }
+    renderHookList();
+}
+
+function saveHookFromModal() {
+    var nameEl = document.getElementById('hookNameInput');
+    var urlEl = document.getElementById('hookUrlInput');
+    var name = (nameEl && nameEl.value ? nameEl.value : '').trim();
+    var url = sanitizeWebhookUrl(urlEl && urlEl.value ? urlEl.value : '');
+    if (!url || url.indexOf('/rest/') === -1) {
+        showErrorNotification('Введите корректный webhook Bitrix24');
+        return;
+    }
+    var userId = parseWebhookUserId(url);
+    if (!userId) {
+        showErrorNotification('Не удалось определить userId из webhook');
+        return;
+    }
+    var custom = getStoredAtilabHooks();
+    var id = 'hook-' + userId;
+    var existing = custom.find(function(h) { return h.id === id; });
+    if (existing) {
+        existing.name = name || ('Пользователь ' + userId);
+        existing.url = url;
+    } else {
+        custom.push({
+            id: id,
+            name: name || ('Пользователь ' + userId),
+            url: url
+        });
+    }
+    saveCustomAtilabHooks(custom);
+    if (nameEl) nameEl.value = '';
+    if (urlEl) urlEl.value = '';
+    renderHookList();
+    selectHookById(id);
+}
 
 // За сколько дней смотрим изменения (опрос задач)
 const VN_DAYS_BACK = 3;
@@ -1727,6 +2449,8 @@ const ATILAB_STAGE_MAP = {
   '70': { '0': 'Новые', '614': 'Новые', '620': 'Оценка', '616': 'Работа', '618': 'Правки', '760': 'Тест', '762': 'Релиз', '764': 'Готово', '766': 'Пауза', '768': 'Счет', '770': 'Оплата' },
   '72': { '0': 'Новые', '624': 'Новые', '772': 'Оценка', '626': 'Работа', '628': 'Правки', '774': 'Тест', '776': 'Релиз', '778': 'Готово', '780': 'Пауза', '782': 'Счет', '784': 'Оплата' },
   '82': { '0': 'Новые', '832': 'Новые', '834': 'Оценка', '836': 'Работа', '840': 'Тест', '842': 'Релиз', '838': 'Правки', '846': 'Пауза', '844': 'Готово', '848': 'Счет', '850': 'Оплата' },
+  // Фурина Колор Групп (подтянуто 2026-08-06; также подгружается динамически)
+  '88': { '0': 'Новые', '1056': 'Новые', '1050': 'Работа', '1052': 'Тест', '1058': 'Релиз', '1054': 'Готово' },
   // Legacy projects (3 stages only)
   '18': { '0': 'Новые', '218': 'Новые', '220': 'Выполняются', '222': 'Сделаны' },
   '60': { '0': 'Новые', '552': 'Новые', '554': 'Выполняются', '556': 'Сделаны' },
@@ -1762,6 +2486,7 @@ const ATILAB_PROJECT_NAMES = {
   '70': 'МАРКДЖЕТ',
   '72': 'Керамика Фабрика',
   '82': 'ЮРИСТЫ БИГАП',
+  '88': 'Фурина Колор Групп',
   // Legacy (still active):
   '18': 'Проект 18',
   '60': 'Проект 60',
@@ -1840,7 +2565,7 @@ let dateTo = null;
 let lastFilteredTasks = []; // Для копирования списка задач
 
 // ===== АТИЛАБ STATE =====
-let currentTab = 'dakar'; // 'dakar' | 'atilab' | 'vnedrenie'
+let currentTab = 'atilab'; // локальный концепт: только АтиЛаб (без Дакар/Внедрение)
 let atilabTasks = [];
 let atilabActiveFilters = new Set(['new', 'inwork', 'testing', 'release', 'done', 'revisions', 'pause', 'invoice', 'payment']);
 let atilabProjectFilter = null; // null = all projects
@@ -1951,6 +2676,18 @@ function showErrorNotification(msg) {
         el.style.color = '#dc2626';
         setTimeout(function() { el.style.color = ''; }, 5000);
     }
+    showKbToast(msg, true);
+}
+
+function showKbToast(msg, isError) {
+    var el = document.getElementById('kbToast');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'kb-toast show ' + (isError ? 'err' : 'ok');
+    clearTimeout(showKbToast._t);
+    showKbToast._t = setTimeout(function() {
+        el.classList.remove('show');
+    }, 3200);
 }
 
 function getUserName(userId) {
@@ -2583,6 +3320,43 @@ function getAtilabKanbanStageName(groupId, stageId) {
     return '';
 }
 
+/** Подтянуть стадии канбана Bitrix для проектов, которых нет в ATILAB_STAGE_MAP */
+async function ensureAtilabStageMaps(groupIds) {
+    var missing = [];
+    (groupIds || []).forEach(function(g) {
+        var gid = String(g || '');
+        if (!gid || gid === '0') return;
+        if (ATILAB_STAGE_MAP[gid]) return;
+        if (missing.indexOf(gid) === -1) missing.push(gid);
+    });
+    for (var i = 0; i < missing.length; i++) {
+        var gid = missing[i];
+        try {
+            incrementApiCount();
+            var resp = await fetch(ATILAB_API + 'task.stages.get?entityId=' + encodeURIComponent(gid));
+            var data = await resp.json();
+            if (!data || data.error) {
+                console.warn('[atilab] stages.get failed for group', gid, data && data.error);
+                continue;
+            }
+            var result = data.result || {};
+            var map = { '0': 'Новые' };
+            Object.keys(result).forEach(function(k) {
+                var st = result[k];
+                if (!st) return;
+                var sid = st.ID != null ? String(st.ID) : String(k);
+                var title = (st.TITLE || '').trim();
+                if (sid) map[sid] = title || 'Новые';
+            });
+            ATILAB_STAGE_MAP[gid] = map;
+            console.log('[atilab] stages loaded for group', gid, map);
+        } catch (e) {
+            console.warn('[atilab] stages.get error for group', gid, e);
+        }
+        await new Promise(function(r) { setTimeout(r, 50); });
+    }
+}
+
 // ===== АТИЛАБ: LOAD DATA =====
 async function loadAtilabData() {
     var bar = document.getElementById('loadingBar');
@@ -2606,7 +3380,8 @@ async function loadAtilabData() {
                 var url = ATILAB_API + 'tasks.task.list?filter%5B%3CSTATUS%5D=5&start=' + start +
                     '&select%5B%5D=ID&select%5B%5D=TITLE&select%5B%5D=STAGE_ID&select%5B%5D=GROUP_ID' +
                     '&select%5B%5D=STATUS&select%5B%5D=RESPONSIBLE_ID&select%5B%5D=DEADLINE' +
-                    '&select%5B%5D=CREATED_DATE&select%5B%5D=DESCRIPTION&select%5B%5D=CREATED_BY';
+                    '&select%5B%5D=CREATED_DATE&select%5B%5D=DESCRIPTION&select%5B%5D=CREATED_BY' +
+                    '&select%5B%5D=TAGS';
                 var resp = await fetch(url);
                 var data = await resp.json();
                 if (!isValidApiResponse(data)) {
@@ -2618,7 +3393,7 @@ async function loadAtilabData() {
 
                 if (data.next && data.next > start) {
                     start = data.next;
-                    fill.style.width = (30 + Math.min(60, (start / 350) * 60)) + '%';
+                    fill.style.width = (30 + Math.min(50, (start / 350) * 50)) + '%';
                     await new Promise(function(r) { setTimeout(r, 100); });
                 } else {
                     break;
@@ -2629,6 +3404,16 @@ async function loadAtilabData() {
             }
         }
 
+        fill.style.width = '82%';
+
+        // Step 2.5: подтянуть стадии для неизвестных проектов (иначе всё падает в «Новые»)
+        var groupIds = [];
+        allTasks.forEach(function(t) {
+            var g = String(t.groupId || '');
+            if (g && groupIds.indexOf(g) === -1) groupIds.push(g);
+        });
+        await ensureAtilabStageMaps(groupIds);
+
         fill.style.width = '90%';
 
         // Step 3: Map tasks
@@ -2636,6 +3421,9 @@ async function loadAtilabData() {
             var kanbanKey = mapAtilabKanbanStage(t.groupId, t.stageId);
             if (!kanbanKey) return null;  // completed stage, skip
             var groupName = (t.group && t.group.name) ? t.group.name : (ATILAB_PROJECT_NAMES[String(t.groupId)] || 'Проект ' + t.groupId);
+            if (t.group && t.group.name && !ATILAB_PROJECT_NAMES[String(t.groupId)]) {
+                ATILAB_PROJECT_NAMES[String(t.groupId)] = t.group.name;
+            }
             var responsibleName = (t.responsible && t.responsible.name) ? t.responsible.name : (atilabUserMap[String(t.responsibleId)] || 'Пользователь ' + t.responsibleId);
             var creatorName = (t.creator && t.creator.name) ? t.creator.name : (atilabUserMap[String(t.createdBy)] || '');
             var kanbanStage = getAtilabKanbanStageName(t.groupId, t.stageId);
@@ -2645,6 +3433,8 @@ async function loadAtilabData() {
             // Clean description from HTML tags
             var desc = t.description || '';
             desc = desc.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+
+            var tagTitles = vnExtractTagTitles(t.tags);
 
             return {
                 id: parseInt(t.id) || 0,
@@ -2660,7 +3450,11 @@ async function loadAtilabData() {
                 creatorName: creatorName,
                 deadline: deadlineStr,
                 created: createdStr,
-                description: desc
+                description: desc,
+                tags: tagTitles,
+                demoDone: vnHasTag(tagTitles, VN_TAG.vnedrenaDemo),
+                rabDone: vnHasTag(tagTitles, VN_TAG.vnedrenaRab),
+                movedAt: 0
             };
         }).filter(function(t) {
             return t !== null && t.id > 0 && !ATILAB_EXCLUDED_GROUPS.has(t.groupId);
@@ -2679,10 +3473,10 @@ async function loadAtilabData() {
 
         console.log('Atilab data loaded:', atilabTasks.length, 'tasks');
         // Debug: verify stage mapping for known problematic tasks
-        var debugIds = [7312, 7368, 7152, 6516];
+        var debugIds = [7312, 7368, 7152, 6516, 8414];
         atilabTasks.forEach(function(t) {
             if (debugIds.indexOf(t.id) !== -1) {
-                console.log('  DEBUG task #' + t.id + ': stageId=' + t.stageId + ', kanbanStage=' + t.kanbanStage + ', status=' + t.status + ', group=' + t.groupName);
+                console.log('  DEBUG task #' + t.id + ': stageId=' + t.stageId + ', kanbanStage=' + t.kanbanStage + ', status=' + t.status + ', group=' + t.groupName + ' (' + t.groupId + ')');
             }
         });
         return true;
@@ -2807,10 +3601,428 @@ function switchTab(tab) {
     }
 }
 
-// ===== АТИЛАБ: RENDER TASKS =====
+// ===== АТИЛАБ: RENDER KANBAN =====
+// Порядок колонок: поток от Новые → … → Готово (финал)
+var ATILAB_KANBAN_ORDER = ['new', 'inwork', 'revisions', 'testing', 'release', 'pause', 'invoice', 'payment', 'done'];
+
+// Предпочтительные названия стадий Bitrix для reverse-lookup STAGE_ID
+var ATILAB_KEY_TO_STAGE_NAMES = {
+    new:       ['Новые'],
+    inwork:    ['Работа', 'Выполняются', 'Оценка'],
+    revisions: ['Правки'],
+    testing:   ['Тест'],
+    release:   ['Релиз'],
+    done:      ['Готово', 'Сделаны'],
+    pause:     ['Пауза'],
+    invoice:   ['Счет'],
+    payment:   ['Оплата']
+};
+
+var kbDragTaskId = null;
+var kbDragFromStage = null;
+var kbDidDrag = false;
+var kbFlashTaskId = null;
+var kbDrag = null;
+var kbDndGlobalBound = false;
+
+var ATILAB_DEPLOY_MSG_KEY = 'atilab_deploy_msg_ids';
+
+function atilabInitials(name) {
+    if (!name) return '?';
+    var parts = String(name).trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return parts[0].substring(0, 2).toUpperCase();
+}
+
+/** Найти Bitrix STAGE_ID для groupId + внутренней стадии канбана */
+function resolveAtilabStageId(groupId, stageKey) {
+    var gMap = ATILAB_STAGE_MAP[String(groupId)];
+    if (!gMap) return null;
+    var names = ATILAB_KEY_TO_STAGE_NAMES[stageKey] || [];
+    for (var n = 0; n < names.length; n++) {
+        var want = names[n];
+        var found = null;
+        Object.keys(gMap).forEach(function(sid) {
+            if (sid === '0') return;
+            if (gMap[sid] === want && found === null) found = sid;
+        });
+        if (found !== null) return found;
+    }
+    return null;
+}
+
+function clearKbDropHighlights() {
+    document.querySelectorAll('.kb-col.kb-drop-target').forEach(function(el) {
+        el.classList.remove('kb-drop-target');
+    });
+}
+
+function kbHighlightColumnAt(x, y) {
+    clearKbDropHighlights();
+    var el = document.elementFromPoint(x, y);
+    var col = el && el.closest ? el.closest('.kb-col') : null;
+    if (col) {
+        // Исходная колонка не должна реагировать, пока карточка перетаскивается
+        if (kbDrag && col.dataset.stage === kbDrag.fromStage) {
+            return null;
+        }
+        col.classList.add('kb-drop-target');
+        return col.dataset.stage || null;
+    }
+    return null;
+}
+
+function getAtilabDeployMsgStore() {
+    try {
+        var raw = localStorage.getItem(ATILAB_DEPLOY_MSG_KEY);
+        return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function saveAtilabDeployMsgStore(data) {
+    try {
+        localStorage.setItem(ATILAB_DEPLOY_MSG_KEY, JSON.stringify(data));
+    } catch (e) {
+        console.warn('saveAtilabDeployMsgStore failed', e);
+    }
+}
+
+function atilabDeployMsgKey(taskId, kind) {
+    return String(taskId) + ':' + kind;
+}
+
+function kbEndDragCleanup() {
+    if (!kbDrag) return;
+    if (kbDrag.ghost && kbDrag.ghost.parentNode) kbDrag.ghost.parentNode.removeChild(kbDrag.ghost);
+    if (kbDrag.card) kbDrag.card.classList.remove('is-dragging');
+    if (kbDrag.board) {
+        kbDrag.board.classList.remove('is-dragging-board');
+        kbDrag.board.style.overflowX = kbDrag.prevOverflowX || '';
+        kbDrag.board.style.overflowY = kbDrag.prevOverflowY || '';
+    }
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    document.body.classList.remove('kb-dragging');
+    clearKbDropHighlights();
+}
+
+function kbOnMouseMove(e) {
+    if (!kbDrag) return;
+    var dx = e.clientX - kbDrag.startX;
+    var dy = e.clientY - kbDrag.startY;
+
+    if (!kbDrag.active) {
+        if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+        kbDrag.active = true;
+        kbDidDrag = true;
+        kbDragTaskId = kbDrag.taskId;
+        kbDragFromStage = kbDrag.fromStage;
+        kbDrag.card.classList.add('is-dragging');
+        document.body.classList.add('kb-dragging');
+        document.body.style.cursor = 'grabbing';
+        document.body.style.userSelect = 'none';
+
+        var ghost = kbDrag.card.cloneNode(true);
+        ghost.classList.add('kb-drag-ghost');
+        ghost.classList.remove('is-dragging', 'is-flash');
+        ghost.style.width = kbDrag.card.offsetWidth + 'px';
+        ghost.style.pointerEvents = 'none';
+        document.body.appendChild(ghost);
+        kbDrag.ghost = ghost;
+
+        if (kbDrag.board) {
+            kbDrag.board.classList.add('is-dragging-board');
+            kbDrag.prevOverflowX = kbDrag.board.style.overflowX;
+            kbDrag.prevOverflowY = kbDrag.board.style.overflowY;
+            kbDrag.board.style.overflowX = 'hidden';
+            kbDrag.board.style.overflowY = 'hidden';
+        }
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (kbDrag.ghost) {
+        kbDrag.ghost.style.left = (e.clientX - 36) + 'px';
+        kbDrag.ghost.style.top = (e.clientY - 20) + 'px';
+        kbDrag.ghost.style.display = 'none';
+    }
+    kbDrag.hoverStage = kbHighlightColumnAt(e.clientX, e.clientY);
+    if (kbDrag.ghost) kbDrag.ghost.style.display = '';
+}
+
+function kbOnMouseUp(e) {
+    if (!kbDrag) return;
+    var drag = kbDrag;
+    kbDrag = null;
+
+    document.removeEventListener('mousemove', kbOnMouseMove, true);
+    document.removeEventListener('mouseup', kbOnMouseUp, true);
+
+    var toStage = drag.hoverStage || null;
+    if (drag.active) {
+        if (drag.ghost) drag.ghost.style.display = 'none';
+        var live = kbHighlightColumnAt(e.clientX, e.clientY);
+        if (live) toStage = live;
+    }
+
+    if (drag.ghost && drag.ghost.parentNode) drag.ghost.parentNode.removeChild(drag.ghost);
+    if (drag.card) drag.card.classList.remove('is-dragging');
+    if (drag.board) {
+        drag.board.classList.remove('is-dragging-board');
+        drag.board.style.overflowX = drag.prevOverflowX || '';
+        drag.board.style.overflowY = drag.prevOverflowY || '';
+    }
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    document.body.classList.remove('kb-dragging');
+    clearKbDropHighlights();
+
+    kbDragTaskId = null;
+    kbDragFromStage = null;
+    setTimeout(function() { kbDidDrag = false; }, 100);
+
+    if (!drag.active) return;
+    if (!toStage || !drag.taskId) {
+        showKbToast('Отпустите карточку над колонкой', true);
+        return;
+    }
+    moveAtilabTaskToStage(drag.taskId, toStage);
+}
+
+function bindAtilabKanbanDnD(board) {
+    if (!board) return;
+
+    if (!board._kbClickBound) {
+        board._kbClickBound = true;
+        board.addEventListener('click', function(e) {
+            if (e.target.closest('.kb-deploy-toggles')) return;
+            var card = e.target.closest('.kb-card');
+            if (!card || !board.contains(card)) return;
+            if (kbDidDrag) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+            var id = parseInt(card.dataset.taskId, 10);
+            if (id) openAtilabPreview(id);
+        });
+    }
+
+    if (kbDndGlobalBound) return;
+    kbDndGlobalBound = true;
+
+    document.addEventListener('mousedown', function(e) {
+        if (e.button !== 0) return;
+        if (e.target.closest('.kb-deploy-toggles')) return;
+        var card = e.target.closest('.kb-card');
+        if (!card) return;
+        var boardEl = document.getElementById('taskListAtilab');
+        if (!boardEl || !boardEl.contains(card)) return;
+
+        // Блокируем скролл доски и нативный drag сразу при нажатии
+        e.preventDefault();
+
+        kbDrag = {
+            taskId: parseInt(card.dataset.taskId, 10),
+            fromStage: card.dataset.stage,
+            card: card,
+            board: boardEl,
+            ghost: null,
+            startX: e.clientX,
+            startY: e.clientY,
+            active: false,
+            hoverStage: null,
+            prevOverflowX: '',
+            prevOverflowY: ''
+        };
+
+        document.addEventListener('mousemove', kbOnMouseMove, true);
+        document.addEventListener('mouseup', kbOnMouseUp, true);
+    }, true);
+}
+
+async function moveAtilabTaskToStage(taskId, toStageKey) {
+    var task = atilabTasks.find(function(t) { return t.id === taskId; });
+    if (!task) return;
+
+    var sameStage = task.status === toStageKey;
+    var stageId = resolveAtilabStageId(task.groupId, toStageKey);
+    if (!sameStage && !stageId) {
+        showErrorNotification('Нет стадии «' + ((atilabStageConfig[toStageKey] || {}).label || toStageKey) + '» в проекте «' + task.groupName + '»');
+        return;
+    }
+
+    var prevStatus = task.status;
+    var prevStageId = task.stageId;
+    var prevKanban = task.kanbanStage;
+    var prevMovedAt = task.movedAt || 0;
+    var stageCfg = atilabStageConfig[toStageKey] || atilabStageConfig.new;
+
+    // Оптимистично: наверх колонки + лёгкий flash
+    task.status = toStageKey;
+    if (!sameStage) {
+        task.stageId = stageId;
+        task.kanbanStage = stageCfg.label;
+    }
+    task.movedAt = Date.now();
+    kbFlashTaskId = taskId;
+    renderAtilabTasks();
+    setTimeout(function() {
+        if (kbFlashTaskId === taskId) {
+            kbFlashTaskId = null;
+            var el = document.querySelector('.kb-card[data-task-id="' + taskId + '"]');
+            if (el) el.classList.remove('is-flash');
+        }
+    }, 1200);
+
+    if (sameStage) return; // только локальный порядок
+
+    try {
+        incrementApiCount();
+        var resp = await fetch(ATILAB_API + 'tasks.task.update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                taskId: taskId,
+                fields: { STAGE_ID: String(stageId) }
+            })
+        });
+        var data = await resp.json();
+        if (!data || data.error || !data.result) {
+            throw new Error((data && (data.error_description || data.error)) || 'Bitrix update failed');
+        }
+        console.log('Atilab stage moved: #' + taskId + ' → ' + toStageKey + ' (STAGE_ID=' + stageId + ')');
+        showKbToast('Стадия в Bitrix: «' + stageCfg.label + '»', false);
+    } catch (err) {
+        console.error('moveAtilabTaskToStage failed:', err);
+        task.status = prevStatus;
+        task.stageId = prevStageId;
+        task.kanbanStage = prevKanban;
+        task.movedAt = prevMovedAt;
+        kbFlashTaskId = null;
+        renderAtilabTasks();
+        showErrorNotification('Не удалось переместить задачу #' + taskId + ' в Bitrix24');
+    }
+}
+
+async function atilabAddTaskComment(taskId, text) {
+    try {
+        incrementApiCount();
+        var resp = await fetch(ATILAB_API + 'task.commentitem.add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                TASKID: taskId,
+                FIELDS: { POST_MESSAGE: text }
+            })
+        });
+        var data = await resp.json();
+        if (data && data.error) {
+            console.warn('task.commentitem.add error:', data.error, data.error_description);
+            return null;
+        }
+        return data.result || null;
+    } catch (e) {
+        console.warn('task.commentitem.add failed:', e);
+        return null;
+    }
+}
+
+async function atilabOnDeployToggle(taskId, kind, checked, inputEl) {
+    var task = atilabTasks.find(function(t) { return t.id === taskId; });
+    if (!task) return;
+
+    var isRab = kind === 'rab';
+    var tagVnedrena = isRab ? VN_TAG.vnedrenaRab : VN_TAG.vnedrenaDemo;
+    var tagVnedit = isRab ? VN_TAG.vnedritRab : VN_TAG.vnedritDemo;
+    var tagVChate = isRab ? VN_TAG.vChateRab : VN_TAG.vChateDemo;
+    var targetLabel = isRab ? 'РАБОЧУЮ' : 'ДЕМО';
+    var cancelLabel = isRab ? 'рабочую' : 'демо';
+    var labelShort = isRab ? 'Раб' : 'Дем';
+
+    var wrap = inputEl && inputEl.closest ? inputEl.closest('.kb-deploy-toggle') : null;
+    if (wrap) wrap.classList.add('is-busy');
+
+    var prevTags = (task.tags || []).slice();
+    var prevDemo = !!task.demoDone;
+    var prevRab = !!task.rabDone;
+
+    // Optimistic tags
+    var newTags = prevTags.filter(function(t) {
+        return t !== tagVnedrena && t !== tagVnedit && t !== tagVChate;
+    });
+    if (checked) newTags.push(tagVnedrena);
+    task.tags = newTags;
+    if (isRab) task.rabDone = checked; else task.demoDone = checked;
+    if (wrap) wrap.classList.toggle('is-on', checked);
+
+    try {
+        var ok = await vnUpdateTaskTags(taskId, newTags);
+        if (!ok) throw new Error('Не удалось обновить теги задачи');
+
+        var store = getAtilabDeployMsgStore();
+        var msgKey = atilabDeployMsgKey(taskId, kind);
+        var now = new Date();
+        var ts = vnFormatDoneTime(now.getTime());
+        var taskUrl = ATILAB_TASK_URL + taskId + '/';
+        var titleShort = (task.title || '').substring(0, 80);
+
+        if (checked) {
+            var chatMsg = '[S]✅ Задача [URL]' + taskUrl + '[/URL] «' + titleShort + '» [B]внедрена в ' + targetLabel + ' базу ' + ts + '[/S][/B]';
+            var commentMsg = '✅ внедрена в ' + (isRab ? 'рабочую' : 'демо') + ' (' + ts + ')';
+            var msgId = await vnSendChatMessage(chatMsg, true);
+            if (msgId) {
+                store[msgKey] = msgId;
+                saveAtilabDeployMsgStore(store);
+            }
+            await atilabAddTaskComment(taskId, commentMsg);
+            showKbToast(labelShort + ': записано в Bitrix (чат + комментарий)', false);
+        } else {
+            var cancelMsg = '↩ Задача [URL]' + taskUrl + '[/URL] «' + titleShort + '» — отмена загрузки в ' + cancelLabel;
+            var cancelComment = '↩ отмена загрузки в ' + cancelLabel;
+            var existingId = store[msgKey];
+            if (existingId) {
+                incrementApiCount();
+                var upd = await fetch(ATILAB_API + 'im.message.update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        MESSAGE_ID: existingId,
+                        MESSAGE: cancelMsg,
+                        URL_PREVIEW: 'N'
+                    })
+                });
+                var updData = await upd.json();
+                if (!updData || updData.error) {
+                    await vnSendChatMessage(cancelMsg, true);
+                }
+            } else {
+                await vnSendChatMessage(cancelMsg, true);
+            }
+            await atilabAddTaskComment(taskId, cancelComment);
+            showKbToast(labelShort + ': отмена записана в Bitrix', false);
+        }
+    } catch (err) {
+        console.error('atilabOnDeployToggle failed:', err);
+        task.tags = prevTags;
+        task.demoDone = prevDemo;
+        task.rabDone = prevRab;
+        if (inputEl) inputEl.checked = isRab ? prevRab : prevDemo;
+        if (wrap) {
+            wrap.classList.toggle('is-on', isRab ? prevRab : prevDemo);
+        }
+        showErrorNotification('Не удалось обновить «' + labelShort + '» для #' + taskId + ': ' + (err.message || err));
+    } finally {
+        if (wrap) wrap.classList.remove('is-busy');
+    }
+}
+
 function renderAtilabTasks() {
     if (currentTab !== 'atilab') return;
-    var list = document.getElementById('taskListAtilab') || document.getElementById('taskList');
+    var board = document.getElementById('taskListAtilab') || document.getElementById('taskList');
     var query = (document.getElementById("atilabSearchInput") ? document.getElementById("atilabSearchInput").value : "").toLowerCase().trim();
 
     // === Status counts ===
@@ -2827,8 +4039,8 @@ function renderAtilabTasks() {
     el = document.getElementById('atilabCountInvoice'); if (el) el.textContent = statusCounts.invoice;
     el = document.getElementById('atilabCountPayment'); if (el) el.textContent = statusCounts.payment;
 
-    // === Filter ===
-    var filtered = atilabTasks.filter(function(t) { return atilabActiveFilters.has(t.status); });
+    // === Filter (поиск + проект; колонки = активные стадии) ===
+    var filtered = atilabTasks.slice();
     if (atilabProjectFilter) {
         filtered = filtered.filter(function(t) { return t.groupId === atilabProjectFilter; });
     }
@@ -2840,67 +4052,115 @@ function renderAtilabTasks() {
         });
     }
 
-    // Sort: newest first (by created date descending)
     var now = new Date();
+    // Сверху — недавно перетащенные, потом по дате создания
     filtered.sort(function(a, b) {
+        var am = a.movedAt || 0;
+        var bm = b.movedAt || 0;
+        if (bm !== am) return bm - am;
         var aDate = a.created ? new Date(a.created).getTime() : 0;
         var bDate = b.created ? new Date(b.created).getTime() : 0;
-        return bDate - aDate; // newest first
+        return bDate - aDate;
     });
 
-    // Stats
     var overdueCount = 0;
     filtered.forEach(function(t) {
         if (t.deadline && new Date(t.deadline + 'T23:59:59') < now && (t.status === 'new' || t.status === 'inwork' || t.status === 'testing' || t.status === 'revisions')) overdueCount++;
     });
 
+    var visible = filtered.filter(function(t) { return atilabActiveFilters.has(t.status); });
     var filteredCountEl = document.getElementById('atilabFilteredCount');
-    if (filteredCountEl) filteredCountEl.textContent = filtered.length + ' задач' + (overdueCount > 0 ? ' | ⚠ ' + overdueCount + ' просрочено' : '');
+    if (filteredCountEl) filteredCountEl.textContent = visible.length + ' задач' + (overdueCount > 0 ? ' | ⚠ ' + overdueCount + ' просрочено' : '');
 
-    atilabLastFiltered = filtered;
+    atilabLastFiltered = visible;
 
-    // Copy button (try atilab-specific first, fallback to shared for backward compat)
     var copyBar = document.getElementById('copyTasksBarAtilab') || document.getElementById('copyTasksBar');
-    if (copyBar) copyBar.style.display = filtered.length > 0 ? '' : 'none';
+    if (copyBar) copyBar.style.display = visible.length > 0 ? '' : 'none';
 
-    // Comments for indicators
     var _commentsMap = getAtilabCommentsStorage();
 
-    list.innerHTML = filtered.map(function(task) {
-        var stage = atilabStageConfig[task.status] || atilabStageConfig.new;
-        var isOverdue = task.deadline && new Date(task.deadline + 'T23:59:59') < now && (task.status === 'new' || task.status === 'inwork' || task.status === 'testing' || task.status === 'revisions');
-        var deadlineStr = task.deadline ? formatDate(task.deadline) : '';
-        var hasComments = _commentsMap[task.id] && _commentsMap[task.id].length > 0;
+    // Группировка по стадиям
+    var byStage = {};
+    ATILAB_KANBAN_ORDER.forEach(function(k) { byStage[k] = []; });
+    visible.forEach(function(t) {
+        var key = byStage.hasOwnProperty(t.status) ? t.status : 'new';
+        byStage[key].push(t);
+    });
 
-        var overdueTag = isOverdue
-            ? '<span class="task-meta-item task-meta-overdue">⚠ просрочен</span>'
-            : '';
+    var html = '';
+    ATILAB_KANBAN_ORDER.forEach(function(stageKey) {
+        if (!atilabActiveFilters.has(stageKey)) return;
+        var stage = atilabStageConfig[stageKey] || atilabStageConfig.new;
+        var tasks = byStage[stageKey] || [];
+        var cardsHtml = '';
 
-        var commentTag = hasComments
-            ? '<span class="task-meta-item" style="color:#3b82f6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' + _commentsMap[task.id].length + '</span>'
-            : '';
+        if (!tasks.length) {
+            cardsHtml = '<div class="kb-col-empty">Перетащите задачу сюда</div>';
+        } else {
+            cardsHtml = tasks.map(function(task) {
+                var isOverdue = task.deadline && new Date(task.deadline + 'T23:59:59') < now &&
+                    (task.status === 'new' || task.status === 'inwork' || task.status === 'testing' || task.status === 'revisions');
+                var deadlineStr = task.deadline ? formatDate(task.deadline) : '';
+                var hasComments = _commentsMap[task.id] && _commentsMap[task.id].length > 0;
+                var flashCls = (kbFlashTaskId === task.id) ? ' is-flash' : '';
+                var demoOn = !!task.demoDone;
+                var rabOn = !!task.rabDone;
 
-        var kanbanTag = task.kanbanStage
-            ? '<span class="kanban-stage-tag">' + escapeHtml(task.kanbanStage) + '</span>'
-            : '';
+                return '<div class="kb-card' + (isOverdue ? ' is-overdue' : '') + flashCls + '"' +
+                    ' data-task-id="' + task.id + '"' +
+                    ' data-stage="' + stageKey + '"' +
+                    '>' +
+                    '<div class="kb-card-top">' +
+                        '<div class="kb-card-project" title="' + escapeHtml(task.groupName) + '">' + escapeHtml(task.groupName) + '</div>' +
+                        '<div class="kb-deploy-toggles" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation()">' +
+                            '<label class="kb-deploy-toggle' + (demoOn ? ' is-on' : '') + '" title="Внедрена в демо">' +
+                                '<input type="checkbox"' + (demoOn ? ' checked' : '') +
+                                    ' onchange="atilabOnDeployToggle(' + task.id + ', \'demo\', this.checked, this)">' +
+                                '<span>Дем</span>' +
+                            '</label>' +
+                            '<label class="kb-deploy-toggle' + (rabOn ? ' is-on' : '') + '" title="Внедрена в рабочую">' +
+                                '<input type="checkbox"' + (rabOn ? ' checked' : '') +
+                                    ' onchange="atilabOnDeployToggle(' + task.id + ', \'rab\', this.checked, this)">' +
+                                '<span>Раб</span>' +
+                            '</label>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="kb-card-title">' + escapeHtml(task.title) + '</div>' +
+                    '<div class="kb-card-meta">' +
+                        (deadlineStr
+                            ? '<span class="kb-card-meta-item' + (isOverdue ? ' overdue' : '') + '">' +
+                                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' +
+                                deadlineStr + (isOverdue ? ' · просрочен' : '') +
+                              '</span>'
+                            : '') +
+                        (hasComments
+                            ? '<span class="kb-card-meta-item" style="color:#3b82f6">' +
+                                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' +
+                                _commentsMap[task.id].length +
+                              '</span>'
+                            : '') +
+                    '</div>' +
+                    '<div class="kb-card-foot">' +
+                        '<span class="kb-card-meta-item" title="' + escapeHtml(task.responsibleName) + '">' + escapeHtml(task.responsibleName) + '</span>' +
+                        '<span class="kb-card-avatar" title="' + escapeHtml(task.responsibleName) + '">' + escapeHtml(atilabInitials(task.responsibleName)) + '</span>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        }
 
-        return '<div class="task-item ' + (isOverdue ? 'deadline-overdue' : '') + '" onclick="openAtilabPreview(' + task.id + ')">' +
-            '<div class="task-left">' +
-                '<div class="task-title">' + escapeHtml(task.title) + '</div>' +
-                '<div class="task-meta">' +
-                    '<span class="project-badge">' + escapeHtml(task.groupName) + '</span>' +
-                    kanbanTag +
-                    (deadlineStr ? '<span class="task-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>' + deadlineStr + '</span>' : '') +
-                    '<span class="task-meta-item">' + escapeHtml(task.responsibleName) + '</span>' +
-                    overdueTag +
-                    commentTag +
+        html += '<div class="kb-col" data-stage="' + stageKey + '">' +
+            '<div class="kb-col-head">' +
+                '<div class="kb-col-title">' + stage.label +
+                    (stageKey === 'done' ? ' <span style="font-weight:500;opacity:.7;font-size:11px">финал</span>' : '') +
                 '</div>' +
+                '<span class="kb-col-count">' + tasks.length + '</span>' +
             '</div>' +
-            '<div class="task-right">' +
-                '<span class="stage-badge ' + stage.badgeClass + '">' + stage.label + '</span>' +
-            '</div>' +
+            '<div class="kb-col-body">' + cardsHtml + '</div>' +
         '</div>';
-    }).join("");
+    });
+
+    board.innerHTML = html || '<div class="kb-col-empty" style="margin:40px auto">Нет колонок — включите стадии в фильтре</div>';
+    bindAtilabKanbanDnD(board);
 }
 
 // ===== АТИЛАБ: UPDATE PROJECT CHIPS =====
@@ -4893,12 +6153,20 @@ function exportExcelEvich() {
 
 // ===== INIT =====
 document.addEventListener("DOMContentLoaded", function() {
-    initDateRange();
-    // Load live data on startup
+    // Локальный концепт: сразу АтиЛаб-канбан, без запросов Дакар/Внедрение
+    document.body.classList.add('tab-atilab');
+    var titleEl = document.getElementById('headerTitle');
+    if (titleEl) titleEl.textContent = 'ИТ Поддержка — АтиЛаб';
+    applyActiveAtilabHook(getActiveAtilabHook(), true);
     refreshData();
 });
 
-document.addEventListener("keydown", function(e) { if (e.key === "Escape") closePreview(); });
+document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") {
+        closePreview();
+        closeHookModal();
+    }
+});
 </script>
 </body>
 </html>
