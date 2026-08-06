@@ -63,8 +63,10 @@
         }
 
         .header-subtitle {
-            font-size: 12px;
+            font-size: 11px;
             color: #888;
+            margin: 0;
+            white-space: nowrap;
         }
 
         .header-actions {
@@ -262,9 +264,9 @@
         }
 
         .filter-chip {
-            padding: 4px 10px;
-            border-radius: 16px;
-            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
             font-weight: 500;
             cursor: pointer;
             border: 1px solid transparent;
@@ -272,6 +274,7 @@
             user-select: none;
             white-space: nowrap;
             flex-shrink: 0;
+            line-height: 1.35;
         }
 
         .filter-chip.active { color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
@@ -1172,18 +1175,20 @@
             color: #344054;
         }
 
-        /* ===== АТИЛАБ: PROJECT CHIPS ===== */
+        /* ===== АТИЛАБ: PROJECT / DEV CHIPS ===== */
         .project-chips-row {
             display: flex;
             flex-wrap: wrap;
+            align-items: center;
             gap: 4px;
-            padding: 6px 20px;
+            padding: 5px 16px;
             background: #fff;
             border-bottom: 1px solid #e0e0e0;
         }
-        .project-chip {
-            padding: 3px 9px;
-            border-radius: 12px;
+        .project-chip,
+        .dev-chip {
+            padding: 2px 8px;
+            border-radius: 10px;
             font-size: 10px;
             font-weight: 600;
             cursor: pointer;
@@ -1193,14 +1198,29 @@
             white-space: nowrap;
             background: #f2f4f7;
             color: #667085;
+            line-height: 1.35;
         }
-        .project-chip:hover {
+        .project-chip:hover,
+        .dev-chip:hover {
             background: #eaecf0;
         }
-        .project-chip.active {
+        .project-chip.active,
+        .dev-chip.active {
             background: #1a1a2e;
             color: #fff;
             border-color: #1a1a2e;
+        }
+        .dev-chip .dev-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #94a3b8;
+            margin-right: 4px;
+            vertical-align: 1px;
+        }
+        .dev-chip.active .dev-dot {
+            background: #86efac;
         }
 
         /* ===== АТИЛАБ: STAGE BADGES (свои цвета) ===== */
@@ -1255,6 +1275,7 @@
         body.tab-atilab .atilab-only { display: flex !important; }
         /* For project-chips-row which is a block */
         body.tab-atilab .atilab-only.atilab-block { display: block !important; }
+        body.tab-atilab .project-chips-row.atilab-block { display: flex !important; }
         /* Канбан-контейнер — на всю оставшуюся высоту */
         body.tab-atilab .atilab-only.atilab-kanban-wrap {
             display: flex !important;
@@ -1290,7 +1311,7 @@
             display: flex;
             flex-direction: column;
             background: rgba(255,255,255,0.55);
-            border-radius: 14px;
+            border-radius: 12px;
             border: 1px solid rgba(255,255,255,0.7);
             box-shadow: 0 4px 18px rgba(30,41,59,0.06);
             overflow: hidden;
@@ -1554,6 +1575,37 @@
         }
         .kb-card-meta-item svg { width: 12px; height: 12px; flex-shrink: 0; }
         .kb-card-meta-item.overdue { color: #dc2626; font-weight: 600; }
+        .kb-card-time {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.01em;
+            white-space: nowrap;
+        }
+        .kb-card-time svg {
+            width: 13px;
+            height: 13px;
+            color: #3b82f6;
+            flex-shrink: 0;
+        }
+        .kb-card-time .kb-time-fact {
+            color: #334155;
+            font-weight: 600;
+        }
+        .kb-card-time .kb-time-sep {
+            color: #94a3b8;
+            font-weight: 400;
+            margin: 0 1px;
+        }
+        .kb-card-time .kb-time-plan {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+        .kb-card-time.is-over .kb-time-fact {
+            color: #dc2626;
+        }
         .kb-card-avatar {
             width: 22px;
             height: 22px;
@@ -1571,10 +1623,27 @@
         .kb-card-foot {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 8px;
             margin-top: 8px;
             padding-top: 8px;
             border-top: 1px solid #f1f5f9;
+        }
+        .kb-card-assignee {
+            font-size: 11px;
+            color: #64748b;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+        }
+        .kb-card-overdue-flag {
+            font-size: 11px;
+            font-weight: 600;
+            color: #dc2626;
+            white-space: nowrap;
+            margin-left: auto;
+            flex-shrink: 0;
         }
 
         .concept-badge {
@@ -2003,7 +2072,7 @@
 <div class="header">
     <div class="header-left">
         <div>
-            <div style="display:flex;align-items:center;gap:12px">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
                 <div class="header-title" id="headerTitle">ИТ Поддержка — АтиЛаб</div>
                 <div class="header-tabs">
                     <button class="tab-btn" data-tab="dakar" onclick="switchTab('dakar')">Дакар</button>
@@ -2011,9 +2080,9 @@
                     <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
                 </div>
                 <span class="concept-badge">КАНБАН · КОНЦЕПТ</span>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.26</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.29</span>
+                <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
             </div>
-            <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
         </div>
     </div>
     <div class="header-actions">
@@ -2083,6 +2152,11 @@
 <div class="project-chips-row atilab-only atilab-block" id="atilabProjectChips" style="flex-shrink:0;background:rgba(255,255,255,0.5)">
     <span class="filter-label" style="font-size:10px;margin-right:2px">Проект:</span>
     <span class="project-chip active" data-project="" onclick="toggleAtilabProjectFilter(this)">Все</span>
+</div>
+<!-- Executor chips — АТИЛАБ -->
+<div class="project-chips-row atilab-only atilab-block" id="atilabExecutorChips" style="flex-shrink:0;background:rgba(255,255,255,0.45)">
+    <span class="filter-label" style="font-size:10px;margin-right:2px">Исполнитель:</span>
+    <span class="dev-chip active" data-executor="" onclick="toggleAtilabExecutorFilter(this)">ВСЕ</span>
 </div>
 
 <!-- Toolbar: ВНЕДРЕНИЕ -->
@@ -2579,6 +2653,7 @@ let currentTab = 'atilab'; // по умолчанию открываем Ати�
 let atilabTasks = [];
 let atilabActiveFilters = new Set(['new', 'inwork', 'testing', 'release', 'done', 'revisions', 'pause', 'invoice', 'payment']);
 let atilabProjectFilter = null; // null = all projects
+let atilabExecutorFilter = new Set(); // empty = all executors; ids for multi-select
 let atilabLastFiltered = [];
 let atilabIsLoaded = false;
 let atilabUserMap = {};
@@ -2958,6 +3033,7 @@ function refreshData() {
         loadAtilabData().then(function() {
             renderAtilabTasks();
             updateAtilabProjectChips();
+            updateAtilabExecutorChips();
             updateTimestamp();
             btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h-6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Обновить';
             btn.disabled = false;
@@ -3391,7 +3467,7 @@ async function loadAtilabData() {
                     '&select%5B%5D=ID&select%5B%5D=TITLE&select%5B%5D=STAGE_ID&select%5B%5D=GROUP_ID' +
                     '&select%5B%5D=STATUS&select%5B%5D=RESPONSIBLE_ID&select%5B%5D=DEADLINE' +
                     '&select%5B%5D=CREATED_DATE&select%5B%5D=DESCRIPTION&select%5B%5D=CREATED_BY' +
-                    '&select%5B%5D=TAGS';
+                    '&select%5B%5D=TAGS&select%5B%5D=TIME_ESTIMATE&select%5B%5D=TIME_SPENT_IN_LOGS';
                 var resp = await fetch(url);
                 var data = await resp.json();
                 if (!isValidApiResponse(data)) {
@@ -3446,6 +3522,14 @@ async function loadAtilabData() {
 
             var tagTitles = vnExtractTagTitles(t.tags);
 
+            var planSec = parseInt(t.timeEstimate != null ? t.timeEstimate : (t.TIME_ESTIMATE || 0), 10) || 0;
+            var factSec = parseInt(
+                t.timeSpentInLogs != null ? t.timeSpentInLogs :
+                (t.TIME_SPENT_IN_LOGS != null ? t.TIME_SPENT_IN_LOGS :
+                (t.timeSpent != null ? t.timeSpent : (t.TIME_SPENT || 0))),
+                10
+            ) || 0;
+
             return {
                 id: parseInt(t.id) || 0,
                 title: t.title || '',
@@ -3464,6 +3548,8 @@ async function loadAtilabData() {
                 tags: tagTitles,
                 demoDone: vnHasTag(tagTitles, VN_TAG.vnedrenaDemo),
                 rabDone: vnHasTag(tagTitles, VN_TAG.vnedrenaRab),
+                timePlanSec: planSec,
+                timeFactSec: factSec,
                 movedAt: 0
             };
         }).filter(function(t) {
@@ -3579,6 +3665,7 @@ function switchTab(tab) {
             loadAtilabData().then(function() {
                 renderAtilabTasks();
                 updateAtilabProjectChips();
+                updateAtilabExecutorChips();
                 updateTimestamp();
                 btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h-6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Обновить';
                 btn.disabled = false;
@@ -3643,6 +3730,37 @@ function atilabInitials(name) {
     if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
     return parts[0].substring(0, 2).toUpperCase();
 }
+
+/** Секунды → HH:MM:SS (как на скрине план/факт) */
+function formatSecHms(sec) {
+    var s = Math.max(0, parseInt(sec, 10) || 0);
+    var h = Math.floor(s / 3600);
+    var m = Math.floor((s % 3600) / 60);
+    var r = s % 60;
+    function pad(n) { return n < 10 ? '0' + n : String(n); }
+    return pad(h) + ':' + pad(m) + ':' + pad(r);
+}
+
+/** Короткие имена на карточке / в фильтре исполнителей */
+function atilabCardDisplayName(fullName) {
+    var raw = String(fullName || '').trim();
+    var n = raw.toLowerCase();
+    if (!raw) return '?';
+    if (/соколовск/.test(n)) return 'АС';
+    if (/макаров/.test(n)) return 'ВМ';
+    if (/предин|предеин/.test(n)) return 'АМ';
+    if (/попов/.test(n)) return 'Саша';
+    if (/приходько/.test(n)) return 'Костя';
+    // остальные — только имя
+    return raw.split(/\s+/)[0];
+}
+
+/** Короткие ярлыки исполнителей в чипсах фильтра */
+function atilabDevShortLabel(fullName) {
+    return atilabCardDisplayName(fullName);
+}
+
+var ATILAB_DEV_ORDER = ['Костя', 'АС', 'Саша', 'Тимур', 'Елена', 'Оля', 'Ольга', 'Марина', 'АМ', 'ВМ'];
 
 /** Найти Bitrix STAGE_ID для groupId + внутренней стадии канбана */
 function resolveAtilabStageId(groupId, stageKey) {
@@ -4065,6 +4183,11 @@ function renderAtilabTasks() {
     if (atilabProjectFilter) {
         filtered = filtered.filter(function(t) { return t.groupId === atilabProjectFilter; });
     }
+    if (atilabExecutorFilter.size > 0) {
+        filtered = filtered.filter(function(t) {
+            return atilabExecutorFilter.has(String(t.responsibleId || ''));
+        });
+    }
     if (query) {
         filtered = filtered.filter(function(t) {
             return t.title.toLowerCase().includes(query) ||
@@ -4126,6 +4249,10 @@ function renderAtilabTasks() {
                 var flashCls = (kbFlashTaskId === task.id) ? ' is-flash' : '';
                 var demoOn = !!task.demoDone;
                 var rabOn = !!task.rabDone;
+                var factSec = task.timeFactSec || 0;
+                var planSec = task.timePlanSec || 0;
+                var timeOver = planSec > 0 && factSec > planSec;
+                var shortName = atilabCardDisplayName(task.responsibleName);
 
                 return '<div class="kb-card' + (isOverdue ? ' is-overdue' : '') + flashCls + '"' +
                     ' data-task-id="' + task.id + '"' +
@@ -4149,11 +4276,19 @@ function renderAtilabTasks() {
                     '<div class="kb-card-title">' + escapeHtml(task.title) + '</div>' +
                     '<div class="kb-card-meta">' +
                         (deadlineStr
-                            ? '<span class="kb-card-meta-item' + (isOverdue ? ' overdue' : '') + '">' +
+                            ? '<span class="kb-card-meta-item">' +
                                 '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' +
-                                deadlineStr + (isOverdue ? ' · просрочен' : '') +
+                                deadlineStr +
                               '</span>'
                             : '') +
+                        '<span class="kb-card-time' + (timeOver ? ' is-over' : '') + '" title="Факт / План">' +
+                            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                                '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/><path d="M12 2v2"/>' +
+                            '</svg>' +
+                            '<span class="kb-time-fact">' + formatSecHms(factSec) + '</span>' +
+                            '<span class="kb-time-sep">/</span>' +
+                            '<span class="kb-time-plan">' + formatSecHms(planSec) + '</span>' +
+                        '</span>' +
                         (hasComments
                             ? '<span class="kb-card-meta-item" style="color:#3b82f6">' +
                                 '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' +
@@ -4162,8 +4297,8 @@ function renderAtilabTasks() {
                             : '') +
                     '</div>' +
                     '<div class="kb-card-foot">' +
-                        '<span class="kb-card-meta-item" title="' + escapeHtml(task.responsibleName) + '">' + escapeHtml(task.responsibleName) + '</span>' +
-                        '<span class="kb-card-avatar" title="' + escapeHtml(task.responsibleName) + '">' + escapeHtml(atilabInitials(task.responsibleName)) + '</span>' +
+                        '<span class="kb-card-assignee" title="' + escapeHtml(task.responsibleName) + '">' + escapeHtml(shortName) + '</span>' +
+                        (isOverdue ? '<span class="kb-card-overdue-flag">просрочен</span>' : '') +
                     '</div>' +
                 '</div>';
             }).join('');
@@ -4233,8 +4368,82 @@ function toggleAtilabProjectFilter(chip) {
         atilabProjectFilter = atilabProjectFilter === project ? null : project;
     }
     // Update chip active states
-    document.querySelectorAll('.project-chip').forEach(function(c) {
+    document.querySelectorAll('#atilabProjectChips .project-chip').forEach(function(c) {
         c.classList.toggle('active', (atilabProjectFilter === null && c.dataset.project === '') || atilabProjectFilter === c.dataset.project);
+    });
+    renderAtilabTasks();
+}
+
+// ===== АТИЛАБ: EXECUTOR CHIPS =====
+function updateAtilabExecutorChips() {
+    var container = document.getElementById('atilabExecutorChips');
+    if (!container) return;
+
+    var byId = {};
+    atilabTasks.forEach(function(t) {
+        if (ATILAB_EXCLUDED_GROUPS.has(t.groupId)) return;
+        var rid = String(t.responsibleId || '');
+        if (!rid) return;
+        if (!byId[rid]) {
+            byId[rid] = {
+                id: rid,
+                name: t.responsibleName || ('Пользователь ' + rid),
+                label: atilabDevShortLabel(t.responsibleName),
+                count: 0
+            };
+        }
+        byId[rid].count++;
+    });
+
+    var list = Object.keys(byId).map(function(k) { return byId[k]; });
+    list.sort(function(a, b) {
+        var ia = ATILAB_DEV_ORDER.indexOf(a.label);
+        var ib = ATILAB_DEV_ORDER.indexOf(b.label);
+        if (ia < 0) ia = 999;
+        if (ib < 0) ib = 999;
+        if (ia !== ib) return ia - ib;
+        return a.label.localeCompare(b.label, 'ru');
+    });
+
+    // Drop stale selected ids
+    var validIds = {};
+    list.forEach(function(d) { validIds[d.id] = true; });
+    Array.from(atilabExecutorFilter).forEach(function(id) {
+        if (!validIds[id]) atilabExecutorFilter.delete(id);
+    });
+
+    var allActive = atilabExecutorFilter.size === 0;
+    var html = '<span class="filter-label" style="font-size:10px;margin-right:2px">Исполнитель:</span>';
+    html += '<span class="dev-chip ' + (allActive ? 'active' : '') + '" data-executor="" onclick="toggleAtilabExecutorFilter(this)">ВСЕ</span>';
+
+    list.forEach(function(d) {
+        var isActive = atilabExecutorFilter.has(d.id);
+        html += '<span class="dev-chip ' + (isActive ? 'active' : '') + '" data-executor="' + escapeHtml(d.id) + '" title="' + escapeHtml(d.name) + '" onclick="toggleAtilabExecutorFilter(this)">' +
+            '<span class="dev-dot"></span>' + escapeHtml(d.label) +
+            ' <span style="opacity:0.55">(' + d.count + ')</span></span>';
+    });
+
+    container.innerHTML = html;
+}
+
+function toggleAtilabExecutorFilter(chip) {
+    var id = chip.dataset.executor || '';
+    if (id === '') {
+        atilabExecutorFilter.clear();
+    } else if (atilabExecutorFilter.has(id)) {
+        atilabExecutorFilter.delete(id);
+    } else {
+        atilabExecutorFilter.add(id);
+    }
+
+    var allActive = atilabExecutorFilter.size === 0;
+    document.querySelectorAll('#atilabExecutorChips .dev-chip').forEach(function(c) {
+        var cid = c.dataset.executor || '';
+        if (cid === '') {
+            c.classList.toggle('active', allActive);
+        } else {
+            c.classList.toggle('active', atilabExecutorFilter.has(cid));
+        }
     });
     renderAtilabTasks();
 }
@@ -4259,6 +4468,11 @@ function openAtilabPreview(taskId) {
         '<div class="preview-field"><div class="preview-field-label">Исполнитель</div><div class="preview-field-value">' + escapeHtml(task.responsibleName) + '</div></div>' +
         (task.creatorName ? '<div class="preview-field"><div class="preview-field-label">Постановщик</div><div class="preview-field-value">' + escapeHtml(task.creatorName) + '</div></div>' : '') +
         (task.deadline ? '<div class="preview-field"><div class="preview-field-label">Дедлайн</div><div class="preview-field-value" style="' + (isOverdue ? 'color:#ef4444;font-weight:600' : '') + '">' + formatDate(task.deadline) + (isOverdue ? ' (просрочен)' : '') + '</div></div>' : '') +
+        '<div class="preview-field"><div class="preview-field-label">Время (факт / план)</div><div class="preview-field-value" style="font-variant-numeric:tabular-nums">' +
+            '<span style="font-weight:600;color:#334155">' + formatSecHms(task.timeFactSec || 0) + '</span>' +
+            '<span style="color:#94a3b8"> / </span>' +
+            '<span style="color:#94a3b8">' + formatSecHms(task.timePlanSec || 0) + '</span>' +
+        '</div></div>' +
         '<div class="preview-field"><div class="preview-field-label">Создана</div><div class="preview-field-value">' + (task.created ? formatDate(task.created) : '—') + '</div></div>' +
         (task.description ? '<div class="preview-field"><div class="preview-field-label">Описание</div><div class="preview-description">' + escapeHtml(task.description) + '</div></div>' : '') +
         '<div class="preview-comments-section">' +
