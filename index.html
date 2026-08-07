@@ -509,8 +509,8 @@
             position: fixed;
             left: 50%;
             top: 50%;
-            width: min(620px, 94vw);
-            max-height: min(88vh, 860px);
+            width: min(680px, 94vw);
+            max-height: min(90vh, 900px);
             background: #fff;
             z-index: 201;
             transform: translate(-50%, -46%) scale(0.97);
@@ -668,6 +668,7 @@
             justify-content: space-between;
             gap: 12px;
             flex-shrink: 0;
+            background: #fff;
         }
 
         .preview-close {
@@ -695,6 +696,29 @@
             letter-spacing: -0.01em;
         }
 
+        .preview-panel.is-bx {
+            background: #eef2f4;
+        }
+        .preview-panel.is-bx .preview-header {
+            padding: 16px 18px 12px;
+            border-bottom: none;
+            background: #eef2f4;
+        }
+        .preview-panel.is-bx .preview-title {
+            font-size: 18px;
+            margin-top: 2px;
+        }
+        .preview-panel.is-bx .preview-close {
+            background: #e4e7ec;
+            border-radius: 8px;
+        }
+        .preview-panel.is-bx .preview-close:hover { background: #d0d5dd; }
+        .preview-panel.is-bx .preview-footer {
+            background: #eef2f4;
+            border-top: none;
+            padding-top: 4px;
+        }
+
         .preview-head-meta {
             font-size: 12px;
             color: #64748b;
@@ -704,6 +728,7 @@
             gap: 8px;
             flex-wrap: wrap;
         }
+        .preview-head-meta:empty { display: none; margin: 0; }
         .preview-head-meta .pm-id {
             font-weight: 700;
             color: #334155;
@@ -785,34 +810,76 @@
 
         .preview-hours-card.over-budget .value { color: #dc2626; }
 
-        /* Описание без вложенных скроллов */
+        /* Описание как в Bitrix: форматирование, ссылки, без вложенных скроллов */
         .preview-description {
             background: transparent;
             border: none;
             border-radius: 0;
             padding: 0;
-            font-size: 13px;
-            color: #334155;
+            font-size: 15px;
+            color: #333;
             line-height: 1.55;
-            white-space: pre-wrap;
+            white-space: normal;
             word-break: break-word;
             overflow-wrap: anywhere;
             max-height: none;
             overflow: visible;
         }
+        .preview-description p,
+        .preview-description > div {
+            margin: 0 0 20px;
+        }
+        .preview-description p:last-child,
+        .preview-description > div:last-child { margin-bottom: 0; }
+        .preview-description ul,
+        .preview-description ol {
+            margin: 0 0 20px;
+            padding-left: 1.25em;
+        }
+        .preview-description li { margin: 4px 0; }
+        .preview-description strong,
+        .preview-description b {
+            font-weight: 700;
+            color: #111;
+        }
+        .preview-description em,
+        .preview-description i { font-style: italic; }
+        .preview-description a {
+            color: #2066b0;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .preview-description a:hover { text-decoration: underline; }
+        .preview-description blockquote {
+            margin: 0 0 18px;
+            padding: 0;
+            border-left: none;
+            color: #333;
+            background: transparent;
+        }
+        .preview-description .bx-ai-hint {
+            margin-top: 6px;
+            color: #525c69;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .preview-description .bx-ai-hint::before {
+            content: '⚠ ';
+            color: #f3a73f;
+        }
         .preview-description.is-collapsed {
-            max-height: 140px;
+            max-height: 240px;
             overflow: hidden;
-            mask-image: linear-gradient(to bottom, #000 55%, transparent);
-            -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
+            mask-image: linear-gradient(to bottom, #000 60%, transparent);
+            -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent);
         }
         .preview-desc-more {
-            margin-top: 6px;
+            margin-top: 0;
             border: none;
             background: transparent;
-            color: #2563eb;
-            font-size: 12px;
-            font-weight: 600;
+            color: #2066b0;
+            font-size: 14px;
+            font-weight: 500;
             cursor: pointer;
             padding: 0;
         }
@@ -845,12 +912,151 @@
         }
         .preview-stat-card .value.is-overdue { color: #dc2626; }
 
+        /* Bitrix-like task layout */
+        .preview-body.is-bx {
+            background: #eef2f4;
+            padding: 10px 14px 14px;
+        }
+        .bx-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+            padding: 20px 22px;
+            margin-bottom: 12px;
+        }
+        .bx-card:last-child { margin-bottom: 0; }
+        .bx-desc-actions {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 16px;
+            gap: 12px;
+        }
+        .bx-attachments {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 18px;
+        }
+        .bx-attach {
+            display: flex;
+            flex-direction: column;
+            width: 110px;
+            text-decoration: none;
+            color: #525c69;
+        }
+        .bx-attach:hover .bx-attach-name { color: #2066b0; }
+        .bx-attach-thumb {
+            width: 110px;
+            height: 82px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #e2e6eb;
+            background: #f5f7f8;
+            display: block;
+        }
+        .bx-attach-file {
+            width: 110px;
+            height: 82px;
+            border-radius: 8px;
+            border: 1px solid #e2e6eb;
+            background: #f5f7f8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+        }
+        .bx-attach-file svg {
+            width: 28px;
+            height: 28px;
+        }
+        .bx-attach-name {
+            margin-top: 6px;
+            font-size: 12px;
+            line-height: 1.3;
+            word-break: break-word;
+        }
+        .bx-meta-row {
+            display: grid;
+            grid-template-columns: 132px minmax(0, 1fr);
+            gap: 12px;
+            padding: 11px 0;
+            border-bottom: 1px solid #f1f5f9;
+            align-items: start;
+        }
+        .bx-meta-row:last-child { border-bottom: none; padding-bottom: 2px; }
+        .bx-meta-row:first-child { padding-top: 2px; }
+        .bx-meta-label {
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.4;
+            padding-top: 4px;
+        }
+        .bx-meta-value {
+            font-size: 14px;
+            color: #0f172a;
+            font-weight: 500;
+            line-height: 1.4;
+            min-width: 0;
+        }
+        .bx-person {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .bx-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .bx-meta-line {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .bx-meta-line svg {
+            width: 16px;
+            height: 16px;
+            margin-top: 2px;
+            flex-shrink: 0;
+            color: #3b82f6;
+        }
+        .bx-meta-line.is-overdue .bx-deadline-text,
+        .bx-deadline-text.is-overdue {
+            color: #dc2626;
+            font-weight: 600;
+        }
+        .bx-meta-line.is-overdue svg { color: #dc2626; }
+        .bx-overdue-badge {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: #fce7f3;
+            color: #be185d;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .bx-time {
+            font-variant-numeric: tabular-nums;
+            font-weight: 600;
+        }
+
         .preview-footer {
             padding: 12px 18px 16px;
             border-top: 1px solid #eef2f7;
             display: flex;
             gap: 10px;
             flex-shrink: 0;
+            background: #fff;
         }
 
         .btn-open-bitrix {
@@ -2165,7 +2371,7 @@
                     <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
                 </div>
                 <span class="concept-badge" id="conceptBadge">КАНБАН · КОНЦЕПТ</span>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.34</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.40</span>
                 <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
             </div>
         </div>
@@ -3474,7 +3680,7 @@ function openPreview(taskId) {
         (task.programmer ? '<div class="preview-field"><div class="preview-field-label">Программист</div><div class="preview-field-value">' + escapeHtml(task.programmer) + '</div></div>' : '') +
         (task.deadline ? '<div class="preview-field"><div class="preview-field-label">Дедлайн</div><div class="preview-field-value" style="' + (isOverdue ? 'color:#ef4444;font-weight:600' : '') + '">' + formatDate(task.deadline) + (isOverdue ? ' (просрочен)' : '') + '</div></div>' : '') +
         '<div class="preview-field"><div class="preview-field-label">Создана</div><div class="preview-field-value">' + (task.created ? formatDate(task.created) : '—') + '</div></div>' +
-        (task.description ? '<div class="preview-field"><div class="preview-field-label">Описание</div><div class="preview-description">' + escapeHtml(formatTaskDescription(task.description)) + '</div></div>' : '') +
+        (task.description ? '<div class="preview-field"><div class="preview-field-label">Описание</div><div class="preview-description">' + renderBitrixDescription(task.description, TASK_URL_PREFIX) + '</div></div>' : '') +
         '<div class="preview-comments-section">' +
             '<div class="preview-comments-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Мои комментарии</div>' +
             '<div class="preview-comment-input-row">' +
@@ -3514,8 +3720,12 @@ function openPreview(taskId) {
 
 function closePreview() {
     document.getElementById("previewOverlay").classList.remove("active");
-    document.getElementById("previewPanel").classList.remove("active");
+    var panel = document.getElementById("previewPanel");
+    panel.classList.remove("active");
+    panel.classList.remove("is-bx");
     document.body.classList.remove("blurred");
+    var bodyEl = document.getElementById('previewBody');
+    if (bodyEl) bodyEl.className = 'preview-body';
 }
 
 // ===== АТИЛАБ: ленивый поиск задачи по названию =====
@@ -3712,10 +3922,10 @@ async function loadAtilabData() {
             var kanbanStage = getAtilabKanbanStageName(t.groupId, t.stageId);
             var deadlineStr = t.deadline ? t.deadline.substring(0, 10) : '';
             var createdStr = t.createdDate ? t.createdDate.substring(0, 10) : '';
+            var createdAt = t.createdDate || '';
 
-            // Clean description from HTML tags
+            // Описание: сохраняем разметку Bitrix (HTML/BBCode) для превью
             var desc = t.description || '';
-            desc = desc.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
             var tagTitles = vnExtractTagTitles(t.tags);
 
@@ -3741,6 +3951,7 @@ async function loadAtilabData() {
                 creatorName: creatorName,
                 deadline: deadlineStr,
                 created: createdStr,
+                createdAt: createdAt,
                 description: desc,
                 tags: tagTitles,
                 demoDone: vnHasTag(tagTitles, VN_TAG.vnedrenaDemo),
@@ -4653,21 +4864,242 @@ function toggleAtilabExecutorFilter(chip) {
 }
 
 // ===== АТИЛАБ: PREVIEW =====
-/** Убрать BBCode из описания Bitrix */
-function formatTaskDescription(raw) {
+/** Разметка Bitrix (HTML/BBCode) → безопасный HTML как в задаче */
+function renderBitrixDescription(raw, taskUrlPrefix) {
     var s = String(raw || '');
-    s = s.replace(/\[url=([^\]]+)\]([\s\S]*?)\[\/url\]/gi, '$2 ($1)');
-    s = s.replace(/\[\/?(?:b|i|u|s|code|quote|img|color|size|list|\*|left|right|center|font|table|tr|td|th|p|br)(?:=[^\]]*)?\]/gi, '');
-    s = s.replace(/\[\/?[^\]]+\]/g, '');
-    s = s.replace(/\r\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
-    return s;
+    if (!s.trim()) return '';
+
+    // BBCode → HTML
+    s = s.replace(/\[b\]([\s\S]*?)\[\/b\]/gi, '<strong>$1</strong>');
+    s = s.replace(/\[i\]([\s\S]*?)\[\/i\]/gi, '<em>$1</em>');
+    s = s.replace(/\[u\]([\s\S]*?)\[\/u\]/gi, '<u>$1</u>');
+    s = s.replace(/\[s\]([\s\S]*?)\[\/s\]/gi, '<s>$1</s>');
+    s = s.replace(/\[url=([^\]]+)\]([\s\S]*?)\[\/url\]/gi, '<a href="$1">$2</a>');
+    s = s.replace(/\[url\]([\s\S]*?)\[\/url\]/gi, '<a href="$1">$1</a>');
+    s = s.replace(/\[quote\]([\s\S]*?)\[\/quote\]/gi, '<blockquote>$1</blockquote>');
+    s = s.replace(/\[code\]([\s\S]*?)\[\/code\]/gi, '<pre><code>$1</code></pre>');
+    s = s.replace(/\[list\]([\s\S]*?)\[\/list\]/gi, '<ul>$1</ul>');
+    s = s.replace(/\[\*\]([^\[]*)/gi, '<li>$1</li>');
+    s = s.replace(/\[br\s*\/?\]/gi, '<br>');
+    s = s.replace(/\[p\]([\s\S]*?)\[\/p\]/gi, '<p>$1</p>');
+    s = s.replace(/\[\/?[a-z0-9=_\-#:/.\s]+\]/gi, '');
+
+    // Bitrix часто отдаёт BBCode + \n; без явных <p>/<br> браузер схлопывает переносы
+    s = s.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    if (s.indexOf('<') === -1) {
+        s = escapeHtml(s);
+    }
+    if (s.indexOf('<p') === -1 && s.indexOf('<div') === -1) {
+        s = s.split(/\n{2,}/).map(function(block) {
+            var t = block.replace(/^\n+|\n+$/g, '').trim();
+            if (!t) return '';
+            t = t.replace(/\n/g, '<br>');
+            if (/^<(blockquote|ul|ol|pre|h[1-4])\b/i.test(t)) return t;
+            return '<p>' + t + '</p>';
+        }).filter(Boolean).join('');
+    } else {
+        s = s.replace(/\n{2,}/g, '<br><br>').replace(/\n/g, '<br>');
+    }
+
+    var wrap = document.createElement('div');
+    wrap.innerHTML = s;
+    sanitizeBitrixHtml(wrap);
+    normalizeBitrixDescBlocks(wrap);
+
+    var prefix = taskUrlPrefix || ATILAB_TASK_URL || '';
+    linkifyBitrixTaskRefs(wrap, prefix);
+    return wrap.innerHTML;
+}
+
+/** Разбить описание на абзацы с «воздухом», как в Bitrix */
+function normalizeBitrixDescBlocks(root) {
+    if (!root) return;
+
+    var html = root.innerHTML;
+    if (!html || !html.trim()) return;
+
+    // 1) Двойные <br> → отдельные абзацы
+    if (/(?:<br\s*\/?>\s*){2,}/i.test(html)) {
+        var parts = html.split(/(?:<br\s*\/?>\s*){2,}/i);
+        root.innerHTML = parts.map(function(part) {
+            var t = String(part || '')
+                .replace(/^(?:\s|&nbsp;|<br\s*\/?>)+/gi, '')
+                .replace(/(?:\s|&nbsp;|<br\s*\/?>)+$/gi, '')
+                .trim();
+            if (!t) return '';
+            if (/^<(p|div|blockquote|ul|ol|h[1-4]|pre)\b/i.test(t)) return t;
+            return '<p>' + t + '</p>';
+        }).filter(Boolean).join('');
+        html = root.innerHTML;
+    }
+
+    // 2) Если всё ещё один блок — режем перед типовыми заголовками секций Bitrix
+    if (root.children.length <= 1) {
+        var sectionRe = /<br\s*\/?>\s*(?=(?:<(?:strong|b)[^>]*>\s*)?(?:Что сделать|Нужно|Оригинал запроса|Заказчики|AI-подсказка)\b)/gi;
+        if (sectionRe.test(html)) {
+            html = html.replace(sectionRe, '</p><p>');
+            if (!/^<p[\s>]/i.test(html.trim())) html = '<p>' + html + '</p>';
+            html = html.replace(/<p>\s*<\/p>/gi, '');
+            root.innerHTML = html;
+        }
+    }
+
+    // 3) Листовые DIV → P (чтобы работали отступы абзацев)
+    Array.prototype.slice.call(root.children).forEach(function(el) {
+        if (el.tagName !== 'DIV') return;
+        if (el.querySelector('div, p, ul, ol, blockquote, table')) return;
+        var p = document.createElement('p');
+        while (el.firstChild) p.appendChild(el.firstChild);
+        el.parentNode.replaceChild(p, el);
+    });
+
+    // 4) Подсветка AI-подсказки
+    Array.prototype.slice.call(root.querySelectorAll('p, div')).forEach(function(el) {
+        var t = (el.textContent || '').replace(/\s+/g, ' ').trim();
+        if (/AI-подсказка/i.test(t)) {
+            el.classList.add('bx-ai-hint');
+            // убрать дублирующий треугольник из текста, если уже есть в CSS ::before
+            if (el.firstChild && el.firstChild.nodeType === 3) {
+                el.firstChild.nodeValue = String(el.firstChild.nodeValue || '').replace(/^\s*[⚠▲]\s*/, '');
+            }
+        }
+    });
+
+    // 5) Убрать пустые абзацы (отступы даёт margin у соседних)
+    Array.prototype.slice.call(root.querySelectorAll('p')).forEach(function(p) {
+        if ((p.textContent || '').replace(/\u00a0/g, ' ').trim()) return;
+        if (p.querySelector('img, a')) return;
+        if (p.parentNode) p.parentNode.removeChild(p);
+    });
+}
+
+function sanitizeBitrixHtml(root) {
+    var allowed = {
+        P: 1, BR: 1, STRONG: 1, B: 1, EM: 1, I: 1, U: 1, S: 1,
+        A: 1, UL: 1, OL: 1, LI: 1, BLOCKQUOTE: 1, CODE: 1, PRE: 1,
+        SPAN: 1, DIV: 1, H1: 1, H2: 1, H3: 1, H4: 1
+    };
+    var nodes = root.querySelectorAll('*');
+    for (var i = nodes.length - 1; i >= 0; i--) {
+        var el = nodes[i];
+        var tag = el.tagName;
+        if (!allowed[tag]) {
+            var parent = el.parentNode;
+            while (el.firstChild) parent.insertBefore(el.firstChild, el);
+            parent.removeChild(el);
+            continue;
+        }
+        // strip event handlers / styles
+        var attrs = Array.prototype.slice.call(el.attributes || []);
+        attrs.forEach(function(attr) {
+            var name = attr.name.toLowerCase();
+            var val = String(attr.value || '');
+            if (name.indexOf('on') === 0 || name === 'style' || name === 'src' || name === 'srcset') {
+                el.removeAttribute(attr.name);
+                return;
+            }
+            if (tag === 'A' && name === 'href') {
+                if (!/^(https?:|\/|#)/i.test(val)) {
+                    el.removeAttribute('href');
+                } else {
+                    el.setAttribute('target', '_blank');
+                    el.setAttribute('rel', 'noopener noreferrer');
+                }
+                return;
+            }
+            if (tag !== 'A' || (name !== 'href' && name !== 'target' && name !== 'rel')) {
+                if (name !== 'class') el.removeAttribute(attr.name);
+            }
+        });
+    }
+}
+
+function linkifyBitrixTaskRefs(root, taskUrlPrefix) {
+    if (!taskUrlPrefix) return;
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    var textNodes = [];
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+    textNodes.forEach(function(node) {
+        if (!node.parentNode || node.parentNode.closest('a')) return;
+        var text = node.nodeValue;
+        if (!/#\d+/.test(text)) return;
+        var frag = document.createDocumentFragment();
+        var re = /#(\d+)/g;
+        var last = 0;
+        var m;
+        while ((m = re.exec(text))) {
+            if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+            var a = document.createElement('a');
+            a.href = taskUrlPrefix + m[1] + '/';
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.textContent = m[0];
+            frag.appendChild(a);
+            last = m.index + m[0].length;
+        }
+        if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+        node.parentNode.replaceChild(frag, node);
+    });
+}
+
+function formatTaskDescription(raw) {
+    // plain text fallback (для старых вызовов)
+    var tmp = document.createElement('div');
+    tmp.innerHTML = renderBitrixDescription(raw, '');
+    return (tmp.textContent || tmp.innerText || '').replace(/\s+/g, ' ').trim();
 }
 
 function togglePreviewDesc(btn) {
     var el = document.getElementById('previewDesc');
     if (!el || !btn) return;
     var collapsed = el.classList.toggle('is-collapsed');
-    btn.textContent = collapsed ? 'Показать' : 'Скрыть';
+    btn.textContent = collapsed ? 'Развернуть' : 'Свернуть';
+}
+
+function pluralRu(n, one, few, many) {
+    var abs = Math.abs(n) % 100;
+    var n1 = abs % 10;
+    if (abs > 10 && abs < 20) return many;
+    if (n1 > 1 && n1 < 5) return few;
+    if (n1 === 1) return one;
+    return many;
+}
+
+function overdueBadgeText(deadlineStr) {
+    if (!deadlineStr) return '';
+    var end = new Date(deadlineStr + 'T23:59:59');
+    if (isNaN(end.getTime())) return '';
+    var ms = Date.now() - end.getTime();
+    if (ms <= 0) return '';
+    var hours = Math.floor(ms / 3600000);
+    if (hours < 24) {
+        return 'Просрочена на ' + Math.max(1, hours) + ' ' + pluralRu(Math.max(1, hours), 'час', 'часа', 'часов');
+    }
+    var days = Math.floor(hours / 24);
+    return 'Просрочена на ' + days + ' ' + pluralRu(days, 'день', 'дня', 'дней');
+}
+
+function formatBitrixDateTime(dateStr, withEndOfDay) {
+    if (!dateStr) return '—';
+    var d;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        d = new Date(dateStr + (withEndOfDay ? 'T23:59:00' : 'T12:00:00'));
+    } else {
+        d = new Date(dateStr);
+    }
+    if (isNaN(d.getTime())) return formatDate(dateStr);
+    var months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+    var base = d.getDate() + ' ' + months[d.getMonth()];
+    if (withEndOfDay && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return base + ' 23:59';
+    return base + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+
+function bxPersonHtml(fullName) {
+    var name = fullName || '—';
+    return '<span class="bx-person">' +
+        '<span class="bx-avatar">' + escapeHtml(atilabInitials(name)) + '</span>' +
+        '<span>' + escapeHtml(name) + '</span>' +
+    '</span>';
 }
 
 function openAtilabPreview(taskId) {
@@ -4676,9 +5108,11 @@ function openAtilabPreview(taskId) {
 
     var stage = atilabStageConfig[task.status] || atilabStageConfig.new;
     var now = new Date();
-    var isOverdue = task.deadline && new Date(task.deadline + 'T23:59:59') < now && (task.status === 'new' || task.status === 'inwork' || task.status === 'testing' || task.status === 'revisions');
-    var desc = formatTaskDescription(task.description);
-    var descLong = desc.length > 320;
+    var isOverdue = task.deadline && new Date(task.deadline + 'T23:59:59') < now &&
+        (task.status === 'new' || task.status === 'inwork' || task.status === 'testing' || task.status === 'revisions');
+    var descHtml = renderBitrixDescription(task.description, ATILAB_TASK_URL);
+    var descPlain = formatTaskDescription(task.description);
+    var descLong = descPlain.length > 280;
 
     var headMeta = document.getElementById('previewHeadMeta');
     if (headMeta) {
@@ -4690,13 +5124,20 @@ function openAtilabPreview(taskId) {
     document.getElementById('previewTitle').textContent = task.title;
 
     var bodyHtml =
-        (desc
-            ? '<div class="preview-field" style="margin-bottom:8px">' +
-                '<div class="preview-field-label">Описание</div>' +
-                '<div class="preview-description' + (descLong ? ' is-collapsed' : '') + '" id="previewDesc">' + escapeHtml(desc) + '</div>' +
-                (descLong ? '<button type="button" class="preview-desc-more" onclick="togglePreviewDesc(this)">Показать</button>' : '') +
-              '</div>'
-            : '') +
+        '<div class="bx-card">' +
+            (descHtml
+                ? '<div class="preview-description' + (descLong ? ' is-collapsed' : '') + '" id="previewDesc">' + descHtml + '</div>'
+                : '<div style="color:#94a3b8;font-size:13px">Нет описания</div>') +
+            '<div class="bx-attachments" id="previewAttachments"></div>' +
+            (descHtml
+                ? '<div class="bx-desc-actions">' +
+                    '<button type="button" class="preview-desc-more" onclick="togglePreviewDesc(this)">' +
+                        (descLong ? 'Развернуть' : 'Свернуть') +
+                    '</button>' +
+                  '</div>'
+                : '') +
+        '</div>' +
+
         '<div class="preview-stat-grid">' +
             '<div class="preview-stat-card">' +
                 '<div class="label">Крайний срок</div>' +
@@ -4721,6 +5162,7 @@ function openAtilabPreview(taskId) {
                 '<div class="value">' + (task.created ? formatDate(task.created) : '—') + '</div>' +
             '</div>' +
         '</div>' +
+
         '<div class="preview-comments-section">' +
             '<div class="preview-comments-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Мои комментарии</div>' +
             '<div class="preview-comment-input-row">' +
@@ -4730,8 +5172,11 @@ function openAtilabPreview(taskId) {
             '<div class="preview-comments-list" id="commentsList"></div>' +
         '</div>';
 
-    document.getElementById('previewBody').innerHTML = bodyHtml;
+    var bodyEl = document.getElementById('previewBody');
+    bodyEl.className = 'preview-body is-bx';
+    bodyEl.innerHTML = bodyHtml;
     renderAtilabComments(task.id);
+    loadAtilabPreviewAttachments(task.id);
 
     document.getElementById('previewFooter').innerHTML =
         '<a class="btn-open-bitrix" href="' + ATILAB_TASK_URL + task.id + '/" target="_blank" rel="noopener">' +
@@ -4740,12 +5185,74 @@ function openAtilabPreview(taskId) {
         '</a>';
 
     document.getElementById('previewOverlay').classList.add('active');
-    document.getElementById('previewPanel').classList.add('active');
+    var panel = document.getElementById('previewPanel');
+    panel.classList.add('active');
+    panel.classList.add('is-bx');
     document.body.classList.add('blurred');
 }
 
-// ===== АТИЛАБ: COMMENTS (localStorage — separate key) =====
-var ATILAB_COMMENTS_KEY = 'atilab_task_comments';
+function atilabPortalOrigin() {
+    try {
+        return new URL(ATILAB_API).origin;
+    } catch (e) {
+        return 'https://1c-cms.bitrix24.ru';
+    }
+}
+
+function atilabAbsUrl(path) {
+    if (!path) return '';
+    if (/^https?:\/\//i.test(path)) return path;
+    return atilabPortalOrigin() + path;
+}
+
+function shortAttachName(name) {
+    var n = String(name || 'файл');
+    if (n.length <= 24) return n;
+    return n.slice(0, 14) + '…' + n.slice(-8);
+}
+
+async function fetchAtilabTaskFiles(taskId) {
+    try {
+        incrementApiCount();
+        var resp = await fetch(ATILAB_API + 'task.item.getfiles.json?TASKID=' + encodeURIComponent(taskId));
+        var data = await resp.json();
+        if (!isValidApiResponse(data)) return [];
+        return Array.isArray(data.result) ? data.result : [];
+    } catch (e) {
+        console.warn('[atilab] getfiles failed', e);
+        return [];
+    }
+}
+
+function renderAtilabAttachments(files) {
+    if (!files || !files.length) return '';
+    var html = '';
+    files.forEach(function(f) {
+        var name = f.NAME || f.name || 'файл';
+        var view = atilabAbsUrl(f.VIEW_URL || f.viewUrl || '');
+        var download = atilabAbsUrl(f.DOWNLOAD_URL || f.downloadUrl || '');
+        var href = view || download;
+        if (!href) return;
+        var isImg = /\.(png|jpe?g|gif|webp|bmp)$/i.test(name);
+        html += '<a class="bx-attach" href="' + escapeHtml(href) + '" target="_blank" rel="noopener">';
+        if (isImg) {
+            html += '<img class="bx-attach-thumb" src="' + escapeHtml(view || download) + '" alt="" loading="lazy">';
+        } else {
+            html += '<div class="bx-attach-file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>';
+        }
+        html += '<span class="bx-attach-name">' + escapeHtml(shortAttachName(name)) + '</span></a>';
+    });
+    return html;
+}
+
+async function loadAtilabPreviewAttachments(taskId) {
+    var el = document.getElementById('previewAttachments');
+    if (!el) return;
+    var files = await fetchAtilabTaskFiles(taskId);
+    var html = renderAtilabAttachments(files);
+    el.innerHTML = html;
+    if (!html) el.style.display = 'none';
+}
 
 function getAtilabCommentsStorage() {
     try {
@@ -5170,7 +5677,6 @@ async function loadVnedrenieData() {
             var deadlineStr = t.deadline ? t.deadline.substring(0, 10) : '';
             var createdStr = t.createdDate ? t.createdDate.substring(0, 10) : '';
             var desc = t.description || '';
-            desc = desc.replace(/\[\/?(b|i|u|quote|code|url|user|file|disk)[^\]]*\]/g, ' ').replace(/\s+/g, ' ').trim();
 
             // Определяем состояние задачи
             var state = 'unknown';
@@ -5991,7 +6497,7 @@ function openVnedreniePreview(taskId) {
         (task.deadline ? '<div class="preview-field"><div class="preview-field-label">Крайний срок</div><div class="preview-field-value">' + formatDate(task.deadline) + '</div></div>' : '') +
         '<div class="preview-field"><div class="preview-field-label">Создана</div><div class="preview-field-value">' + (task.created ? formatDate(task.created) : '—') + '</div></div>' +
         (task.changedDate ? '<div class="preview-field"><div class="preview-field-label">Изменена</div><div class="preview-field-value">' + vnFormatDateTime(task.changedDate) + '</div></div>' : '') +
-        (task.description ? '<div class="preview-field"><div class="preview-field-label">Описание</div><div class="preview-description">' + escapeHtml(formatTaskDescription(task.description)) + '</div></div>' : '') +
+        (task.description ? '<div class="preview-field"><div class="preview-field-label">Описание</div><div class="preview-description">' + renderBitrixDescription(task.description, VNEDRENIE_TASK_URL) + '</div></div>' : '') +
 
         // Теги задачи
         (task.tags && task.tags.length > 0
