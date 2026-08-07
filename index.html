@@ -491,37 +491,44 @@
         .preview-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.15);
+            background: rgba(15, 23, 42, 0.35);
             z-index: 200;
             opacity: 0;
             visibility: hidden;
-            transition: all 0.25s;
-            backdrop-filter: blur(0px);
+            transition: all 0.2s;
+            backdrop-filter: blur(4px);
         }
 
         .preview-overlay.active {
             opacity: 1;
             visibility: visible;
-            backdrop-filter: blur(3px);
         }
 
+        /* Центрированная модалка задачи (не боковая панель) */
         .preview-panel {
             position: fixed;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            width: 480px;
-            max-width: 90vw;
+            left: 50%;
+            top: 50%;
+            width: min(620px, 94vw);
+            max-height: min(88vh, 860px);
             background: #fff;
             z-index: 201;
-            transform: translateX(100%);
-            transition: transform 0.25s ease;
+            transform: translate(-50%, -46%) scale(0.97);
+            opacity: 0;
+            visibility: hidden;
+            transition: transform 0.2s ease, opacity 0.2s ease, visibility 0.2s;
             display: flex;
             flex-direction: column;
-            box-shadow: -4px 0 20px rgba(0,0,0,0.12);
+            border-radius: 16px;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+            overflow: hidden;
         }
 
-        .preview-panel.active { transform: translateX(0); }
+        .preview-panel.active {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            visibility: visible;
+        }
 
         .hook-modal {
             position: fixed;
@@ -654,12 +661,13 @@
         }
 
         .preview-header {
-            padding: 16px 20px 12px;
-            border-bottom: 1px solid #e5e7eb;
+            padding: 14px 18px 10px;
+            border-bottom: 1px solid #eef2f7;
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
             gap: 12px;
+            flex-shrink: 0;
         }
 
         .preview-close {
@@ -680,16 +688,40 @@
         .preview-close:hover { background: #eaecf0; }
 
         .preview-title {
-            font-size: 15px;
-            font-weight: 600;
-            color: #1a1a2e;
-            line-height: 1.4;
+            font-size: 17px;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.35;
+            letter-spacing: -0.01em;
+        }
+
+        .preview-head-meta {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .preview-head-meta .pm-id {
+            font-weight: 700;
+            color: #334155;
         }
 
         .preview-body {
             flex: 1;
             overflow-y: auto;
-            padding: 16px 20px;
+            overflow-x: hidden;
+            padding: 14px 18px 8px;
+            min-height: 0;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+        .preview-body::-webkit-scrollbar { width: 6px; }
+        .preview-body::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 6px;
         }
 
         .preview-field { margin-bottom: 12px; }
@@ -753,24 +785,72 @@
 
         .preview-hours-card.over-budget .value { color: #dc2626; }
 
+        /* Описание без вложенных скроллов */
         .preview-description {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            padding: 10px 12px;
-            font-size: 12px;
-            color: #475467;
-            line-height: 1.6;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            font-size: 13px;
+            color: #334155;
+            line-height: 1.55;
             white-space: pre-wrap;
-            max-height: 260px;
-            overflow-y: auto;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            max-height: none;
+            overflow: visible;
         }
+        .preview-description.is-collapsed {
+            max-height: 140px;
+            overflow: hidden;
+            mask-image: linear-gradient(to bottom, #000 55%, transparent);
+            -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
+        }
+        .preview-desc-more {
+            margin-top: 6px;
+            border: none;
+            background: transparent;
+            color: #2563eb;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+        }
+        .preview-desc-more:hover { text-decoration: underline; }
+
+        .preview-stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 14px 0 4px;
+        }
+        .preview-stat-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+        .preview-stat-card .label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+        .preview-stat-card .value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .preview-stat-card .value.is-overdue { color: #dc2626; }
 
         .preview-footer {
-            padding: 12px 20px;
-            border-top: 1px solid #e5e7eb;
+            padding: 12px 18px 16px;
+            border-top: 1px solid #eef2f7;
             display: flex;
             gap: 10px;
+            flex-shrink: 0;
         }
 
         .btn-open-bitrix {
@@ -964,26 +1044,31 @@
             .preview-panel {
                 width: 100vw;
                 max-width: 100vw;
-                border-radius: 14px 14px 0 0;
-                bottom: 0;
-                top: auto;
                 max-height: 92vh;
+                left: 0;
+                right: 0;
+                top: auto;
+                bottom: 0;
+                border-radius: 16px 16px 0 0;
                 transform: translateY(100%);
-                box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+                opacity: 1;
+                visibility: hidden;
             }
-            .preview-panel.active { transform: translateY(0); }
+            .preview-panel.active {
+                transform: translateY(0);
+                visibility: visible;
+            }
             .preview-header { padding: 12px 16px; }
             .preview-body { padding: 12px 16px; }
             .preview-footer { padding: 12px 16px; }
+            .preview-stat-grid { grid-template-columns: 1fr 1fr; }
             .preview-hours-card .value { font-size: 22px; }
             .header-actions .btn span,
             .header-actions .btn svg + * {}
         }
 
-        .task-list::-webkit-scrollbar,
-        .preview-body::-webkit-scrollbar { width: 6px; }
-        .task-list::-webkit-scrollbar-thumb,
-        .preview-body::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+        .task-list::-webkit-scrollbar { width: 6px; }
+        .task-list::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
 
         /* ===== COPY TASKS BUTTON ===== */
         .copy-tasks-bar {
@@ -2080,7 +2165,7 @@
                     <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
                 </div>
                 <span class="concept-badge" id="conceptBadge">КАНБАН · КОНЦЕПТ</span>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.33</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.34</span>
                 <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
             </div>
         </div>
@@ -2249,10 +2334,13 @@
 <!-- Toast for kanban actions -->
 <div class="kb-toast" id="kbToast"></div>
 
-<!-- Preview Panel -->
+<!-- Preview Modal -->
 <div class="preview-panel" id="previewPanel">
     <div class="preview-header">
-        <div class="preview-title" id="previewTitle"></div>
+        <div style="min-width:0;flex:1">
+            <div class="preview-head-meta" id="previewHeadMeta"></div>
+            <div class="preview-title" id="previewTitle"></div>
+        </div>
         <button class="preview-close" onclick="closePreview()">&times;</button>
     </div>
     <div class="preview-body" id="previewBody"></div>
@@ -3339,6 +3427,11 @@ function openPreview(taskId) {
     var isOverBudget = task.hoursPlanned > 0 && task.hoursActual > task.hoursPlanned;
 
     document.getElementById("previewTitle").textContent = task.title;
+    var headMeta = document.getElementById('previewHeadMeta');
+    if (headMeta) {
+        headMeta.innerHTML = '<span class="pm-id">#' + task.id + '</span>' +
+            (task.category ? '<span>' + escapeHtml(task.category) + '</span>' : '');
+    }
 
     // Часы: ВСЕГДА показываем с возможностью редактирования фактических
     var hoursBlock =
@@ -3381,7 +3474,7 @@ function openPreview(taskId) {
         (task.programmer ? '<div class="preview-field"><div class="preview-field-label">Программист</div><div class="preview-field-value">' + escapeHtml(task.programmer) + '</div></div>' : '') +
         (task.deadline ? '<div class="preview-field"><div class="preview-field-label">Дедлайн</div><div class="preview-field-value" style="' + (isOverdue ? 'color:#ef4444;font-weight:600' : '') + '">' + formatDate(task.deadline) + (isOverdue ? ' (просрочен)' : '') + '</div></div>' : '') +
         '<div class="preview-field"><div class="preview-field-label">Создана</div><div class="preview-field-value">' + (task.created ? formatDate(task.created) : '—') + '</div></div>' +
-        (task.description ? '<div class="preview-field"><div class="preview-field-label">Описание</div><div class="preview-description">' + escapeHtml(task.description) + '</div></div>' : '') +
+        (task.description ? '<div class="preview-field"><div class="preview-field-label">Описание</div><div class="preview-description">' + escapeHtml(formatTaskDescription(task.description)) + '</div></div>' : '') +
         '<div class="preview-comments-section">' +
             '<div class="preview-comments-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Мои комментарии</div>' +
             '<div class="preview-comment-input-row">' +
@@ -4560,6 +4653,23 @@ function toggleAtilabExecutorFilter(chip) {
 }
 
 // ===== АТИЛАБ: PREVIEW =====
+/** Убрать BBCode из описания Bitrix */
+function formatTaskDescription(raw) {
+    var s = String(raw || '');
+    s = s.replace(/\[url=([^\]]+)\]([\s\S]*?)\[\/url\]/gi, '$2 ($1)');
+    s = s.replace(/\[\/?(?:b|i|u|s|code|quote|img|color|size|list|\*|left|right|center|font|table|tr|td|th|p|br)(?:=[^\]]*)?\]/gi, '');
+    s = s.replace(/\[\/?[^\]]+\]/g, '');
+    s = s.replace(/\r\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+    return s;
+}
+
+function togglePreviewDesc(btn) {
+    var el = document.getElementById('previewDesc');
+    if (!el || !btn) return;
+    var collapsed = el.classList.toggle('is-collapsed');
+    btn.textContent = collapsed ? 'Показать' : 'Скрыть';
+}
+
 function openAtilabPreview(taskId) {
     var task = atilabTasks.find(function(t) { return t.id === taskId; });
     if (!task) return;
@@ -4567,25 +4677,50 @@ function openAtilabPreview(taskId) {
     var stage = atilabStageConfig[task.status] || atilabStageConfig.new;
     var now = new Date();
     var isOverdue = task.deadline && new Date(task.deadline + 'T23:59:59') < now && (task.status === 'new' || task.status === 'inwork' || task.status === 'testing' || task.status === 'revisions');
+    var desc = formatTaskDescription(task.description);
+    var descLong = desc.length > 320;
 
-    document.getElementById("previewTitle").textContent = task.title;
+    var headMeta = document.getElementById('previewHeadMeta');
+    if (headMeta) {
+        headMeta.innerHTML =
+            '<span class="pm-id">#' + task.id + '</span>' +
+            '<span>' + escapeHtml(task.groupName || '') + '</span>' +
+            (task.responsibleName ? '<span>· ' + escapeHtml(atilabCardDisplayName(task.responsibleName)) + '</span>' : '');
+    }
+    document.getElementById('previewTitle').textContent = task.title;
 
     var bodyHtml =
-        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">' +
-            '<span class="stage-badge ' + stage.badgeClass + '">' + stage.label + '</span>' +
-            '<span class="project-badge" style="font-size:11px;padding:4px 10px">' + escapeHtml(task.groupName) + '</span>' +
-            (task.kanbanStage ? '<span class="kanban-stage-tag" style="font-size:10px;padding:4px 10px">' + escapeHtml(task.kanbanStage) + '</span>' : '') +
+        (desc
+            ? '<div class="preview-field" style="margin-bottom:8px">' +
+                '<div class="preview-field-label">Описание</div>' +
+                '<div class="preview-description' + (descLong ? ' is-collapsed' : '') + '" id="previewDesc">' + escapeHtml(desc) + '</div>' +
+                (descLong ? '<button type="button" class="preview-desc-more" onclick="togglePreviewDesc(this)">Показать</button>' : '') +
+              '</div>'
+            : '') +
+        '<div class="preview-stat-grid">' +
+            '<div class="preview-stat-card">' +
+                '<div class="label">Крайний срок</div>' +
+                '<div class="value' + (isOverdue ? ' is-overdue' : '') + '">' +
+                    (task.deadline ? formatDate(task.deadline) + (isOverdue ? ' · просрочен' : '') : '—') +
+                '</div>' +
+            '</div>' +
+            '<div class="preview-stat-card">' +
+                '<div class="label">Статус</div>' +
+                '<div class="value">' + escapeHtml(stage.label) + '</div>' +
+            '</div>' +
         '</div>' +
-        '<div class="preview-field"><div class="preview-field-label">Исполнитель</div><div class="preview-field-value">' + escapeHtml(task.responsibleName) + '</div></div>' +
-        (task.creatorName ? '<div class="preview-field"><div class="preview-field-label">Постановщик</div><div class="preview-field-value">' + escapeHtml(task.creatorName) + '</div></div>' : '') +
-        (task.deadline ? '<div class="preview-field"><div class="preview-field-label">Дедлайн</div><div class="preview-field-value" style="' + (isOverdue ? 'color:#ef4444;font-weight:600' : '') + '">' + formatDate(task.deadline) + (isOverdue ? ' (просрочен)' : '') + '</div></div>' : '') +
-        '<div class="preview-field"><div class="preview-field-label">Время (факт / план)</div><div class="preview-field-value" style="font-variant-numeric:tabular-nums">' +
-            '<span style="font-weight:600;color:#334155">' + formatSecHms(task.timeFactSec || 0) + '</span>' +
-            '<span style="color:#94a3b8"> / </span>' +
-            '<span style="color:#94a3b8">' + formatSecHms(task.timePlanSec || 0) + '</span>' +
-        '</div></div>' +
-        '<div class="preview-field"><div class="preview-field-label">Создана</div><div class="preview-field-value">' + (task.created ? formatDate(task.created) : '—') + '</div></div>' +
-        (task.description ? '<div class="preview-field"><div class="preview-field-label">Описание</div><div class="preview-description">' + escapeHtml(task.description) + '</div></div>' : '') +
+        '<div class="preview-stat-grid" style="margin-top:10px">' +
+            '<div class="preview-stat-card">' +
+                '<div class="label">Факт / План</div>' +
+                '<div class="value" style="font-variant-numeric:tabular-nums;font-size:13px">' +
+                    formatSecHms(task.timeFactSec || 0) + ' / ' + formatSecHms(task.timePlanSec || 0) +
+                '</div>' +
+            '</div>' +
+            '<div class="preview-stat-card">' +
+                '<div class="label">Создана</div>' +
+                '<div class="value">' + (task.created ? formatDate(task.created) : '—') + '</div>' +
+            '</div>' +
+        '</div>' +
         '<div class="preview-comments-section">' +
             '<div class="preview-comments-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Мои комментарии</div>' +
             '<div class="preview-comment-input-row">' +
@@ -4595,18 +4730,18 @@ function openAtilabPreview(taskId) {
             '<div class="preview-comments-list" id="commentsList"></div>' +
         '</div>';
 
-    document.getElementById("previewBody").innerHTML = bodyHtml;
+    document.getElementById('previewBody').innerHTML = bodyHtml;
     renderAtilabComments(task.id);
 
-    document.getElementById("previewFooter").innerHTML =
+    document.getElementById('previewFooter').innerHTML =
         '<a class="btn-open-bitrix" href="' + ATILAB_TASK_URL + task.id + '/" target="_blank" rel="noopener">' +
             '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
             'Открыть в Битрикс24' +
         '</a>';
 
-    document.getElementById("previewOverlay").classList.add("active");
-    document.getElementById("previewPanel").classList.add("active");
-    document.body.classList.add("blurred");
+    document.getElementById('previewOverlay').classList.add('active');
+    document.getElementById('previewPanel').classList.add('active');
+    document.body.classList.add('blurred');
 }
 
 // ===== АТИЛАБ: COMMENTS (localStorage — separate key) =====
@@ -5836,6 +5971,10 @@ function openVnedreniePreview(taskId) {
     var statusText = vnStatusToText(task.status);
 
     document.getElementById("previewTitle").textContent = task.title;
+    var headMeta = document.getElementById('previewHeadMeta');
+    if (headMeta) {
+        headMeta.innerHTML = '<span class="pm-id">#' + task.id + '</span><span>' + escapeHtml(task.groupName || '') + '</span>';
+    }
 
     var bodyHtml =
         '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">' +
@@ -5852,7 +5991,7 @@ function openVnedreniePreview(taskId) {
         (task.deadline ? '<div class="preview-field"><div class="preview-field-label">Крайний срок</div><div class="preview-field-value">' + formatDate(task.deadline) + '</div></div>' : '') +
         '<div class="preview-field"><div class="preview-field-label">Создана</div><div class="preview-field-value">' + (task.created ? formatDate(task.created) : '—') + '</div></div>' +
         (task.changedDate ? '<div class="preview-field"><div class="preview-field-label">Изменена</div><div class="preview-field-value">' + vnFormatDateTime(task.changedDate) + '</div></div>' : '') +
-        (task.description ? '<div class="preview-field"><div class="preview-field-label">Описание</div><div class="preview-description">' + escapeHtml(task.description) + '</div></div>' : '') +
+        (task.description ? '<div class="preview-field"><div class="preview-field-label">Описание</div><div class="preview-description">' + escapeHtml(formatTaskDescription(task.description)) + '</div></div>' : '') +
 
         // Теги задачи
         (task.tags && task.tags.length > 0
