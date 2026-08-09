@@ -2678,7 +2678,7 @@
                     <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
                 </div>
                 <span class="concept-badge" id="conceptBadge">КАНБАН · КОНЦЕПТ</span>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.59</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.61</span>
                 <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
             </div>
         </div>
@@ -5303,13 +5303,13 @@ function renderAtilabTasks() {
                                 deadlineStr +
                               '</span>'
                             : '') +
-                        '<span class="kb-card-time' + (timeOver ? ' is-over' : '') + '" title="Факт / План">' +
+                        '<span class="kb-card-time' + (timeOver ? ' is-over' : '') + '" title="План / Факт">' +
                             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
                                 '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/><path d="M12 2v2"/>' +
                             '</svg>' +
-                            '<span class="kb-time-fact">' + formatSecHms(factSec) + '</span>' +
-                            '<span class="kb-time-sep">/</span>' +
                             '<span class="kb-time-plan">' + formatSecHms(planSec) + '</span>' +
+                            '<span class="kb-time-sep">/</span>' +
+                            '<span class="kb-time-fact">' + formatSecHms(factSec) + '</span>' +
                         '</span>' +
                         (hasComments
                             ? '<span class="kb-card-meta-item" style="color:#3b82f6">' +
@@ -5774,9 +5774,9 @@ function openAtilabPreview(taskId) {
                     '<div class="value">' + (task.created ? formatDate(task.created) : '—') + '</div>' +
                 '</div>' +
                 '<div class="bx-meta-cell">' +
-                    '<div class="label">Факт / План</div>' +
+                    '<div class="label">План / Факт</div>' +
                     '<div class="value time' + timeClass + '">' +
-                        formatSecHms(factSec) + ' / ' + formatSecHms(planSec) +
+                        formatSecHms(planSec) + ' / ' + formatSecHms(factSec) +
                     '</div>' +
                 '</div>' +
             '</div>' +
