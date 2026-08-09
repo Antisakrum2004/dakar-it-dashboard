@@ -2678,7 +2678,7 @@
                     <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
                 </div>
                 <span class="concept-badge" id="conceptBadge">КАНБАН · КОНЦЕПТ</span>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.61</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.62</span>
                 <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
             </div>
         </div>
@@ -4799,6 +4799,36 @@ async function atilabAddTaskComment(taskId, text) {
     }
 }
 
+/**
+ * Пишет в чат задачи (im.dialog) от активного хука — это то, что видно в превью и в Bitrix «Чат».
+ * Fallback: старый task.commentitem (может не отображаться в новом чате).
+ */
+async function atilabPostToTaskChat(taskId, text) {
+    var task = atilabTasks.find(function(t) { return t.id === taskId; });
+    var chatId = task ? await ensureAtilabTaskChatId(task) : '';
+    if (chatId && ATILAB_API) {
+        try {
+            incrementApiCount();
+            var resp = await fetch(ATILAB_API + 'im.message.add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    DIALOG_ID: 'chat' + chatId,
+                    MESSAGE: text
+                })
+            });
+            var data = await resp.json();
+            if (data && !data.error && data.result) return { ok: true, via: 'im', id: data.result };
+            console.warn('[atilab] im.message.add (deploy)', data && data.error, data && data.error_description);
+        } catch (e) {
+            console.warn('[atilab] im.message.add (deploy) failed', e);
+        }
+    }
+    var legacy = await atilabAddTaskComment(taskId, text);
+    if (legacy) return { ok: true, via: 'comment', id: legacy };
+    return { ok: false, via: null, id: null };
+}
+
 /** ЕОД в чате задачи → сигнал «надо внедрить» (тег + D кольцо на Дем/Раб) */
 var ATILAB_EOD_SCAN_CACHE_KEY = 'atilab_eod_deploy_scan_v1';
 var atilabEodScanRunning = false;
@@ -5070,7 +5100,7 @@ async function atilabOnDeployToggle(taskId, kind, checked, inputEl) {
     var prevDemo = !!task.demoDone;
     var prevRab = !!task.rabDone;
 
-    // Сразу UI: галочка = стоп моргания (даже без хука — превью механики)
+    // Сразу UI: галочка = стоп моргания
     if (isRab) task.rabDone = checked; else task.demoDone = checked;
     if (wrap) {
         wrap.classList.toggle('is-on', checked);
@@ -5082,9 +5112,24 @@ async function atilabOnDeployToggle(taskId, kind, checked, inputEl) {
     }
 
     if (!activeAtilabHookId) {
-        showKbToast(checked ? 'Галочка локально (выбери хук * для Bitrix)' : 'Снято локально', false);
+        // Откат: без хука в Bitrix ничего не уйдёт — не оставляем «ложный успех»
+        if (isRab) task.rabDone = prevRab; else task.demoDone = prevDemo;
+        if (inputEl) inputEl.checked = isRab ? prevRab : prevDemo;
+        if (wrap) {
+            wrap.classList.toggle('is-on', isRab ? prevRab : prevDemo);
+            wrap.classList.remove('need-d');
+            if (!(isRab ? prevRab : prevDemo)) {
+                var backLocal = atilabDeployAlertClass(task, kind);
+                if (backLocal) wrap.classList.add(backLocal.trim());
+            }
+        }
+        showKbToast('Нужен свой хук (*): иначе в задачу не запишется', true);
+        showErrorNotification('Выбери свой webhook в «*», иначе галочка Дем/Раб не пишется в Bitrix от твоего имени.');
         return;
     }
+
+    var activeHook = getActiveAtilabHook();
+    var hookName = activeHook ? (activeHook.name || parseWebhookUserId(activeHook.url) || '?') : '?';
 
     var tagVnedrena = isRab ? VN_TAG.vnedrenaRab : VN_TAG.vnedrenaDemo;
     var tagVnedit = isRab ? VN_TAG.vnedritRab : VN_TAG.vnedritDemo;
@@ -5114,17 +5159,18 @@ async function atilabOnDeployToggle(taskId, kind, checked, inputEl) {
 
         if (checked) {
             var chatMsg = '[S]✅ Задача [URL]' + taskUrl + '[/URL] «' + titleShort + '» [B]внедрена в ' + targetLabel + ' базу ' + ts + '[/S][/B]';
-            var commentMsg = '✅ внедрена в ' + (isRab ? 'рабочую' : 'демо') + ' (' + ts + ')';
+            var commentMsg = '✅ ' + hookName + ': внедрена в ' + (isRab ? 'рабочую' : 'демо') + ' (' + ts + ')';
             var msgId = await vnSendChatMessage(chatMsg, true);
             if (msgId) {
                 store[msgKey] = msgId;
                 saveAtilabDeployMsgStore(store);
             }
-            await atilabAddTaskComment(taskId, commentMsg);
-            showKbToast(labelShort + ': записано в Bitrix (чат + комментарий)', false);
+            var posted = await atilabPostToTaskChat(taskId, commentMsg);
+            if (!posted.ok) throw new Error('Не удалось написать в чат задачи');
+            showKbToast(labelShort + ': в чат задачи от «' + hookName + '»', false);
         } else {
             var cancelMsg = '↩ Задача [URL]' + taskUrl + '[/URL] «' + titleShort + '» — отмена загрузки в ' + cancelLabel;
-            var cancelComment = '↩ отмена загрузки в ' + cancelLabel;
+            var cancelComment = '↩ ' + hookName + ': отмена загрузки в ' + cancelLabel;
             var existingId = store[msgKey];
             if (existingId) {
                 incrementApiCount();
@@ -5144,8 +5190,9 @@ async function atilabOnDeployToggle(taskId, kind, checked, inputEl) {
             } else {
                 await vnSendChatMessage(cancelMsg, true);
             }
-            await atilabAddTaskComment(taskId, cancelComment);
-            showKbToast(labelShort + ': отмена записана в Bitrix', false);
+            var cancelled = await atilabPostToTaskChat(taskId, cancelComment);
+            if (!cancelled.ok) throw new Error('Не удалось написать отмену в чат задачи');
+            showKbToast(labelShort + ': отмена в чат от «' + hookName + '»', false);
         }
     } catch (err) {
         console.error('atilabOnDeployToggle failed:', err);
