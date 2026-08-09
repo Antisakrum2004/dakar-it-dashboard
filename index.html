@@ -1737,6 +1737,38 @@
         .dev-chip.active .dev-dot {
             background: #86efac;
         }
+        .deploy-need-filter-btn {
+            margin-left: auto;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid #93c5fd;
+            background: #eff6ff;
+            color: #1d4ed8;
+            line-height: 1.35;
+            white-space: nowrap;
+            user-select: none;
+            transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
+            flex-shrink: 0;
+        }
+        .deploy-need-filter-btn:hover {
+            background: #dbeafe;
+        }
+        .deploy-need-filter-btn.active {
+            background: #1d4ed8;
+            color: #fff;
+            border-color: #1d4ed8;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+        }
+        .deploy-need-filter-btn .chip-count {
+            opacity: 0.75;
+            font-weight: 600;
+        }
+        .deploy-need-filter-btn.active .chip-count {
+            opacity: 0.9;
+        }
 
         /* ===== АТИЛАБ: STAGE BADGES (свои цвета) ===== */
         .atilab-stage-new { background: #f3f4f6; color: #4b5563; }         /* Новые — серый */
@@ -2643,7 +2675,7 @@
                     <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
                 </div>
                 <span class="concept-badge" id="conceptBadge">КАНБАН · КОНЦЕПТ</span>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.56</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.57</span>
                 <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
             </div>
         </div>
@@ -2717,9 +2749,16 @@
     <span class="project-chip active" data-project="" onclick="toggleAtilabProjectFilter(this)">Все</span>
 </div>
 <!-- Executor chips — АТИЛАБ -->
-<div class="project-chips-row atilab-only atilab-block" id="atilabExecutorChips" style="flex-shrink:0;background:rgba(255,255,255,0.45)">
-    <span class="filter-label" style="font-size:10px;margin-right:2px">Исполнитель:</span>
-    <span class="dev-chip active" data-executor="" onclick="toggleAtilabExecutorFilter(this)">ВСЕ</span>
+<div class="project-chips-row atilab-only atilab-block" id="atilabExecutorRow" style="flex-shrink:0;background:rgba(255,255,255,0.45)">
+    <div id="atilabExecutorChips" style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;min-width:0;flex:1">
+        <span class="filter-label" style="font-size:10px;margin-right:2px">Исполнитель:</span>
+        <span class="dev-chip active" data-executor="" onclick="toggleAtilabExecutorFilter(this)">ВСЕ</span>
+    </div>
+    <button type="button" class="deploy-need-filter-btn" id="atilabDeployNeedFilterBtn"
+        onclick="toggleAtilabDeployNeedFilter()"
+        title="Показать только карточки с миганием «надо внедрить» (Дем/Раб)">
+        К внедрению <span class="chip-count" id="atilabDeployNeedCount">0</span>
+    </button>
 </div>
 
 <!-- Toolbar: ВНЕДРЕНИЕ -->
@@ -3324,6 +3363,7 @@ let atilabTasks = [];
 let atilabActiveFilters = new Set(['new', 'inwork', 'testing', 'release', 'done', 'revisions', 'pause', 'invoice', 'payment']);
 let atilabProjectFilter = null; // null = all projects
 let atilabExecutorFilter = new Set(); // empty = all executors; ids for multi-select
+let atilabDeployNeedFilter = false; // true = только карточки с миганием Дем/Раб
 let atilabLastFiltered = [];
 let atilabIsLoaded = false;
 let atilabUserMap = {};
@@ -4956,6 +4996,25 @@ function atilabDeployAlertClass(task, kind) {
     return ' need-d';
 }
 
+/** Есть мигание хотя бы на одном чипе Дем/Раб */
+function atilabTaskHasDeployNeed(task) {
+    return !!(atilabDeployAlertClass(task, 'demo') || atilabDeployAlertClass(task, 'rab'));
+}
+
+function toggleAtilabDeployNeedFilter() {
+    atilabDeployNeedFilter = !atilabDeployNeedFilter;
+    var btn = document.getElementById('atilabDeployNeedFilterBtn');
+    if (btn) btn.classList.toggle('active', atilabDeployNeedFilter);
+    renderAtilabTasks();
+}
+
+function syncAtilabDeployNeedFilterUi(count) {
+    var btn = document.getElementById('atilabDeployNeedFilterBtn');
+    var countEl = document.getElementById('atilabDeployNeedCount');
+    if (btn) btn.classList.toggle('active', !!atilabDeployNeedFilter);
+    if (countEl) countEl.textContent = String(count || 0);
+}
+
 function initBxChatSplitter() {
     var splitter = document.getElementById('bxChatSplitter');
     var chat = document.getElementById('bxChatCard');
@@ -5140,6 +5199,16 @@ function renderAtilabTasks() {
                    t.groupName.toLowerCase().includes(query) ||
                    t.responsibleName.toLowerCase().includes(query);
         });
+    }
+
+    var deployNeedCount = 0;
+    filtered.forEach(function(t) {
+        if (atilabTaskHasDeployNeed(t)) deployNeedCount++;
+    });
+    syncAtilabDeployNeedFilterUi(deployNeedCount);
+
+    if (atilabDeployNeedFilter) {
+        filtered = filtered.filter(atilabTaskHasDeployNeed);
     }
 
     var now = new Date();
