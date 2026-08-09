@@ -2678,7 +2678,7 @@
                     <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
                 </div>
                 <span class="concept-badge" id="conceptBadge">КАНБАН · КОНЦЕПТ</span>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.62</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.63</span>
                 <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
             </div>
         </div>
@@ -3098,7 +3098,7 @@ function syncHookModalCopy() {
     } else {
         if (title) title.textContent = 'Хуки АтиЛаб / Внедрение';
         if (sub) sub.textContent = 'Смена стадии, чат и чипсы Дем/Раб — от вебхука 1c-cms.bitrix24.ru.';
-        if (note) note.textContent = 'Хук АтиЛаб сохраняется отдельно от Дакара. Только локально в этом браузере.';
+        if (note) note.textContent = 'Без своего хука доска АтиЛаб не загрузится. Хук только в этом браузере (отдельно от Дакара).';
         if (urlEl) urlEl.placeholder = 'https://1c-cms.bitrix24.ru/rest/USER_ID/WEBHOOK/';
     }
 }
@@ -4170,6 +4170,14 @@ async function ensureAtilabStageMaps(groupIds) {
 async function loadAtilabData() {
     var bar = document.getElementById('loadingBar');
     var fill = document.getElementById('loadingFill');
+
+    if (!activeAtilabHookId) {
+        showAtilabHookRequired();
+        openHookModal();
+        showKbToast('Сначала выбери свой хук в *', true);
+        return;
+    }
+
     bar.classList.add('active');
     fill.style.width = '10%';
 
@@ -4300,6 +4308,10 @@ async function loadAtilabData() {
             if (debugIds.indexOf(t.id) !== -1) {
                 console.log('  DEBUG task #' + t.id + ': stageId=' + t.stageId + ', kanbanStage=' + t.kanbanStage + ', status=' + t.status + ', group=' + t.groupName + ' (' + t.groupId + ')');
             }
+        });
+        // Фоном: галки не от 116 без сообщения в чате → «Владимир перенёс…»
+        syncAtilabForeignDeployNotes().catch(function(e) {
+            console.warn('[atilab] foreign deploy notes', e);
         });
         return true;
     } catch(e) {
@@ -4802,14 +4814,16 @@ async function atilabAddTaskComment(taskId, text) {
 /**
  * Пишет в чат задачи (im.dialog) от активного хука — это то, что видно в превью и в Bitrix «Чат».
  * Fallback: старый task.commentitem (может не отображаться в новом чате).
+ * apiBase — опционально (например ATILAB_READ_API = 116 для служебных отбивок).
  */
-async function atilabPostToTaskChat(taskId, text) {
+async function atilabPostToTaskChat(taskId, text, apiBase) {
+    var base = apiBase || ATILAB_API;
     var task = atilabTasks.find(function(t) { return t.id === taskId; });
     var chatId = task ? await ensureAtilabTaskChatId(task) : '';
-    if (chatId && ATILAB_API) {
+    if (chatId && base) {
         try {
             incrementApiCount();
-            var resp = await fetch(ATILAB_API + 'im.message.add', {
+            var resp = await fetch(base + 'im.message.add', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -4824,9 +4838,125 @@ async function atilabPostToTaskChat(taskId, text) {
             console.warn('[atilab] im.message.add (deploy) failed', e);
         }
     }
-    var legacy = await atilabAddTaskComment(taskId, text);
-    if (legacy) return { ok: true, via: 'comment', id: legacy };
+    if (!apiBase || apiBase === ATILAB_API) {
+        var legacy = await atilabAddTaskComment(taskId, text);
+        if (legacy) return { ok: true, via: 'comment', id: legacy };
+    }
     return { ok: false, via: null, id: null };
+}
+
+/** Владелец read-хука из конфига (сейчас 116 = Андрей) */
+function getAtilabOwnerUserId() {
+    return parseWebhookUserId(ATILAB_READ_API) || '116';
+}
+
+function getAtilabActiveHookUserId() {
+    var h = getActiveAtilabHook();
+    return h ? (parseWebhookUserId(h.url) || '') : '';
+}
+
+var ATILAB_DEPLOY_SEEN_KEY = 'atilab_deploy_tag_seen_v1';
+var ATILAB_DEPLOY_NOTE_KEY = 'atilab_deploy_note_sent_v1';
+var ATILAB_DEPLOY_REPAIR_KEY = 'atilab_deploy_repair_v62';
+/** Если галку поставил не владелец read-хука (116) — считаем, что это Владимир */
+var ATILAB_OTHER_DEPLOYER_NAME = 'Владимир';
+
+async function atilabTaskChatHasDeployNote(task, kind) {
+    if (!task || !task.id) return false;
+    try {
+        var batch = await atilabFetchCommentBatch(task.id, 30, null);
+        var needle = kind === 'rab' ? 'рабоч' : 'демо';
+        return (batch.items || []).some(function(m) {
+            var t = String(m.message || '').toLowerCase();
+            return (t.indexOf('внедрен') !== -1 || t.indexOf('перенес') !== -1) && t.indexOf(needle) !== -1;
+        });
+    } catch (e) {
+        return false;
+    }
+}
+
+/**
+ * После загрузки доски:
+ * — если тег внедрена_* появился, а в чате задачи нет отбивки,
+ * — и смотрим с хука 116 (владелец) — пишем «Владимир перенёс в … (дата)».
+ */
+async function syncAtilabForeignDeployNotes() {
+    if (!atilabTasks || !atilabTasks.length) return;
+    var ownerId = getAtilabOwnerUserId();
+    var activeUid = getAtilabActiveHookUserId();
+    // Служебную отбивку «от Владимира» шлём только когда на доске хук владельца (116)
+    if (activeUid && activeUid !== ownerId) return;
+
+    var seen = {};
+    var notes = {};
+    try { seen = JSON.parse(localStorage.getItem(ATILAB_DEPLOY_SEEN_KEY) || '{}') || {}; } catch (e) { seen = {}; }
+    try { notes = JSON.parse(localStorage.getItem(ATILAB_DEPLOY_NOTE_KEY) || '{}') || {}; } catch (e) { notes = {}; }
+
+    var hadSeenStore = !!localStorage.getItem(ATILAB_DEPLOY_SEEN_KEY);
+    var needRepair = !localStorage.getItem(ATILAB_DEPLOY_REPAIR_KEY);
+    var posted = 0;
+    var maxPost = 12;
+
+    for (var i = 0; i < atilabTasks.length; i++) {
+        var task = atilabTasks[i];
+        var specs = [
+            { kind: 'demo', done: !!task.demoDone, where: 'демо' },
+            { kind: 'rab', done: !!task.rabDone, where: 'рабочую' }
+        ];
+        for (var s = 0; s < specs.length; s++) {
+            var sp = specs[s];
+            var key = String(task.id) + ':' + sp.kind;
+            if (!sp.done) {
+                if (seen[key]) delete seen[key];
+                continue;
+            }
+            var wasSeen = !!seen[key];
+            seen[key] = 1;
+            if (notes[key]) continue;
+
+            // Первый проход: запоминаем уже стоящие галки, без массового спама
+            // (кроме one-time repair для дыр без сообщения в чате)
+            var shouldCheck = (!hadSeenStore && needRepair) || (hadSeenStore && !wasSeen);
+            if (!shouldCheck) continue;
+            if (posted >= maxPost) continue;
+
+            var hasNote = await atilabTaskChatHasDeployNote(task, sp.kind);
+            if (hasNote) {
+                notes[key] = Date.now();
+                continue;
+            }
+
+            var ts = vnFormatDoneTime(Date.now());
+            var text = '✅ ' + ATILAB_OTHER_DEPLOYER_NAME + ' перенёс в ' + sp.where + ' (' + ts + ')';
+            var res = await atilabPostToTaskChat(task.id, text, ATILAB_READ_API);
+            if (res.ok) {
+                notes[key] = Date.now();
+                posted++;
+                console.log('[atilab] foreign deploy note #' + task.id + ' ' + sp.kind);
+            }
+            await new Promise(function(r) { setTimeout(r, 120); });
+        }
+    }
+
+    try {
+        localStorage.setItem(ATILAB_DEPLOY_SEEN_KEY, JSON.stringify(seen));
+        localStorage.setItem(ATILAB_DEPLOY_NOTE_KEY, JSON.stringify(notes));
+        if (needRepair) localStorage.setItem(ATILAB_DEPLOY_REPAIR_KEY, '1');
+    } catch (e) {}
+}
+
+function showAtilabHookRequired() {
+    var board = document.getElementById('taskListAtilab') || document.getElementById('taskList');
+    if (board) {
+        board.innerHTML =
+            '<div style="margin:48px auto;max-width:420px;text-align:center;color:#475569;font-size:14px;line-height:1.5">' +
+            '<div style="font-size:18px;font-weight:700;color:#0f172a;margin-bottom:8px">Нужен свой webhook</div>' +
+            'Без хука в «*» доска АтиЛаб не загружается — иначе галки Дем/Раб не пишутся в задачу от вашего имени.<br><br>' +
+            '<button class="btn btn-primary" type="button" onclick="openHookModal()" style="padding:8px 16px">Открыть хуки *</button>' +
+            '</div>';
+    }
+    var countEl = document.getElementById('atilabFilteredCount');
+    if (countEl) countEl.textContent = 'хук не выбран';
 }
 
 /** ЕОД в чате задачи → сигнал «надо внедрить» (тег + D кольцо на Дем/Раб) */
@@ -5167,6 +5297,14 @@ async function atilabOnDeployToggle(taskId, kind, checked, inputEl) {
             }
             var posted = await atilabPostToTaskChat(taskId, commentMsg);
             if (!posted.ok) throw new Error('Не удалось написать в чат задачи');
+            try {
+                var notes = JSON.parse(localStorage.getItem(ATILAB_DEPLOY_NOTE_KEY) || '{}') || {};
+                notes[String(taskId) + ':' + kind] = Date.now();
+                localStorage.setItem(ATILAB_DEPLOY_NOTE_KEY, JSON.stringify(notes));
+                var seen = JSON.parse(localStorage.getItem(ATILAB_DEPLOY_SEEN_KEY) || '{}') || {};
+                seen[String(taskId) + ':' + kind] = 1;
+                localStorage.setItem(ATILAB_DEPLOY_SEEN_KEY, JSON.stringify(seen));
+            } catch (eN) {}
             showKbToast(labelShort + ': в чат задачи от «' + hookName + '»', false);
         } else {
             var cancelMsg = '↩ Задача [URL]' + taskUrl + '[/URL] «' + titleShort + '» — отмена загрузки в ' + cancelLabel;
@@ -5216,6 +5354,10 @@ async function atilabOnDeployToggle(taskId, kind, checked, inputEl) {
 
 function renderAtilabTasks() {
     if (currentTab !== 'atilab') return;
+    if (!activeAtilabHookId) {
+        showAtilabHookRequired();
+        return;
+    }
     var board = document.getElementById('taskListAtilab') || document.getElementById('taskList');
     var query = (document.getElementById("atilabSearchInput") ? document.getElementById("atilabSearchInput").value : "").toLowerCase().trim();
 
