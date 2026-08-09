@@ -716,8 +716,25 @@
         .preview-panel.is-bx .preview-footer {
             background: #eef2f4;
             border-top: none;
-            padding-top: 4px;
+            padding: 4px 14px 10px;
+            justify-content: flex-end;
         }
+        .btn-open-bitrix.is-mini {
+            flex: 0 0 auto;
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 6px;
+            background: #475569;
+            gap: 5px;
+            width: auto;
+            min-width: 0;
+        }
+        .btn-open-bitrix.is-mini svg {
+            width: 12px;
+            height: 12px;
+        }
+        .btn-open-bitrix.is-mini:hover { background: #334155; }
 
         .preview-head-meta {
             font-size: 12px;
@@ -747,6 +764,57 @@
         .preview-body::-webkit-scrollbar-thumb {
             background: #cbd5e1;
             border-radius: 6px;
+        }
+
+        /* AtiLab modal: без скролла body, пока описание свёрнуто */
+        .preview-body.is-bx {
+            background: #eef2f4;
+            padding: 8px 14px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            overflow: hidden;
+        }
+        .preview-body.is-bx.is-desc-expanded {
+            overflow-y: auto;
+        }
+        .bx-top {
+            flex: 1 1 auto;
+            min-height: 72px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-bottom: 4px;
+            scrollbar-width: thin;
+            scrollbar-color: #c5ccd6 transparent;
+        }
+        .bx-splitter {
+            flex: 0 0 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: ns-resize;
+            touch-action: none;
+            user-select: none;
+            margin: 2px 0;
+        }
+        .bx-splitter::before {
+            content: '';
+            width: 44px;
+            height: 4px;
+            border-radius: 999px;
+            background: #c5ccd6;
+            transition: background 0.15s, width 0.15s;
+        }
+        .bx-splitter:hover::before,
+        .bx-splitter.is-dragging::before {
+            background: #64748b;
+            width: 56px;
+        }
+        .bx-splitter.is-dragging {
+            cursor: ns-resize;
         }
 
         .preview-field { margin-bottom: 12px; }
@@ -913,30 +981,25 @@
         .preview-stat-card .value.is-overdue { color: #dc2626; }
 
         /* Bitrix-like task layout */
-        .preview-body.is-bx {
-            background: #eef2f4;
-            padding: 10px 14px 14px;
-        }
         .bx-card {
             background: #fff;
             border-radius: 12px;
             box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
-            padding: 20px 22px;
-            margin-bottom: 12px;
+            padding: 18px 20px;
+            flex-shrink: 0;
         }
-        .bx-card:last-child { margin-bottom: 0; }
         .bx-desc-actions {
             display: flex;
             justify-content: flex-end;
             align-items: center;
-            margin-top: 16px;
+            margin-top: 14px;
             gap: 12px;
         }
         .bx-attachments {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
-            margin-top: 18px;
+            margin-top: 16px;
         }
         .bx-attach {
             display: flex;
@@ -975,6 +1038,165 @@
             font-size: 12px;
             line-height: 1.3;
             word-break: break-word;
+        }
+
+        .bx-meta-strip {
+            display: flex;
+            align-items: stretch;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+            padding: 0;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .bx-meta-cell {
+            flex: 1 1 0;
+            background: transparent;
+            border-radius: 0;
+            padding: 5px 10px;
+            box-shadow: none;
+            min-width: 0;
+            border-right: 1px solid #eef2f6;
+        }
+        .bx-meta-cell:last-child { border-right: none; }
+        .bx-meta-cell .label {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin-bottom: 1px;
+            line-height: 1.2;
+        }
+        .bx-meta-cell .value {
+            font-size: 12px;
+            font-weight: 600;
+            color: #0f172a;
+            line-height: 1.25;
+            word-break: break-word;
+        }
+        .bx-meta-cell .value.is-overdue { color: #dc2626; }
+        .bx-meta-cell .value.is-over-plan { color: #dc2626; }
+        .bx-meta-cell .value.is-under-plan { color: #16a34a; }
+        .bx-meta-cell .value.time {
+            font-variant-numeric: tabular-nums;
+            font-size: 11px;
+        }
+
+        .bx-chat-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+            padding: 12px 14px;
+            flex: 0 0 auto;
+            height: var(--bx-chat-h, 240px);
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .bx-chat-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+        .bx-chat-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .bx-chat-title svg {
+            width: 13px;
+            height: 13px;
+            opacity: 0.55;
+        }
+        .bx-chat-load {
+            border: none;
+            background: transparent;
+            color: #2066b0;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+        }
+        .bx-chat-load:hover { text-decoration: underline; }
+        .bx-chat-load:disabled {
+            opacity: 0.45;
+            cursor: default;
+            text-decoration: none;
+        }
+        .bx-chat-list {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 4px;
+            scrollbar-width: thin;
+            scrollbar-color: #c5ccd6 transparent;
+        }
+        .bx-chat-list::-webkit-scrollbar { width: 6px; }
+        .bx-chat-list::-webkit-scrollbar-track { background: transparent; }
+        .bx-chat-list::-webkit-scrollbar-thumb {
+            background: #c5ccd6;
+            border-radius: 6px;
+        }
+        .bx-chat-item {
+            padding: 8px 10px;
+            background: #f7f8fa;
+            border-radius: 8px;
+        }
+        .bx-chat-meta {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        .bx-chat-author {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .bx-chat-time {
+            font-size: 11px;
+            color: #94a3b8;
+            flex-shrink: 0;
+        }
+        .bx-chat-text {
+            font-size: 13px;
+            color: #334155;
+            line-height: 1.45;
+            word-break: break-word;
+        }
+        .bx-chat-text a { color: #2066b0; }
+        .bx-chat-empty {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 13px;
+            padding: 18px 8px;
+        }
+        .bx-chat-input-row {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 640px) {
+            .bx-meta-strip { flex-wrap: wrap; }
+            .bx-meta-cell { flex: 1 1 45%; border-bottom: 1px solid #eef2f6; }
         }
         .bx-meta-row {
             display: grid;
@@ -1268,6 +1490,8 @@
             .preview-body { padding: 12px 16px; }
             .preview-footer { padding: 12px 16px; }
             .preview-stat-grid { grid-template-columns: 1fr 1fr; }
+            .bx-meta-strip { flex-wrap: wrap; }
+            .bx-meta-cell { flex: 1 1 45%; border-bottom: 1px solid #eef2f6; }
             .preview-hours-card .value { font-size: 22px; }
             .header-actions .btn span,
             .header-actions .btn svg + * {}
@@ -1790,21 +2014,27 @@
             font-size: 10px;
             font-weight: 700;
             color: #64748b;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 4px 7px;
+            background: transparent;
+            border: 0;
+            outline: none;
+            box-shadow: none;
+            border-radius: 4px;
+            padding: 2px 4px;
             cursor: default;
             user-select: none;
             line-height: 1;
-            min-height: 24px;
-            min-width: 44px;
-            transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+            min-height: 22px;
+            min-width: 0;
+            transition: color 0.12s ease;
         }
         .kb-deploy-toggle:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 3px 8px rgba(15,23,42,0.08);
-            border-color: #cbd5e1;
+            transform: none;
+            color: #334155;
+        }
+        .kb-deploy-toggle.need-d:hover {
+            /* не сбрасывать фон/тень анимации при hover */
+            background: unset;
+            box-shadow: unset;
         }
         .kb-deploy-toggle input {
             width: 14px;
@@ -1813,18 +2043,60 @@
             cursor: default;
             accent-color: #16a34a;
             flex-shrink: 0;
+            border: none;
+            outline: none;
+            box-shadow: none;
         }
         .kb-deploy-toggle span {
             cursor: default;
         }
         .kb-deploy-toggle.is-on {
             color: #15803d;
-            background: #ecfdf5;
-            border-color: #86efac;
+            background: transparent !important;
+            border: 0 !important;
+            outline: none !important;
+            animation: none !important;
+            transform: none !important;
+            filter: none !important;
+            box-shadow: none !important;
+        }
+        .kb-deploy-toggle.is-on.need-d {
+            animation: none !important;
+            color: #15803d;
+            background: transparent !important;
+            border: 0 !important;
+            outline: none !important;
+            box-shadow: none !important;
         }
         .kb-deploy-toggle.is-busy {
             opacity: 0.55;
             pointer-events: none;
+        }
+
+        /* «Надо внедрить» — только D кольцо (из ЕОД / тегов внедрить_*) */
+        .kb-deploy-toggle.need-d {
+            position: relative;
+            z-index: 1;
+            font-weight: 700;
+            border-radius: 4px;
+        }
+        .kb-deploy-toggle.need-d:not(.is-on) {
+            color: #1d4ed8 !important;
+            animation: kbNeedRing 1s ease-out infinite !important;
+        }
+        @keyframes kbNeedRing {
+            0% {
+                background: rgba(37, 99, 235, 0.15);
+                box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.55);
+            }
+            70% {
+                background: rgba(37, 99, 235, 0.05);
+                box-shadow: 0 0 0 8px rgba(37, 99, 235, 0);
+            }
+            100% {
+                background: rgba(37, 99, 235, 0.15);
+                box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+            }
         }
         .kb-card-title {
             font-size: 13px;
@@ -2371,7 +2643,7 @@
                     <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
                 </div>
                 <span class="concept-badge" id="conceptBadge">КАНБАН · КОНЦЕПТ</span>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.40</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.56</span>
                 <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
             </div>
         </div>
@@ -3433,6 +3705,7 @@ function refreshData() {
             updateAtilabProjectChips();
             updateAtilabExecutorChips();
             updateTimestamp();
+            scanAtilabEodDeployNeeds();
             btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h-6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Обновить';
             btn.disabled = false;
         });
@@ -3874,7 +4147,8 @@ async function loadAtilabData() {
                     '&select%5B%5D=ID&select%5B%5D=TITLE&select%5B%5D=STAGE_ID&select%5B%5D=GROUP_ID' +
                     '&select%5B%5D=STATUS&select%5B%5D=RESPONSIBLE_ID&select%5B%5D=DEADLINE' +
                     '&select%5B%5D=CREATED_DATE&select%5B%5D=DESCRIPTION&select%5B%5D=CREATED_BY' +
-                    '&select%5B%5D=TAGS&select%5B%5D=TIME_ESTIMATE&select%5B%5D=TIME_SPENT_IN_LOGS';
+                    '&select%5B%5D=TAGS&select%5B%5D=TIME_ESTIMATE&select%5B%5D=TIME_SPENT_IN_LOGS' +
+                    '&select%5B%5D=CHAT_ID';
                 var resp = await fetch(url);
                 var data = await resp.json();
                 if (!isValidApiResponse(data)) {
@@ -3958,6 +4232,7 @@ async function loadAtilabData() {
                 rabDone: vnHasTag(tagTitles, VN_TAG.vnedrenaRab),
                 timePlanSec: planSec,
                 timeFactSec: factSec,
+                chatId: t.chatId ? String(t.chatId) : (t.CHAT_ID ? String(t.CHAT_ID) : ''),
                 movedAt: 0
             };
         }).filter(function(t) {
@@ -4082,6 +4357,7 @@ function switchTab(tab) {
                 updateAtilabProjectChips();
                 updateAtilabExecutorChips();
                 updateTimestamp();
+                scanAtilabEodDeployNeeds();
                 btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h-6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Обновить';
                 btn.disabled = false;
                 var badge2 = document.getElementById('dataSourceBadge');
@@ -4090,6 +4366,7 @@ function switchTab(tab) {
             });
         } else {
             renderAtilabTasks();
+            scanAtilabEodDeployNeeds();
         }
     } else if (tab === 'vnedrenie') {
         if (!vnedrenieIsLoaded) {
@@ -4479,17 +4756,274 @@ async function atilabAddTaskComment(taskId, text) {
     }
 }
 
-async function atilabOnDeployToggle(taskId, kind, checked, inputEl) {
-    if (!activeAtilabHookId) {
-        if (inputEl) inputEl.checked = !checked;
-        showErrorNotification('Сначала выберите свой хук через *');
-        openHookModal();
-        return;
+/** ЕОД в чате задачи → сигнал «надо внедрить» (тег + D кольцо на Дем/Раб) */
+var ATILAB_EOD_SCAN_CACHE_KEY = 'atilab_eod_deploy_scan_v1';
+var atilabEodScanRunning = false;
+
+function normalizeEodText(s) {
+    return String(s || '')
+        .toLowerCase()
+        .replace(/ё/g, 'е')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\[[^\]]*\]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function isLikelyEodMessage(text) {
+    var t = normalizeEodText(text);
+    if (!t || t.length < 8) return false;
+    var kws = ['done', 'test', 'next', 'block', 'готово', 'сделано', 'далее', 'блок', 'тест'];
+    var n = 0;
+    for (var i = 0; i < kws.length; i++) {
+        if (t.indexOf(kws[i]) !== -1) n++;
     }
+    return n >= 2;
+}
+
+/** Из текста ЕОД: нужен перенос/загрузка в демо и/или рабочую */
+function parseEodDeployTargets(raw) {
+    var t = normalizeEodText(raw);
+    var out = { demo: false, rab: false };
+    if (!isLikelyEodMessage(t)) return out;
+
+    // \w в JS без /u не включает кириллицу — используем явный класс
+    // загруж* (загружено/загружена) и загруз* (загрузить/загрузка) — разные основы
+    var w = '[а-яa-z0-9_]*';
+    var load = 'загру[зж]';
+    var hasVerb = new RegExp('перенес|перенос|' + load + '|залить|залил|залито|вылож|выкат|задепло|deploy').test(t);
+    var tplDemo = /перенести\s*:\s*[^\n]*демо/.test(t);
+    var tplRab = /перенести\s*:\s*[^\n]*рабоч/.test(t);
+
+    var demoHit = new RegExp(
+        '(?:^|[\\s,;:\\n])(?:в|на)\\s+демо\\b|\\bдемостенд\\b|\\bto\\s+demo\\b|\\bdemo\\b|' +
+        load + w + '\\s+(?:в|на)\\s+демо|перенес' + w + '\\s+(?:в|на)\\s+демо|' +
+        'залить\\s+(?:в|на)\\s+демо|вылож' + w + '\\s+(?:в|на)\\s+демо|выкат' + w + '\\s+(?:в|на)\\s+демо|' +
+        'задепло' + w + '\\s+(?:в|на)\\s+демо'
+    ).test(t) || tplDemo;
+
+    var rabHit = new RegExp(
+        '(?:^|[\\s,;:\\n])(?:в|на)\\s+рабоч' + w + '|(?:^|[\\s,;:\\n])(?:в|на)\\s+прод\\b|' +
+        '\\bproduction\\b|\\bto\\s+prod\\b|(?:^|[\\s,;:\\n])prod\\b|(?:^|[\\s,;:\\n])(?:в|на)\\s+бой\\b|' +
+        load + w + '\\s+(?:в|на)\\s+рабоч|перенес' + w + '\\s+(?:в|на)\\s+рабоч|' +
+        load + w + '\\s+(?:в|на)\\s+прод|перенес' + w + '\\s+(?:в|на)\\s+прод|' +
+        'залить\\s+(?:в|на)\\s+(?:рабоч|прод|бой)|вылож' + w + '\\s+(?:в|на)\\s+(?:рабоч|прод)|' +
+        'выкат' + w + '\\s+(?:в|на)\\s+(?:рабоч|прод)|задепло' + w + '\\s+(?:в|на)\\s+(?:рабоч|прод)'
+    ).test(t) || tplRab;
+
+    var negDemo = new RegExp(
+        '(?:^|[\\s,;:])не\\s+(?:надо\\s+|нужно\\s+)?(?:перенос' + w + '|перенес' + w + '|' + load + w + '|залить|вылож' + w + '|выкат' + w + '|депло' + w + ').{0,30}демо|' +
+        '(?:^|[\\s,;:])не\\s+(?:перенос' + w + '|' + load + w + ').{0,12}(?:в|на)\\s+демо|' +
+        'демо.{0,20}(?:^|[\\s,;:])не\\s+(?:нужно|надо|перенос|загруз)'
+    ).test(t);
+
+    var negRab = new RegExp(
+        '(?:^|[\\s,;:])не\\s+(?:надо\\s+|нужно\\s+)?(?:перенос' + w + '|перенес' + w + '|' + load + w + '|залить|вылож' + w + '|выкат' + w + '|депло' + w + ').{0,30}(?:рабоч|прод|бой)|' +
+        '(?:^|[\\s,;:])не\\s+(?:перенос' + w + '|' + load + w + ').{0,12}(?:в|на)\\s+(?:рабоч|прод|бой)|' +
+        '(?:рабоч|прод).{0,20}(?:^|[\\s,;:])не\\s+(?:нужно|надо|перенос|загруз)'
+    ).test(t);
+
+    if (demoHit && (hasVerb || tplDemo) && !negDemo) out.demo = true;
+    if (rabHit && (hasVerb || tplRab) && !negRab) out.rab = true;
+    return out;
+}
+
+function loadAtilabEodScanCache() {
+    try {
+        var raw = sessionStorage.getItem(ATILAB_EOD_SCAN_CACHE_KEY);
+        var o = raw ? JSON.parse(raw) : {};
+        return o && typeof o === 'object' ? o : {};
+    } catch (e) { return {}; }
+}
+
+function saveAtilabEodScanCache(cache) {
+    try { sessionStorage.setItem(ATILAB_EOD_SCAN_CACHE_KEY, JSON.stringify(cache)); } catch (e) {}
+}
+
+function atilabTaskNeedsEodScan(task) {
+    if (!task || !task.id) return false;
+    var tags = task.tags || [];
+    var needDemo = !task.demoDone && !vnHasTag(tags, VN_TAG.vnedritDemo) && !vnHasTag(tags, VN_TAG.vChateDemo) && !task.eodNeedDemo;
+    var needRab = !task.rabDone && !vnHasTag(tags, VN_TAG.vnedritRab) && !vnHasTag(tags, VN_TAG.vChateRab) && !task.eodNeedRab;
+    return needDemo || needRab;
+}
+
+async function atilabApplyEodDeployTags(task, targets) {
+    if (!task || !targets) return false;
+    var tags = (task.tags || []).slice();
+    var changed = false;
+
+    if (targets.demo && !task.demoDone) {
+        task.eodNeedDemo = true;
+        if (!vnHasTag(tags, VN_TAG.vnedrenaDemo) && !vnHasTag(tags, VN_TAG.vnedritDemo)) {
+            tags.push(VN_TAG.vnedritDemo);
+            changed = true;
+        }
+    }
+    if (targets.rab && !task.rabDone) {
+        task.eodNeedRab = true;
+        if (!vnHasTag(tags, VN_TAG.vnedrenaRab) && !vnHasTag(tags, VN_TAG.vnedritRab)) {
+            tags.push(VN_TAG.vnedritRab);
+            changed = true;
+        }
+    }
+    if (!changed && (task.eodNeedDemo || task.eodNeedRab)) return true;
+
+    if (changed) {
+        task.tags = tags;
+        try {
+            await vnUpdateTaskTags(task.id, tags);
+        } catch (e) {
+            console.warn('[atilab] eod tag update failed #' + task.id, e);
+        }
+        return true;
+    }
+    return !!(task.eodNeedDemo || task.eodNeedRab);
+}
+
+async function atilabScanTaskEodDeploy(task) {
+    if (!atilabTaskNeedsEodScan(task)) return false;
+    var cache = loadAtilabEodScanCache();
+    var cached = cache[String(task.id)];
+    var now = Date.now();
+    if (cached && (now - (cached.ts || 0)) < 15 * 60 * 1000) {
+        if (cached.demo) task.eodNeedDemo = true;
+        if (cached.rab) task.eodNeedRab = true;
+        return !!(cached.demo || cached.rab);
+    }
+
+    var batch = await atilabFetchCommentBatch(task.id, 25, null);
+    var demo = false;
+    var rab = false;
+    (batch.items || []).forEach(function(msg) {
+        var hit = parseEodDeployTargets(msg.message || '');
+        if (hit.demo) demo = true;
+        if (hit.rab) rab = true;
+    });
+
+    cache[String(task.id)] = { demo: demo, rab: rab, ts: now };
+    saveAtilabEodScanCache(cache);
+
+    if (!demo && !rab) return false;
+    return await atilabApplyEodDeployTags(task, { demo: demo, rab: rab });
+}
+
+/** Фон: читает чаты задач без тега внедрить_* и выставляет сигнал из ЕОД */
+async function scanAtilabEodDeployNeeds() {
+    if (atilabEodScanRunning || !atilabTasks || !atilabTasks.length) return;
+    atilabEodScanRunning = true;
+    try {
+        var list = atilabTasks.filter(atilabTaskNeedsEodScan).slice(0, 60);
+        var changed = 0;
+        var i = 0;
+        async function worker() {
+            while (i < list.length) {
+                var idx = i++;
+                var task = list[idx];
+                try {
+                    if (await atilabScanTaskEodDeploy(task)) changed++;
+                } catch (e) {
+                    console.warn('[atilab] eod scan #' + (task && task.id), e);
+                }
+                await new Promise(function(r) { setTimeout(r, 80); });
+            }
+        }
+        await Promise.all([worker(), worker(), worker()]);
+        if (changed > 0 && typeof renderAtilabTasks === 'function') {
+            renderAtilabTasks();
+            console.log('[atilab] EOD deploy signals applied:', changed);
+        }
+    } finally {
+        atilabEodScanRunning = false;
+    }
+}
+
+/** Класс моргания Дем/Раб: только D кольцо */
+function atilabDeployAlertClass(task, kind) {
+    if (!task) return '';
+    var done = kind === 'rab' ? !!task.rabDone : !!task.demoDone;
+    if (done) return '';
+
+    var tags = task.tags || [];
+    var needTag = kind === 'rab' ? VN_TAG.vnedritRab : VN_TAG.vnedritDemo;
+    var chateTag = kind === 'rab' ? VN_TAG.vChateRab : VN_TAG.vChateDemo;
+    var fromEod = kind === 'rab' ? !!task.eodNeedRab : !!task.eodNeedDemo;
+    var must = fromEod;
+    try {
+        must = must || vnHasTag(tags, needTag) || vnHasTag(tags, chateTag);
+    } catch (e) { /* ignore */ }
+    if (!must) return '';
+    return ' need-d';
+}
+
+function initBxChatSplitter() {
+    var splitter = document.getElementById('bxChatSplitter');
+    var chat = document.getElementById('bxChatCard');
+    var body = document.getElementById('previewBody');
+    if (!splitter || !chat || !body) return;
+
+    var startY = 0;
+    var startH = 0;
+
+    function onMove(ev) {
+        var bodyH = body.getBoundingClientRect().height;
+        var dy = startY - ev.clientY;
+        var next = Math.round(startH + dy);
+        var minH = 140;
+        var maxH = Math.max(minH, bodyH - 90);
+        if (next < minH) next = minH;
+        if (next > maxH) next = maxH;
+        chat.style.height = next + 'px';
+        body.style.setProperty('--bx-chat-h', next + 'px');
+    }
+
+    function onUp(ev) {
+        splitter.classList.remove('is-dragging');
+        try { splitter.releasePointerCapture(ev.pointerId); } catch (e) {}
+        splitter.removeEventListener('pointermove', onMove);
+        splitter.removeEventListener('pointerup', onUp);
+        splitter.removeEventListener('pointercancel', onUp);
+    }
+
+    splitter.addEventListener('pointerdown', function(e) {
+        if (e.button != null && e.button !== 0) return;
+        e.preventDefault();
+        startY = e.clientY;
+        startH = chat.getBoundingClientRect().height;
+        splitter.classList.add('is-dragging');
+        try { splitter.setPointerCapture(e.pointerId); } catch (err) {}
+        splitter.addEventListener('pointermove', onMove);
+        splitter.addEventListener('pointerup', onUp);
+        splitter.addEventListener('pointercancel', onUp);
+    });
+}
+
+async function atilabOnDeployToggle(taskId, kind, checked, inputEl) {
     var task = atilabTasks.find(function(t) { return t.id === taskId; });
     if (!task) return;
 
     var isRab = kind === 'rab';
+    var wrap = inputEl && inputEl.closest ? inputEl.closest('.kb-deploy-toggle') : null;
+    var prevTags = (task.tags || []).slice();
+    var prevDemo = !!task.demoDone;
+    var prevRab = !!task.rabDone;
+
+    // Сразу UI: галочка = стоп моргания (даже без хука — превью механики)
+    if (isRab) task.rabDone = checked; else task.demoDone = checked;
+    if (wrap) {
+        wrap.classList.toggle('is-on', checked);
+        wrap.classList.remove('need-d');
+        if (!checked) {
+            var resume = atilabDeployAlertClass(task, kind);
+            if (resume) wrap.classList.add(resume.trim());
+        }
+    }
+
+    if (!activeAtilabHookId) {
+        showKbToast(checked ? 'Галочка локально (выбери хук * для Bitrix)' : 'Снято локально', false);
+        return;
+    }
+
     var tagVnedrena = isRab ? VN_TAG.vnedrenaRab : VN_TAG.vnedrenaDemo;
     var tagVnedit = isRab ? VN_TAG.vnedritRab : VN_TAG.vnedritDemo;
     var tagVChate = isRab ? VN_TAG.vChateRab : VN_TAG.vChateDemo;
@@ -4497,21 +5031,13 @@ async function atilabOnDeployToggle(taskId, kind, checked, inputEl) {
     var cancelLabel = isRab ? 'рабочую' : 'демо';
     var labelShort = isRab ? 'Раб' : 'Дем';
 
-    var wrap = inputEl && inputEl.closest ? inputEl.closest('.kb-deploy-toggle') : null;
     if (wrap) wrap.classList.add('is-busy');
 
-    var prevTags = (task.tags || []).slice();
-    var prevDemo = !!task.demoDone;
-    var prevRab = !!task.rabDone;
-
-    // Optimistic tags
     var newTags = prevTags.filter(function(t) {
         return t !== tagVnedrena && t !== tagVnedit && t !== tagVChate;
     });
     if (checked) newTags.push(tagVnedrena);
     task.tags = newTags;
-    if (isRab) task.rabDone = checked; else task.demoDone = checked;
-    if (wrap) wrap.classList.toggle('is-on', checked);
 
     try {
         var ok = await vnUpdateTaskTags(taskId, newTags);
@@ -4567,6 +5093,11 @@ async function atilabOnDeployToggle(taskId, kind, checked, inputEl) {
         if (inputEl) inputEl.checked = isRab ? prevRab : prevDemo;
         if (wrap) {
             wrap.classList.toggle('is-on', isRab ? prevRab : prevDemo);
+            wrap.classList.remove('need-d');
+            if (!(isRab ? prevRab : prevDemo)) {
+                var back = atilabDeployAlertClass(task, kind);
+                if (back) wrap.classList.add(back.trim());
+            }
         }
         showErrorNotification('Не удалось обновить «' + labelShort + '» для #' + taskId + ': ' + (err.message || err));
     } finally {
@@ -4664,6 +5195,8 @@ function renderAtilabTasks() {
                 var flashCls = (kbFlashTaskId === task.id) ? ' is-flash' : '';
                 var demoOn = !!task.demoDone;
                 var rabOn = !!task.rabDone;
+                var demoNeed = demoOn ? '' : atilabDeployAlertClass(task, 'demo');
+                var rabNeed = rabOn ? '' : atilabDeployAlertClass(task, 'rab');
                 var factSec = task.timeFactSec || 0;
                 var planSec = task.timePlanSec || 0;
                 var timeOver = planSec > 0 && factSec > planSec;
@@ -4676,12 +5209,14 @@ function renderAtilabTasks() {
                     '<div class="kb-card-top">' +
                         '<div class="kb-card-project" title="' + escapeHtml(task.groupName) + '">' + escapeHtml(task.groupName) + '</div>' +
                         '<div class="kb-deploy-toggles" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation()">' +
-                            '<label class="kb-deploy-toggle' + (demoOn ? ' is-on' : '') + '" title="Внедрена в демо">' +
+                            '<label class="kb-deploy-toggle' + (demoOn ? ' is-on' : '') + demoNeed + '"' +
+                                (demoNeed ? ' data-alert="1"' : '') + ' title="Внедрена в демо">' +
                                 '<input type="checkbox"' + (demoOn ? ' checked' : '') +
                                     ' onchange="atilabOnDeployToggle(' + task.id + ', \'demo\', this.checked, this)">' +
                                 '<span>Дем</span>' +
                             '</label>' +
-                            '<label class="kb-deploy-toggle' + (rabOn ? ' is-on' : '') + '" title="Внедрена в рабочую">' +
+                            '<label class="kb-deploy-toggle' + (rabOn ? ' is-on' : '') + rabNeed + '"' +
+                                (rabNeed ? ' data-alert="1"' : '') + ' title="Внедрена в рабочую">' +
                                 '<input type="checkbox"' + (rabOn ? ' checked' : '') +
                                     ' onchange="atilabOnDeployToggle(' + task.id + ', \'rab\', this.checked, this)">' +
                                 '<span>Раб</span>' +
@@ -5051,9 +5586,14 @@ function formatTaskDescription(raw) {
 
 function togglePreviewDesc(btn) {
     var el = document.getElementById('previewDesc');
+    var body = document.getElementById('previewBody');
     if (!el || !btn) return;
     var collapsed = el.classList.toggle('is-collapsed');
     btn.textContent = collapsed ? 'Развернуть' : 'Свернуть';
+    if (body) {
+        if (collapsed) body.classList.remove('is-desc-expanded');
+        else body.classList.add('is-desc-expanded');
+    }
 }
 
 function pluralRu(n, one, few, many) {
@@ -5113,6 +5653,13 @@ function openAtilabPreview(taskId) {
     var descHtml = renderBitrixDescription(task.description, ATILAB_TASK_URL);
     var descPlain = formatTaskDescription(task.description);
     var descLong = descPlain.length > 280;
+    var factSec = task.timeFactSec || 0;
+    var planSec = task.timePlanSec || 0;
+    var timeClass = '';
+    if (planSec > 0) {
+        if (factSec > planSec) timeClass = ' is-over-plan';
+        else if (factSec < planSec) timeClass = ' is-under-plan';
+    }
 
     var headMeta = document.getElementById('previewHeadMeta');
     if (headMeta) {
@@ -5124,64 +5671,70 @@ function openAtilabPreview(taskId) {
     document.getElementById('previewTitle').textContent = task.title;
 
     var bodyHtml =
-        '<div class="bx-card">' +
-            (descHtml
-                ? '<div class="preview-description' + (descLong ? ' is-collapsed' : '') + '" id="previewDesc">' + descHtml + '</div>'
-                : '<div style="color:#94a3b8;font-size:13px">Нет описания</div>') +
-            '<div class="bx-attachments" id="previewAttachments"></div>' +
-            (descHtml
-                ? '<div class="bx-desc-actions">' +
-                    '<button type="button" class="preview-desc-more" onclick="togglePreviewDesc(this)">' +
-                        (descLong ? 'Развернуть' : 'Свернуть') +
-                    '</button>' +
-                  '</div>'
-                : '') +
-        '</div>' +
+        '<div class="bx-top" id="bxPreviewTop">' +
+            '<div class="bx-card">' +
+                (descHtml
+                    ? '<div class="preview-description' + (descLong ? ' is-collapsed' : '') + '" id="previewDesc">' + descHtml + '</div>'
+                    : '<div style="color:#94a3b8;font-size:13px">Нет описания</div>') +
+                '<div class="bx-attachments" id="previewAttachments"></div>' +
+                (descHtml
+                    ? '<div class="bx-desc-actions">' +
+                        '<button type="button" class="preview-desc-more" onclick="togglePreviewDesc(this)">' +
+                            (descLong ? 'Развернуть' : 'Свернуть') +
+                        '</button>' +
+                      '</div>'
+                    : '') +
+            '</div>' +
 
-        '<div class="preview-stat-grid">' +
-            '<div class="preview-stat-card">' +
-                '<div class="label">Крайний срок</div>' +
-                '<div class="value' + (isOverdue ? ' is-overdue' : '') + '">' +
-                    (task.deadline ? formatDate(task.deadline) + (isOverdue ? ' · просрочен' : '') : '—') +
+            '<div class="bx-meta-strip">' +
+                '<div class="bx-meta-cell">' +
+                    '<div class="label">Крайний срок</div>' +
+                    '<div class="value' + (isOverdue ? ' is-overdue' : '') + '">' +
+                        (task.deadline ? formatDate(task.deadline) + (isOverdue ? ' · просрочен' : '') : '—') +
+                    '</div>' +
+                '</div>' +
+                '<div class="bx-meta-cell">' +
+                    '<div class="label">Статус</div>' +
+                    '<div class="value">' + escapeHtml(stage.label) + '</div>' +
+                '</div>' +
+                '<div class="bx-meta-cell">' +
+                    '<div class="label">Создана</div>' +
+                    '<div class="value">' + (task.created ? formatDate(task.created) : '—') + '</div>' +
+                '</div>' +
+                '<div class="bx-meta-cell">' +
+                    '<div class="label">Факт / План</div>' +
+                    '<div class="value time' + timeClass + '">' +
+                        formatSecHms(factSec) + ' / ' + formatSecHms(planSec) +
+                    '</div>' +
                 '</div>' +
             '</div>' +
-            '<div class="preview-stat-card">' +
-                '<div class="label">Статус</div>' +
-                '<div class="value">' + escapeHtml(stage.label) + '</div>' +
-            '</div>' +
-        '</div>' +
-        '<div class="preview-stat-grid" style="margin-top:10px">' +
-            '<div class="preview-stat-card">' +
-                '<div class="label">Факт / План</div>' +
-                '<div class="value" style="font-variant-numeric:tabular-nums;font-size:13px">' +
-                    formatSecHms(task.timeFactSec || 0) + ' / ' + formatSecHms(task.timePlanSec || 0) +
-                '</div>' +
-            '</div>' +
-            '<div class="preview-stat-card">' +
-                '<div class="label">Создана</div>' +
-                '<div class="value">' + (task.created ? formatDate(task.created) : '—') + '</div>' +
-            '</div>' +
         '</div>' +
 
-        '<div class="preview-comments-section">' +
-            '<div class="preview-comments-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Мои комментарии</div>' +
-            '<div class="preview-comment-input-row">' +
-                '<textarea class="preview-comment-input" id="commentInput" placeholder="Добавить комментарий..." rows="1" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();addAtilabComment(' + task.id + ')}"></textarea>' +
-                '<button class="btn-add-comment" id="btnAddComment" onclick="addAtilabComment(' + task.id + ')">+</button>' +
+        '<div class="bx-splitter" id="bxChatSplitter" title="Потяни — изменить высоту чата"></div>' +
+
+        '<div class="bx-chat-card" id="bxChatCard">' +
+            '<div class="bx-chat-head">' +
+                '<div class="bx-chat-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Чат задачи</div>' +
+                '<button type="button" class="bx-chat-load" id="bxChatLoadBtn" style="display:none" onclick="loadMoreAtilabChat(' + task.id + ')">Подгрузить ещё</button>' +
             '</div>' +
-            '<div class="preview-comments-list" id="commentsList"></div>' +
+            '<div class="bx-chat-list" id="bxChatList"><div class="bx-chat-empty">Загрузка…</div></div>' +
+            '<div class="bx-chat-input-row">' +
+                '<textarea class="preview-comment-input" id="commentInput" placeholder="Написать в чат…" rows="1" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();sendAtilabChatMessage(' + task.id + ')}"></textarea>' +
+                '<button class="btn-add-comment" id="btnAddComment" onclick="sendAtilabChatMessage(' + task.id + ')">+</button>' +
+            '</div>' +
         '</div>';
 
     var bodyEl = document.getElementById('previewBody');
     bodyEl.className = 'preview-body is-bx';
     bodyEl.innerHTML = bodyHtml;
-    renderAtilabComments(task.id);
+    initBxChatSplitter();
     loadAtilabPreviewAttachments(task.id);
+    initAtilabChat(task.id);
 
     document.getElementById('previewFooter').innerHTML =
-        '<a class="btn-open-bitrix" href="' + ATILAB_TASK_URL + task.id + '/" target="_blank" rel="noopener">' +
-            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
-            'Открыть в Битрикс24' +
+        '<a class="btn-open-bitrix is-mini" href="' + ATILAB_TASK_URL + task.id + '/" target="_blank" rel="noopener">' +
+            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
+            'Битрикс24' +
         '</a>';
 
     document.getElementById('previewOverlay').classList.add('active');
@@ -5252,6 +5805,288 @@ async function loadAtilabPreviewAttachments(taskId) {
     var html = renderAtilabAttachments(files);
     el.innerHTML = html;
     if (!html) el.style.display = 'none';
+}
+
+// ===== АТИЛАБ: чат задачи (новый Bitrix: chatId + im.dialog.messages.get) =====
+var ATILAB_CHAT_PAGE = 10;
+var atilabChatState = {};
+
+function atilabApiBases() {
+    var bases = [];
+    if (ATILAB_API) bases.push(ATILAB_API);
+    if (typeof ATILAB_READ_API !== 'undefined' && ATILAB_READ_API && bases.indexOf(ATILAB_READ_API) === -1) {
+        bases.push(ATILAB_READ_API);
+    }
+    return bases;
+}
+
+async function ensureAtilabTaskChatId(task) {
+    if (!task) return '';
+    if (task.chatId) return String(task.chatId);
+    var bases = atilabApiBases();
+    for (var i = 0; i < bases.length; i++) {
+        try {
+            incrementApiCount();
+            var resp = await fetch(bases[i] + 'tasks.task.get?taskId=' + encodeURIComponent(task.id) +
+                '&select%5B%5D=ID&select%5B%5D=CHAT_ID');
+            var data = await resp.json();
+            if (!isValidApiResponse(data) || !data.result || !data.result.task) continue;
+            var cid = data.result.task.chatId || data.result.task.CHAT_ID || '';
+            if (cid) {
+                task.chatId = String(cid);
+                return task.chatId;
+            }
+        } catch (e) {
+            console.warn('[atilab] chatId fetch failed', e);
+        }
+    }
+    return '';
+}
+
+function normalizeImChatMessages(result) {
+    var messages = (result && result.messages) ? result.messages : [];
+    if (!Array.isArray(messages)) messages = [];
+    var users = (result && result.users) ? result.users : [];
+    var userMap = {};
+    if (Array.isArray(users)) {
+        users.forEach(function(u) {
+            if (u && u.id != null) userMap[String(u.id)] = u.name || ((u.first_name || '') + ' ' + (u.last_name || '')).trim();
+        });
+    } else if (users && typeof users === 'object') {
+        Object.keys(users).forEach(function(k) {
+            var u = users[k];
+            if (u) userMap[String(u.id || k)] = u.name || '';
+        });
+    }
+
+    return messages.map(function(m) {
+        var authorId = String(m.author_id != null ? m.author_id : (m.authorId || ''));
+        // Системные события задачи (учёт времени, старт/пауза и т.п.)
+        if (authorId === '0' || authorId === '') return null;
+
+        var name = userMap[authorId] ||
+            (typeof atilabUserMap !== 'undefined' && atilabUserMap[authorId]) ||
+            'Пользователь';
+
+        return {
+            id: parseInt(m.id, 10) || 0,
+            authorName: name,
+            date: m.date || '',
+            message: m.text || '',
+            messageHtml: ''
+        };
+    }).filter(function(c) {
+        return c && c.id > 0 && String(c.message || '').trim().length > 0;
+    });
+}
+
+/** Последние N сообщений чата задачи. beforeId = LAST_ID для более старых. */
+async function atilabFetchCommentBatch(taskId, limit, beforeId) {
+    limit = limit || ATILAB_CHAT_PAGE;
+    var task = atilabTasks.find(function(t) { return t.id === taskId; });
+    if (!task) return { items: [], error: 'задача не найдена', hasMore: false };
+
+    var chatId = await ensureAtilabTaskChatId(task);
+    if (!chatId) {
+        return { items: [], error: null, hasMore: false };
+    }
+
+    // Берём с запасом: часть сообщений системные и отфильтруются
+    var fetchLimit = Math.max(limit * 3, 30);
+    var path = 'im.dialog.messages.get?DIALOG_ID=' + encodeURIComponent('chat' + chatId) +
+        '&LIMIT=' + encodeURIComponent(fetchLimit);
+    if (beforeId != null) path += '&LAST_ID=' + encodeURIComponent(beforeId);
+
+    var bases = atilabApiBases();
+    var lastErr = null;
+    for (var b = 0; b < bases.length; b++) {
+        try {
+            incrementApiCount();
+            var resp = await fetch(bases[b] + path);
+            var data = await resp.json();
+            if (data && data.error) {
+                lastErr = data.error_description || data.error;
+                continue;
+            }
+            if (!isValidApiResponse(data)) {
+                lastErr = 'bad response';
+                continue;
+            }
+            var items = normalizeImChatMessages(data.result || {});
+            // API отдаёт от новых к старым
+            var page = items.slice(0, limit);
+            var rawLen = (data.result && data.result.messages && data.result.messages.length) || 0;
+            return {
+                items: page,
+                error: null,
+                hasMore: rawLen >= fetchLimit || items.length > limit
+            };
+        } catch (e) {
+            lastErr = (e && e.message) ? e.message : 'network';
+            console.warn('[atilab] im.dialog.messages.get failed', e);
+        }
+    }
+    return { items: [], error: lastErr, hasMore: false };
+}
+
+function renderAtilabChatMessageHtml(c) {
+    if (c.messageHtml) {
+        var wrap = document.createElement('div');
+        wrap.innerHTML = c.messageHtml;
+        sanitizeBitrixHtml(wrap);
+        linkifyBitrixTaskRefs(wrap, ATILAB_TASK_URL);
+        return wrap.innerHTML;
+    }
+    var raw = String(c.message || '')
+        .replace(/\[USER=\d+\]([\s\S]*?)\[\/USER\]/gi, '<strong>$1</strong>');
+    return renderBitrixDescription(raw, ATILAB_TASK_URL);
+}
+
+function updateAtilabChatLoadBtn(taskId) {
+    var btn = document.getElementById('bxChatLoadBtn');
+    var st = atilabChatState[taskId];
+    if (!btn || !st) return;
+    if (!st.hasMore) {
+        btn.style.display = 'none';
+        return;
+    }
+    btn.style.display = '';
+    btn.disabled = !!st.loading;
+    btn.textContent = st.loading ? 'Загрузка…' : 'Подгрузить ещё';
+}
+
+function renderAtilabChat(taskId, scrollToBottom) {
+    var list = document.getElementById('bxChatList');
+    var st = atilabChatState[taskId];
+    if (!list || !st) return;
+
+    if (st.error && !st.items.length) {
+        list.innerHTML = '<div class="bx-chat-empty">Не удалось загрузить чат</div>';
+        updateAtilabChatLoadBtn(taskId);
+        return;
+    }
+
+    if (!st.items.length) {
+        list.innerHTML = '<div class="bx-chat-empty">В задаче пока нет сообщений</div>';
+        updateAtilabChatLoadBtn(taskId);
+        return;
+    }
+
+    var prevHeight = list.scrollHeight;
+    var prevTop = list.scrollTop;
+
+    list.innerHTML = st.items.map(function(c) {
+        return '<div class="bx-chat-item" data-id="' + c.id + '">' +
+            '<div class="bx-chat-meta">' +
+                '<span class="bx-chat-author">' + escapeHtml(c.authorName) + '</span>' +
+                '<span class="bx-chat-time">' + escapeHtml(formatCommentTime(c.date)) + '</span>' +
+            '</div>' +
+            '<div class="bx-chat-text">' + renderAtilabChatMessageHtml(c) + '</div>' +
+        '</div>';
+    }).join('');
+
+    updateAtilabChatLoadBtn(taskId);
+
+    if (scrollToBottom) {
+        list.scrollTop = list.scrollHeight;
+    } else {
+        list.scrollTop = list.scrollHeight - prevHeight + prevTop;
+    }
+}
+
+async function initAtilabChat(taskId) {
+    atilabChatState[taskId] = { items: [], hasMore: false, loading: false, error: null };
+    await loadMoreAtilabChat(taskId, true);
+}
+
+async function loadMoreAtilabChat(taskId, isInitial) {
+    var st = atilabChatState[taskId];
+    if (!st) {
+        atilabChatState[taskId] = { items: [], hasMore: false, loading: false, error: null };
+        st = atilabChatState[taskId];
+    }
+    if (st.loading) return;
+    st.loading = true;
+    updateAtilabChatLoadBtn(taskId);
+
+    var beforeId = isInitial ? null : (st.items.length ? st.items[0].id : null);
+    var res = await atilabFetchCommentBatch(taskId, ATILAB_CHAT_PAGE, beforeId);
+    var batch = res.items || [];
+    var chrono = batch.slice().reverse();
+
+    if (isInitial) {
+        st.items = chrono;
+        st.error = res.error || null;
+    } else {
+        st.items = chrono.concat(st.items);
+    }
+    st.hasMore = !!res.hasMore;
+    st.loading = false;
+    renderAtilabChat(taskId, !!isInitial);
+
+    // Если в подгруженном чате есть ЕОД с переносом — сразу сигнал на карточку
+    if (isInitial && batch.length) {
+        var task = atilabTasks.find(function(t) { return t.id === taskId; });
+        if (task && atilabTaskNeedsEodScan(task)) {
+            var demo = false, rab = false;
+            batch.forEach(function(msg) {
+                var hit = parseEodDeployTargets(msg.message || '');
+                if (hit.demo) demo = true;
+                if (hit.rab) rab = true;
+            });
+            if (demo || rab) {
+                atilabApplyEodDeployTags(task, { demo: demo, rab: rab }).then(function(changed) {
+                    if (changed) renderAtilabTasks();
+                });
+            }
+        }
+    }
+}
+
+async function sendAtilabChatMessage(taskId) {
+    var input = document.getElementById('commentInput');
+    var btn = document.getElementById('btnAddComment');
+    if (!input) return;
+    var text = input.value.trim();
+    if (!text) return;
+    if (btn) btn.disabled = true;
+
+    var task = atilabTasks.find(function(t) { return t.id === taskId; });
+    var chatId = task ? await ensureAtilabTaskChatId(task) : '';
+    var ok = false;
+
+    if (chatId && ATILAB_API) {
+        try {
+            incrementApiCount();
+            var resp = await fetch(ATILAB_API + 'im.message.add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    DIALOG_ID: 'chat' + chatId,
+                    MESSAGE: text
+                })
+            });
+            var data = await resp.json();
+            if (data && !data.error && data.result) ok = true;
+            else console.warn('[atilab] im.message.add', data && data.error);
+        } catch (e) {
+            console.warn('[atilab] im.message.add failed', e);
+        }
+    }
+
+    if (!ok) {
+        var legacy = await atilabAddTaskComment(taskId, text);
+        ok = !!legacy;
+    }
+
+    if (!ok) {
+        if (btn) btn.disabled = false;
+        showErrorNotification('Не удалось отправить сообщение в Bitrix24');
+        return;
+    }
+    input.value = '';
+    if (btn) btn.disabled = false;
+    await initAtilabChat(taskId);
 }
 
 function getAtilabCommentsStorage() {
