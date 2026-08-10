@@ -1551,28 +1551,6 @@
             border-color: #22c55e;
             color: #14532d;
         }
-        .kb-clarify-btn {
-            margin-left: auto;
-            border: 1px solid #e2e8f0;
-            background: #f8fafc;
-            color: #64748b;
-            font-size: 10px;
-            font-weight: 600;
-            line-height: 1;
-            padding: 3px 7px;
-            border-radius: 6px;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-        .kb-clarify-btn:hover {
-            background: #f1f5f9;
-            color: #334155;
-        }
-        .kb-clarify-btn.is-on {
-            background: #fff7ed;
-            border-color: #fdba74;
-            color: #c2410c;
-        }
 
         /* ===== COMMENTS BLOCK IN PREVIEW ===== */
         .preview-comments-section {
@@ -2710,7 +2688,7 @@
                     <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
                 </div>
                 <span class="concept-badge" id="conceptBadge">КАНБАН · КОНЦЕПТ</span>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.66</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.67</span>
                 <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
             </div>
         </div>
@@ -2844,7 +2822,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             Копировать список
         </button>
-        <button class="btn-copy-tasks is-excel" id="btnExportAtilabExcel" onclick="exportAtilabExcel()" title="Excel: Уточнить / К внедрению / В Счет">
+        <button class="btn-copy-tasks is-excel" id="btnExportAtilabExcel" onclick="exportAtilabExcel()" title="Excel: Уточнить (Релиз без Раб) / К внедрению / В Счет">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h2"/><path d="M8 17h2"/><path d="M14 13h2"/><path d="M14 17h2"/></svg>
             Excel
         </button>
@@ -3414,36 +3392,6 @@ let atilabDeployNeedFilter = false; // true = только карточки с �
 let atilabLastFiltered = [];
 let atilabIsLoaded = false;
 let atilabUserMap = {};
-var ATILAB_CLARIFY_KEY = 'atilab_clarify_ids_v1';
-var atilabClarifyIds = loadAtilabClarifyIds();
-
-function loadAtilabClarifyIds() {
-    try {
-        var raw = localStorage.getItem(ATILAB_CLARIFY_KEY);
-        var arr = raw ? JSON.parse(raw) : [];
-        return new Set((arr || []).map(String));
-    } catch (e) { return new Set(); }
-}
-
-function saveAtilabClarifyIds() {
-    try { localStorage.setItem(ATILAB_CLARIFY_KEY, JSON.stringify(Array.from(atilabClarifyIds))); } catch (e) {}
-}
-
-function atilabIsClarify(taskId) {
-    return atilabClarifyIds.has(String(taskId));
-}
-
-function toggleAtilabClarify(taskId, ev) {
-    if (ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-    }
-    var key = String(taskId);
-    if (atilabClarifyIds.has(key)) atilabClarifyIds.delete(key);
-    else atilabClarifyIds.add(key);
-    saveAtilabClarifyIds();
-    renderAtilabTasks();
-}
 
 // ===== ВНЕДРЕНИЕ STATE =====
 let vnedrenieTasks = [];          // массив задач с тегами ВНЕДРЕНИЕ за последние N дней
@@ -5588,12 +5536,6 @@ function renderAtilabTasks() {
                     '<div class="kb-card-foot">' +
                         '<span class="kb-card-assignee" title="' + escapeHtml(task.responsibleName) + '">' + escapeHtml(shortName) + '</span>' +
                         (isOverdue ? '<span class="kb-card-overdue-flag">просрочен</span>' : '') +
-                        '<button type="button" class="kb-clarify-btn' + (atilabIsClarify(task.id) ? ' is-on' : '') + '"' +
-                            ' title="В Excel → блок «Уточнить»"' +
-                            ' onpointerdown="event.stopPropagation()"' +
-                            ' onclick="toggleAtilabClarify(' + task.id + ', event)">' +
-                            (atilabIsClarify(task.id) ? 'Уточн. ✓' : 'Уточн.') +
-                        '</button>' +
                     '</div>' +
                 '</div>';
             }).join('');
@@ -8057,12 +7999,15 @@ function exportAtilabExcel() {
         return;
     }
 
-    var listClarify = source.filter(function(t) { return atilabIsClarify(t.id); });
+    var listClarify = source.filter(function(t) {
+        // Релиз без галки «Раб» — уточнить, надо ли в рабочую
+        return t.status === 'release' && !t.rabDone;
+    });
     var listDeploy = source.filter(atilabTaskHasDeployNeed);
     var listInvoice = source.filter(function(t) { return t.status === 'invoice'; });
 
     if (!listClarify.length && !listDeploy.length && !listInvoice.length) {
-        alert('Пусто: отметьте «Уточн.» на карточках, либо есть задачи к внедрению / в Счет.');
+        alert('Пусто по текущим фильтрам: нет Релиза без «Раб», к внедрению и Счета.');
         return;
     }
 
@@ -8077,7 +8022,7 @@ function exportAtilabExcel() {
 
     var blocks = [
         {
-            title: 'Уточнить',
+            title: 'Уточнить (Релиз без Раб)',
             startCol: 1,
             accent: 'FFEA580C',
             headerBg: 'FFFFEDD5',
