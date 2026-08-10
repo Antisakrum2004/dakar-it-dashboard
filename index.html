@@ -2688,7 +2688,7 @@
                     <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
                 </div>
                 <span class="concept-badge" id="conceptBadge">КАНБАН · КОНЦЕПТ</span>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.68</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.69</span>
                 <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
             </div>
         </div>
@@ -4882,19 +4882,43 @@ var ATILAB_DEPLOY_NOTE_KEY = 'atilab_deploy_note_sent_v1';
 var ATILAB_DEPLOY_REPAIR_KEY = 'atilab_deploy_repair_v62';
 /** Если галку поставил не владелец read-хука (116) — считаем, что это Владимир */
 var ATILAB_OTHER_DEPLOYER_NAME = 'Владимир';
+var atilabForeignDeploySyncRunning = false;
+
+function atilabNormDeployChatText(s) {
+    return String(s || '')
+        .toLowerCase()
+        .replace(/ё/g, 'е')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\[[^\]]*\]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
 
 async function atilabTaskChatHasDeployNote(task, kind) {
     if (!task || !task.id) return false;
     try {
-        var batch = await atilabFetchCommentBatch(task.id, 30, null);
+        var batch = await atilabFetchCommentBatch(task.id, 40, null);
         var needle = kind === 'rab' ? 'рабоч' : 'демо';
         return (batch.items || []).some(function(m) {
-            var t = String(m.message || '').toLowerCase();
-            return (t.indexOf('внедрен') !== -1 || t.indexOf('перенес') !== -1) && t.indexOf(needle) !== -1;
+            var t = atilabNormDeployChatText(m.message || '');
+            if (t.indexOf(needle) === -1) return false;
+            // «внедрена в …» / «Владимир перенёс в …» / «Имя: внедрена в …»
+            return (
+                t.indexOf('внедрен') !== -1 ||
+                t.indexOf('перенес') !== -1 ||
+                t.indexOf('перенос') !== -1
+            );
         });
     } catch (e) {
         return false;
     }
+}
+
+function atilabSaveDeployNoteMaps(seen, notes) {
+    try {
+        localStorage.setItem(ATILAB_DEPLOY_SEEN_KEY, JSON.stringify(seen || {}));
+        localStorage.setItem(ATILAB_DEPLOY_NOTE_KEY, JSON.stringify(notes || {}));
+    } catch (e) {}
 }
 
 /**
@@ -4904,6 +4928,12 @@ async function atilabTaskChatHasDeployNote(task, kind) {
  */
 async function syncAtilabForeignDeployNotes() {
     if (!atilabTasks || !atilabTasks.length) return;
+    if (atilabForeignDeploySyncRunning) {
+        console.log('[atilab] foreign deploy notes: skip (already running)');
+        return;
+    }
+    atilabForeignDeploySyncRunning = true;
+    try {
     var ownerId = getAtilabOwnerUserId();
     var activeUid = getAtilabActiveHookUserId();
     // Служебную отбивку «от Владимира» шлём только когда на доске хук владельца (116)
@@ -4945,26 +4975,36 @@ async function syncAtilabForeignDeployNotes() {
             var hasNote = await atilabTaskChatHasDeployNote(task, sp.kind);
             if (hasNote) {
                 notes[key] = Date.now();
+                atilabSaveDeployNoteMaps(seen, notes);
                 continue;
             }
 
+            // Сразу помечаем до POST — иначе два параллельных refresh продублируют
+            notes[key] = Date.now();
+            atilabSaveDeployNoteMaps(seen, notes);
+
             var ts = vnFormatDoneTime(Date.now());
-            var text = '✅ ' + ATILAB_OTHER_DEPLOYER_NAME + ' перенёс в ' + sp.where + ' (' + ts + ')';
+            var text = '✅ ' + ATILAB_OTHER_DEPLOYER_NAME + ' перенес в ' + sp.where + ' (' + ts + ')';
             var res = await atilabPostToTaskChat(task.id, text, ATILAB_BOT_API);
             if (res.ok) {
-                notes[key] = Date.now();
                 posted++;
                 console.log('[atilab] foreign deploy note #' + task.id + ' ' + sp.kind);
+            } else {
+                // Не держим «якобы отправлено», если Bitrix отклонил
+                delete notes[key];
+                atilabSaveDeployNoteMaps(seen, notes);
             }
             await new Promise(function(r) { setTimeout(r, 120); });
         }
     }
 
     try {
-        localStorage.setItem(ATILAB_DEPLOY_SEEN_KEY, JSON.stringify(seen));
-        localStorage.setItem(ATILAB_DEPLOY_NOTE_KEY, JSON.stringify(notes));
+        atilabSaveDeployNoteMaps(seen, notes);
         if (needRepair) localStorage.setItem(ATILAB_DEPLOY_REPAIR_KEY, '1');
     } catch (e) {}
+    } finally {
+        atilabForeignDeploySyncRunning = false;
+    }
 }
 
 function showAtilabHookRequired() {
