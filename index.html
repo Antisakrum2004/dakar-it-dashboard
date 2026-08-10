@@ -2688,7 +2688,7 @@
                     <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
                 </div>
                 <span class="concept-badge" id="conceptBadge">КАНБАН · КОНЦЕПТ</span>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.69</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.70</span>
                 <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
             </div>
         </div>
@@ -4331,10 +4331,7 @@ async function loadAtilabData() {
                 console.log('  DEBUG task #' + t.id + ': stageId=' + t.stageId + ', kanbanStage=' + t.kanbanStage + ', status=' + t.status + ', group=' + t.groupName + ' (' + t.groupId + ')');
             }
         });
-        // Фоном: галки не от 116 без сообщения в чате → «Владимир перенёс…»
-        syncAtilabForeignDeployNotes().catch(function(e) {
-            console.warn('[atilab] foreign deploy notes', e);
-        });
+        // Авто-отбивки «Владимир перенёс…» отключены (ложно списывали на Владимира).
         return true;
     } catch(e) {
         console.error('Atilab data load failed:', e);
@@ -4922,89 +4919,13 @@ function atilabSaveDeployNoteMaps(seen, notes) {
 }
 
 /**
- * После загрузки доски:
- * — если тег внедрена_* появился, а в чате задачи нет отбивки,
- * — и смотрим с хука 116 (владелец) — пишем «Владимир перенёс в … (дата)».
+ * РАНЬШЕ: при обновлении доски под хуком 116 бот писал
+ * «✅ Владимир перенёс в …» на все галки внедрена_* без сообщения в чате.
+ * Это ложно списывало старые/чужие галки на Владимира (см. пачку ~17:18–17:19).
+ * Отключено: галку пишет только тот, кто реально нажал Дем/Раб со своим хуком.
  */
 async function syncAtilabForeignDeployNotes() {
-    if (!atilabTasks || !atilabTasks.length) return;
-    if (atilabForeignDeploySyncRunning) {
-        console.log('[atilab] foreign deploy notes: skip (already running)');
-        return;
-    }
-    atilabForeignDeploySyncRunning = true;
-    try {
-    var ownerId = getAtilabOwnerUserId();
-    var activeUid = getAtilabActiveHookUserId();
-    // Служебную отбивку «от Владимира» шлём только когда на доске хук владельца (116)
-    if (activeUid && activeUid !== ownerId) return;
-
-    var seen = {};
-    var notes = {};
-    try { seen = JSON.parse(localStorage.getItem(ATILAB_DEPLOY_SEEN_KEY) || '{}') || {}; } catch (e) { seen = {}; }
-    try { notes = JSON.parse(localStorage.getItem(ATILAB_DEPLOY_NOTE_KEY) || '{}') || {}; } catch (e) { notes = {}; }
-
-    var hadSeenStore = !!localStorage.getItem(ATILAB_DEPLOY_SEEN_KEY);
-    var needRepair = !localStorage.getItem(ATILAB_DEPLOY_REPAIR_KEY);
-    var posted = 0;
-    var maxPost = 12;
-
-    for (var i = 0; i < atilabTasks.length; i++) {
-        var task = atilabTasks[i];
-        var specs = [
-            { kind: 'demo', done: !!task.demoDone, where: 'демо' },
-            { kind: 'rab', done: !!task.rabDone, where: 'рабочую' }
-        ];
-        for (var s = 0; s < specs.length; s++) {
-            var sp = specs[s];
-            var key = String(task.id) + ':' + sp.kind;
-            if (!sp.done) {
-                if (seen[key]) delete seen[key];
-                continue;
-            }
-            var wasSeen = !!seen[key];
-            seen[key] = 1;
-            if (notes[key]) continue;
-
-            // Первый проход: запоминаем уже стоящие галки, без массового спама
-            // (кроме one-time repair для дыр без сообщения в чате)
-            var shouldCheck = (!hadSeenStore && needRepair) || (hadSeenStore && !wasSeen);
-            if (!shouldCheck) continue;
-            if (posted >= maxPost) continue;
-
-            var hasNote = await atilabTaskChatHasDeployNote(task, sp.kind);
-            if (hasNote) {
-                notes[key] = Date.now();
-                atilabSaveDeployNoteMaps(seen, notes);
-                continue;
-            }
-
-            // Сразу помечаем до POST — иначе два параллельных refresh продублируют
-            notes[key] = Date.now();
-            atilabSaveDeployNoteMaps(seen, notes);
-
-            var ts = vnFormatDoneTime(Date.now());
-            var text = '✅ ' + ATILAB_OTHER_DEPLOYER_NAME + ' перенес в ' + sp.where + ' (' + ts + ')';
-            var res = await atilabPostToTaskChat(task.id, text, ATILAB_BOT_API);
-            if (res.ok) {
-                posted++;
-                console.log('[atilab] foreign deploy note #' + task.id + ' ' + sp.kind);
-            } else {
-                // Не держим «якобы отправлено», если Bitrix отклонил
-                delete notes[key];
-                atilabSaveDeployNoteMaps(seen, notes);
-            }
-            await new Promise(function(r) { setTimeout(r, 120); });
-        }
-    }
-
-    try {
-        atilabSaveDeployNoteMaps(seen, notes);
-        if (needRepair) localStorage.setItem(ATILAB_DEPLOY_REPAIR_KEY, '1');
-    } catch (e) {}
-    } finally {
-        atilabForeignDeploySyncRunning = false;
-    }
+    return;
 }
 
 function showAtilabHookRequired() {
