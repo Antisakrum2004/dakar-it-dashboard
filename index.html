@@ -1541,6 +1541,38 @@
             width: 15px;
             height: 15px;
         }
+        .btn-copy-tasks.is-excel {
+            background: #f0fdf4;
+            border-color: #86efac;
+            color: #166534;
+        }
+        .btn-copy-tasks.is-excel:hover {
+            background: #dcfce7;
+            border-color: #22c55e;
+            color: #14532d;
+        }
+        .kb-clarify-btn {
+            margin-left: auto;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 600;
+            line-height: 1;
+            padding: 3px 7px;
+            border-radius: 6px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .kb-clarify-btn:hover {
+            background: #f1f5f9;
+            color: #334155;
+        }
+        .kb-clarify-btn.is-on {
+            background: #fff7ed;
+            border-color: #fdba74;
+            color: #c2410c;
+        }
 
         /* ===== COMMENTS BLOCK IN PREVIEW ===== */
         .preview-comments-section {
@@ -2678,7 +2710,7 @@
                     <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
                 </div>
                 <span class="concept-badge" id="conceptBadge">КАНБАН · КОНЦЕПТ</span>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.65</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.66</span>
                 <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
             </div>
         </div>
@@ -2811,6 +2843,10 @@
         <button class="btn-copy-tasks" id="btnCopyTasksAtilab" onclick="copyTasksForCurrentTab()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             Копировать список
+        </button>
+        <button class="btn-copy-tasks is-excel" id="btnExportAtilabExcel" onclick="exportAtilabExcel()" title="Excel: Уточнить / К внедрению / В Счет">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h2"/><path d="M8 17h2"/><path d="M14 13h2"/><path d="M14 17h2"/></svg>
+            Excel
         </button>
     </div>
 </div>
@@ -3378,6 +3414,36 @@ let atilabDeployNeedFilter = false; // true = только карточки с �
 let atilabLastFiltered = [];
 let atilabIsLoaded = false;
 let atilabUserMap = {};
+var ATILAB_CLARIFY_KEY = 'atilab_clarify_ids_v1';
+var atilabClarifyIds = loadAtilabClarifyIds();
+
+function loadAtilabClarifyIds() {
+    try {
+        var raw = localStorage.getItem(ATILAB_CLARIFY_KEY);
+        var arr = raw ? JSON.parse(raw) : [];
+        return new Set((arr || []).map(String));
+    } catch (e) { return new Set(); }
+}
+
+function saveAtilabClarifyIds() {
+    try { localStorage.setItem(ATILAB_CLARIFY_KEY, JSON.stringify(Array.from(atilabClarifyIds))); } catch (e) {}
+}
+
+function atilabIsClarify(taskId) {
+    return atilabClarifyIds.has(String(taskId));
+}
+
+function toggleAtilabClarify(taskId, ev) {
+    if (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+    }
+    var key = String(taskId);
+    if (atilabClarifyIds.has(key)) atilabClarifyIds.delete(key);
+    else atilabClarifyIds.add(key);
+    saveAtilabClarifyIds();
+    renderAtilabTasks();
+}
 
 // ===== ВНЕДРЕНИЕ STATE =====
 let vnedrenieTasks = [];          // массив задач с тегами ВНЕДРЕНИЕ за последние N дней
@@ -5522,6 +5588,12 @@ function renderAtilabTasks() {
                     '<div class="kb-card-foot">' +
                         '<span class="kb-card-assignee" title="' + escapeHtml(task.responsibleName) + '">' + escapeHtml(shortName) + '</span>' +
                         (isOverdue ? '<span class="kb-card-overdue-flag">просрочен</span>' : '') +
+                        '<button type="button" class="kb-clarify-btn' + (atilabIsClarify(task.id) ? ' is-on' : '') + '"' +
+                            ' title="В Excel → блок «Уточнить»"' +
+                            ' onpointerdown="event.stopPropagation()"' +
+                            ' onclick="toggleAtilabClarify(' + task.id + ', event)">' +
+                            (atilabIsClarify(task.id) ? 'Уточн. ✓' : 'Уточн.') +
+                        '</button>' +
                     '</div>' +
                 '</div>';
             }).join('');
@@ -7966,6 +8038,183 @@ function formatCommentTime(isoStr) {
     if (diff === 0) return 'Сегодня ' + timeStr;
     if (diff <= 86400000) return 'Вчера ' + timeStr;
     return formatDate(d.toISOString().substring(0, 10)) + ' ' + timeStr;
+}
+
+// ===== EXCEL EXPORT — АтиЛаб: Уточнить | К внедрению | В Счет (3 таблицы рядом) =====
+function exportAtilabExcel() {
+    if (typeof ExcelJS === 'undefined') {
+        alert('Библиотека экспорта не загружена. Проверьте интернет-соединение.');
+        return;
+    }
+    if (currentTab !== 'atilab') {
+        alert('Откройте вкладку АтиЛаб.');
+        return;
+    }
+
+    var source = (atilabLastFiltered && atilabLastFiltered.length) ? atilabLastFiltered.slice() : [];
+    if (!source.length) {
+        alert('Нет задач по текущим фильтрам.');
+        return;
+    }
+
+    var listClarify = source.filter(function(t) { return atilabIsClarify(t.id); });
+    var listDeploy = source.filter(atilabTaskHasDeployNeed);
+    var listInvoice = source.filter(function(t) { return t.status === 'invoice'; });
+
+    if (!listClarify.length && !listDeploy.length && !listInvoice.length) {
+        alert('Пусто: отметьте «Уточн.» на карточках, либо есть задачи к внедрению / в Счет.');
+        return;
+    }
+
+    var wb = new ExcelJS.Workbook();
+    wb.creator = 'ИТ Поддержка АтиЛаб';
+    wb.created = new Date();
+
+    var ws = wb.addWorksheet('АтиЛаб', {
+        properties: { defaultColWidth: 12 },
+        views: [{ showGridLines: false }]
+    });
+
+    var blocks = [
+        {
+            title: 'Уточнить',
+            startCol: 1,
+            accent: 'FFEA580C',
+            headerBg: 'FFFFEDD5',
+            headerFg: 'FF9A3412',
+            zebra: 'FFFFF7ED',
+            tasks: listClarify
+        },
+        {
+            title: 'К внедрению',
+            startCol: 6,
+            accent: 'FF2563EB',
+            headerBg: 'FFDBEAFE',
+            headerFg: 'FF1E40AF',
+            zebra: 'FFEFF6FF',
+            tasks: listDeploy
+        },
+        {
+            title: 'В Счет',
+            startCol: 11,
+            accent: 'FF0F766E',
+            headerBg: 'FFCCFBF1',
+            headerFg: 'FF115E59',
+            zebra: 'FFF0FDFA',
+            tasks: listInvoice
+        }
+    ];
+
+    var thin = function(argb) {
+        return {
+            top: { style: 'thin', color: { argb: argb } },
+            bottom: { style: 'thin', color: { argb: argb } },
+            left: { style: 'thin', color: { argb: argb } },
+            right: { style: 'thin', color: { argb: argb } }
+        };
+    };
+    var borderSoft = thin('FFD1D5DB');
+    var borderHdr = thin('FF94A3B8');
+
+    // Title row
+    ws.mergeCells(1, 1, 1, 14);
+    var titleCell = ws.getCell(1, 1);
+    titleCell.value = 'АтиЛаб — выгрузка по фильтрам · ' + new Date().toLocaleString('ru-RU');
+    titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FF0F172A' } };
+    titleCell.alignment = { vertical: 'middle', horizontal: 'left' };
+    ws.getRow(1).height = 28;
+
+    var colWidths = {
+        1: 42, 2: 10, 3: 12, 4: 12,
+        5: 3,
+        6: 42, 7: 10, 8: 12, 9: 12,
+        10: 3,
+        11: 42, 12: 10, 13: 12, 14: 12
+    };
+    Object.keys(colWidths).forEach(function(c) {
+        ws.getColumn(Number(c)).width = colWidths[c];
+    });
+
+    function writeBlock(block) {
+        var c0 = block.startCol;
+        var sectionRow = 3;
+        var headerRow = 4;
+        var dataStart = 5;
+
+        ws.mergeCells(sectionRow, c0, sectionRow, c0 + 3);
+        var sec = ws.getCell(sectionRow, c0);
+        sec.value = block.title + '  ·  ' + block.tasks.length;
+        sec.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+        sec.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: block.accent } };
+        sec.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+        ws.getRow(sectionRow).height = 24;
+        for (var i = 0; i < 4; i++) {
+            ws.getCell(sectionRow, c0 + i).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: block.accent } };
+            ws.getCell(sectionRow, c0 + i).border = thin(block.accent);
+        }
+
+        var headers = ['Задача', 'ID', 'План', 'Факт'];
+        headers.forEach(function(h, i) {
+            var cell = ws.getCell(headerRow, c0 + i);
+            cell.value = h;
+            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: block.headerFg } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: block.headerBg } };
+            cell.alignment = { vertical: 'middle', horizontal: i === 0 ? 'left' : 'center' };
+            cell.border = borderHdr;
+        });
+        ws.getRow(headerRow).height = 20;
+
+        if (!block.tasks.length) {
+            ws.mergeCells(dataStart, c0, dataStart, c0 + 3);
+            var empty = ws.getCell(dataStart, c0);
+            empty.value = '— нет задач —';
+            empty.font = { name: 'Calibri', size: 10, italic: true, color: { argb: 'FF94A3B8' } };
+            empty.alignment = { vertical: 'middle', horizontal: 'center' };
+            for (var e = 0; e < 4; e++) {
+                ws.getCell(dataStart, c0 + e).border = borderSoft;
+                ws.getCell(dataStart, c0 + e).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+            }
+            return;
+        }
+
+        block.tasks.forEach(function(t, idx) {
+            var r = dataStart + idx;
+            var bg = (idx % 2 === 0) ? 'FFFFFFFF' : block.zebra;
+            var vals = [
+                t.title || '',
+                t.id,
+                formatSecHms(t.timePlanSec || 0),
+                formatSecHms(t.timeFactSec || 0)
+            ];
+            vals.forEach(function(v, i) {
+                var cell = ws.getCell(r, c0 + i);
+                cell.value = v;
+                cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF0F172A' } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
+                cell.border = borderSoft;
+                cell.alignment = {
+                    vertical: 'middle',
+                    horizontal: i === 0 ? 'left' : 'center',
+                    wrapText: i === 0
+                };
+                if (i === 1) cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF334155' } };
+            });
+            var planSec = t.timePlanSec || 0;
+            var factSec = t.timeFactSec || 0;
+            if (planSec > 0 && factSec > planSec) {
+                ws.getCell(r, c0 + 3).font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFDC2626' } };
+            }
+            ws.getRow(r).height = 22;
+        });
+    }
+
+    blocks.forEach(writeBlock);
+
+    var today = new Date().toISOString().slice(0, 10);
+    wb.xlsx.writeBuffer().then(function(buffer) {
+        var blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        saveAs(blob, 'IT_Atilab_' + today + '.xlsx');
+    });
 }
 
 // ===== EXCEL EXPORT — standard =====
