@@ -2678,7 +2678,7 @@
                     <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
                 </div>
                 <span class="concept-badge" id="conceptBadge">КАНБАН · КОНЦЕПТ</span>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.63</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.64</span>
                 <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
             </div>
         </div>
@@ -2896,6 +2896,14 @@ const ATILAB_READ_API = window.DASHBOARD_CONFIG.BITRIX_ATILAB_WEBHOOK_URL;
 const ATILAB_READ_TASK_URL = window.DASHBOARD_CONFIG.BITRIX_ATILAB_TASK_URL;
 let ATILAB_API = ATILAB_READ_API;
 let ATILAB_TASK_URL = ATILAB_READ_TASK_URL;
+/** Бот АтиЛаб (154) — служебные отбивки в чат задачи; fallback = read-хук */
+const ATILAB_BOT_API = (function() {
+    var raw = (window.DASHBOARD_CONFIG && window.DASHBOARD_CONFIG.BITRIX_ATILAB_BOT_WEBHOOK_URL) || '';
+    var u = String(raw || '').trim();
+    if (!u || u.indexOf('REPLACE_') !== -1) return ATILAB_READ_API;
+    if (u.slice(-1) !== '/') u += '/';
+    return u;
+})();
 
 // ВНЕДРЕНИЕ: тот же вебхук что и АтиЛаб (т.к. только у него есть скоупы im, disk)
 let VNEDRENIE_API = ATILAB_API;
@@ -4814,7 +4822,7 @@ async function atilabAddTaskComment(taskId, text) {
 /**
  * Пишет в чат задачи (im.dialog) от активного хука — это то, что видно в превью и в Bitrix «Чат».
  * Fallback: старый task.commentitem (может не отображаться в новом чате).
- * apiBase — опционально (например ATILAB_READ_API = 116 для служебных отбивок).
+ * apiBase — опционально (например ATILAB_BOT_API для служебных отбивок от бота).
  */
 async function atilabPostToTaskChat(taskId, text, apiBase) {
     var base = apiBase || ATILAB_API;
@@ -4928,7 +4936,7 @@ async function syncAtilabForeignDeployNotes() {
 
             var ts = vnFormatDoneTime(Date.now());
             var text = '✅ ' + ATILAB_OTHER_DEPLOYER_NAME + ' перенёс в ' + sp.where + ' (' + ts + ')';
-            var res = await atilabPostToTaskChat(task.id, text, ATILAB_READ_API);
+            var res = await atilabPostToTaskChat(task.id, text, ATILAB_BOT_API);
             if (res.ok) {
                 notes[key] = Date.now();
                 posted++;

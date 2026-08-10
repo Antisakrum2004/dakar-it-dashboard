@@ -31,6 +31,9 @@ window.DASHBOARD_CONFIG = {
     BITRIX_ATILAB_WEBHOOK_URL: 'https://1c-cms.bitrix24.ru/rest/REPLACE_USER_ID/REPLACE_WEBHOOK_SECRET/',
     BITRIX_ATILAB_TASK_URL: 'https://1c-cms.bitrix24.ru/company/personal/user/REPLACE_USER_ID/tasks/task/view/',
 
+    // Бот АтиЛаб — служебные сообщения в чат задачи (не от личного хука)
+    BITRIX_ATILAB_BOT_WEBHOOK_URL: 'https://1c-cms.bitrix24.ru/rest/REPLACE_BOT_USER_ID/REPLACE_BOT_WEBHOOK_SECRET/',
+
     // ---- Чат ВНЕДРЕНИЯ ----
     BITRIX_VNEDRENIE_CHAT_DIALOG_ID: 'chat7568'
 };

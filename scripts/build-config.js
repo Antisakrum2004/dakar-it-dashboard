@@ -41,6 +41,11 @@ const config = {
     BITRIX_ATILAB_WEBHOOK_URL: process.env.BITRIX_ATILAB_WEBHOOK_URL || '',
     BITRIX_ATILAB_TASK_URL: process.env.BITRIX_ATILAB_TASK_URL || '',
 
+    // ---- Бот АтиЛаб (user 154) — служебные отбивки в чат задачи ----
+    // Fallback = тот же webhook, что у EOD Inspector / AtiLab-bot
+    BITRIX_ATILAB_BOT_WEBHOOK_URL: process.env.BITRIX_ATILAB_BOT_WEBHOOK_URL ||
+        'https://1c-cms.bitrix24.ru/rest/154/f896em13hhazm006/',
+
     // ---- Чат ВНЕДРЕНИЯ ----
     BITRIX_VNEDRENIE_CHAT_DIALOG_ID: process.env.BITRIX_VNEDRENIE_CHAT_DIALOG_ID || 'chat7568'
 };
@@ -89,5 +94,6 @@ console.log('[build-config] Generated config.js successfully');
 console.log('[build-config] Keys:', Object.keys(config).join(', '));
 console.log('[build-config] BITRIX_DAKAR_WEBHOOK_URL  =', safeUrl(config.BITRIX_DAKAR_WEBHOOK_URL));
 console.log('[build-config] BITRIX_ATILAB_WEBHOOK_URL =', safeUrl(config.BITRIX_ATILAB_WEBHOOK_URL));
+console.log('[build-config] BITRIX_ATILAB_BOT_WEBHOOK_URL =', safeUrl(config.BITRIX_ATILAB_BOT_WEBHOOK_URL));
 console.log('[build-config] BITRIX_DAKAR_ENTITY_TYPE_ID =', config.BITRIX_DAKAR_ENTITY_TYPE_ID);
 console.log('[build-config] BITRIX_VNEDRENIE_CHAT_DIALOG_ID =', config.BITRIX_VNEDRENIE_CHAT_DIALOG_ID);
