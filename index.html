@@ -2688,7 +2688,7 @@
                     <button class="tab-btn" data-tab="vnedrenie" onclick="switchTab('vnedrenie')">Внедрение</button>
                 </div>
                 <span class="concept-badge" id="conceptBadge">КАНБАН · КОНЦЕПТ</span>
-                <span style="font-size:11px;font-weight:400;color:#888">v2.67</span>
+                <span style="font-size:11px;font-weight:400;color:#888">v2.68</span>
                 <div class="header-subtitle" id="lastUpdate">Загрузка...</div>
             </div>
         </div>
@@ -2822,7 +2822,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             Копировать список
         </button>
-        <button class="btn-copy-tasks is-excel" id="btnExportAtilabExcel" onclick="exportAtilabExcel()" title="Excel: Уточнить (Релиз без Раб) / К внедрению / В Счет">
+        <button class="btn-copy-tasks is-excel" id="btnExportAtilabExcel" onclick="exportAtilabExcel()" title="Excel: Уточнить = Релиз без Раб (без дублей) / К внедрению / В Счет">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h2"/><path d="M8 17h2"/><path d="M14 13h2"/><path d="M14 17h2"/></svg>
             Excel
         </button>
@@ -6577,14 +6577,23 @@ async function toggleMovedToWorking(taskId, checkbox) {
 function vnExtractTagTitles(tagsField) {
     if (!tagsField) return [];
     var titles = [];
+    function pushOne(t) {
+        if (!t) return;
+        if (typeof t === 'string') {
+            var s = t.trim();
+            if (s) titles.push(s);
+            return;
+        }
+        if (typeof t === 'object') {
+            var title = t.title || t.TITLE || t.name || t.NAME || '';
+            if (title) titles.push(String(title));
+        }
+    }
     if (Array.isArray(tagsField)) {
-        tagsField.forEach(function(t) {
-            if (t && t.title) titles.push(t.title);
-        });
+        tagsField.forEach(pushOne);
     } else if (typeof tagsField === 'object') {
         Object.keys(tagsField).forEach(function(k) {
-            var t = tagsField[k];
-            if (t && t.title) titles.push(t.title);
+            pushOne(tagsField[k]);
         });
     }
     return titles;
@@ -7999,12 +8008,35 @@ function exportAtilabExcel() {
         return;
     }
 
-    var listClarify = source.filter(function(t) {
-        // Релиз без галки «Раб» — уточнить, надо ли в рабочую
-        return t.status === 'release' && !t.rabDone;
+    // Без дублей: одна задача — только в одной таблице.
+    // Приоритет: Счет → К внедрению → Уточнить (Релиз без Раб и без сигнала внедрения).
+    var used = {};
+    var listInvoice = [];
+    var listDeploy = [];
+    var listClarify = [];
+
+    source.forEach(function(t) {
+        if (!t || !t.id) return;
+        if (t.status === 'invoice') {
+            listInvoice.push(t);
+            used[t.id] = 1;
+        }
     });
-    var listDeploy = source.filter(atilabTaskHasDeployNeed);
-    var listInvoice = source.filter(function(t) { return t.status === 'invoice'; });
+    source.forEach(function(t) {
+        if (!t || !t.id || used[t.id]) return;
+        if (atilabTaskHasDeployNeed(t)) {
+            listDeploy.push(t);
+            used[t.id] = 1;
+        }
+    });
+    source.forEach(function(t) {
+        if (!t || !t.id || used[t.id]) return;
+        // Только стадия Релиз, без галки «Раб» (внедрена_в_рабочую)
+        if (t.status === 'release' && !t.rabDone) {
+            listClarify.push(t);
+            used[t.id] = 1;
+        }
+    });
 
     if (!listClarify.length && !listDeploy.length && !listInvoice.length) {
         alert('Пусто по текущим фильтрам: нет Релиза без «Раб», к внедрению и Счета.');
